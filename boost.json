@@ -1,0 +1,12 @@
+{
+    "agents": [
+        "copilot"
+    ],
+    "editors": [
+        "vscode"
+    ],
+    "guidelines": [
+        "laravel/fortify"
+    ],
+    "herd_mcp": true
+}
