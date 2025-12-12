@@ -41,3 +41,32 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+// Stat Card types for SectionCards component
+export interface StatCardItem {
+    title: string;
+    value: string;
+    change: string;
+    changeType: 'up' | 'down';
+    description: string;
+    footerNote: string;
+}
+
+// Chart types for ChartAreaInteractive component
+export interface ChartDataPoint {
+    date: string;
+    [key: string]: string | number;
+}
+
+export interface ChartAreaConfig {
+    dataKey: string;
+    label: string;
+    color: string;
+    fillOpacity?: number;
+}
+
+export interface TimeRangeOption {
+    value: string;
+    label: string;
+    days: number;
+}
