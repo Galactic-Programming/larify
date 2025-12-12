@@ -58,7 +58,6 @@ export default function Profile({
                                         className="mt-1 block w-full"
                                         defaultValue={auth.user.name}
                                         name="name"
-                                        required
                                         autoComplete="name"
                                         placeholder="Full name"
                                     />
@@ -78,7 +77,6 @@ export default function Profile({
                                         className="mt-1 block w-full"
                                         defaultValue={auth.user.email}
                                         name="email"
-                                        required
                                         autoComplete="username"
                                         placeholder="Email address"
                                     />
