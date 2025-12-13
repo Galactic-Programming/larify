@@ -18,70 +18,40 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const steps = [
-    {
-        id: "document",
-        title: "Send your first document",
-        description:
-            "Upload a PDF and send it for signature. You'll see how easy it is to get documents signed.",
-        completed: true,
-        actionLabel: "Upload document",
-        actionHref: "#",
-    },
-    {
-        id: "template",
-        title: "Create a reusable template",
-        description:
-            "Save time by creating templates for documents you send frequently, like NDAs or contracts.",
-        completed: false,
-        actionLabel: "Create template",
-        actionHref: "#",
-    },
-    {
-        id: "team",
-        title: "Invite your team",
-        description:
-            "Add team members to collaborate on documents and manage signing workflows together.",
-        completed: false,
-        actionLabel: "Invite team",
-        actionHref: "#",
-    },
-    {
-        id: "branding",
-        title: "Customize your branding",
-        description:
-            "Add your logo and brand colors to create a professional signing experience for recipients.",
-        completed: false,
-        actionLabel: "Add branding",
-        actionHref: "#",
-    },
-    {
-        id: "api",
-        title: "Explore the API",
-        description:
-            "Integrate document signing directly into your application with our developer-friendly API.",
-        completed: false,
-        actionLabel: "View API docs",
-        actionHref: "#",
-    },
-    {
-        id: "integrations",
-        title: "Connect your tools",
-        description:
-            "Link Documenso with Zapier, Slack, or your CRM to automate your document workflows.",
-        completed: false,
-        actionLabel: "Browse integrations",
-        actionHref: "#",
-    },
-];
-
-interface OnboardingStep {
+export interface OnboardingStep {
     id: string;
     title: string;
     description: string;
     completed: boolean;
     actionLabel: string;
-    actionHref: string;
+    actionHref?: string;
+}
+
+export interface OnboardingProps {
+    /** Title displayed at the top */
+    title?: string;
+    /** Steps to display */
+    steps: OnboardingStep[];
+    /** Callback when a step action is clicked */
+    onStepAction?: (step: OnboardingStep) => void;
+    /** Callback when dismiss is clicked */
+    onDismiss?: () => void;
+    /** Callback when feedback is clicked */
+    onFeedback?: () => void;
+    /** Feedback email address */
+    feedbackEmail?: string;
+    /** Whether the component is dismissed */
+    dismissed?: boolean;
+    /** Callback when dismissed state changes */
+    onDismissedChange?: (dismissed: boolean) => void;
+    /** Text shown when dismissed */
+    dismissedText?: string;
+    /** Text for show again button */
+    showAgainText?: string;
+    /** Custom class name */
+    className?: string;
+    /** Whether to show full screen centered layout */
+    fullScreen?: boolean;
 }
 
 function CircularProgress({
@@ -144,13 +114,36 @@ function StepIndicator({ completed }: { completed: boolean }) {
     );
 }
 
-export function Onboarding() {
-    const [currentSteps, setCurrentSteps] = useState<OnboardingStep[]>(steps);
+export function Onboarding({
+    title = "Get started with Documenso",
+    steps: initialSteps,
+    onStepAction,
+    onDismiss,
+    onFeedback,
+    feedbackEmail = "hello@example.com",
+    dismissed: controlledDismissed,
+    onDismissedChange,
+    dismissedText = "Checklist dismissed",
+    showAgainText = "Show again",
+    className,
+    fullScreen = true,
+}: OnboardingProps) {
+    const [currentSteps, setCurrentSteps] = useState<OnboardingStep[]>(initialSteps);
     const [openStepId, setOpenStepId] = useState<string | null>(() => {
-        const firstIncomplete = steps.find((s) => !s.completed);
-        return firstIncomplete?.id ?? steps[0]?.id ?? null;
+        const firstIncomplete = initialSteps.find((s) => !s.completed);
+        return firstIncomplete?.id ?? initialSteps[0]?.id ?? null;
     });
-    const [dismissed, setDismissed] = useState(false);
+    const [uncontrolledDismissed, setUncontrolledDismissed] = useState(false);
+
+    const isControlled = controlledDismissed !== undefined;
+    const isDismissed = isControlled ? controlledDismissed : uncontrolledDismissed;
+
+    const setDismissed = (value: boolean) => {
+        if (!isControlled) {
+            setUncontrolledDismissed(value);
+        }
+        onDismissedChange?.(value);
+    };
 
     const completedCount = currentSteps.filter((s) => s.completed).length;
     const remainingCount = currentSteps.length - completedCount;
@@ -160,21 +153,42 @@ export function Onboarding() {
     };
 
     const handleStepAction = (step: OnboardingStep) => {
-        setCurrentSteps((prev) =>
-            prev.map((s) => (s.id === step.id ? { ...s, completed: true } : s))
-        );
+        if (onStepAction) {
+            onStepAction(step);
+        } else {
+            setCurrentSteps((prev) =>
+                prev.map((s) => (s.id === step.id ? { ...s, completed: true } : s))
+            );
+        }
     };
 
-    if (dismissed) {
+    const handleDismiss = () => {
+        setDismissed(true);
+        onDismiss?.();
+    };
+
+    const handleFeedback = () => {
+        if (onFeedback) {
+            onFeedback();
+        } else {
+            window.open(`mailto:${feedbackEmail}?subject=Feedback`);
+        }
+    };
+
+    const wrapperClass = fullScreen
+        ? "flex min-h-screen items-center justify-center bg-background p-4"
+        : "";
+
+    if (isDismissed) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-background p-4">
+            <div className={cn(wrapperClass, className)}>
                 <div className="text-center">
-                    <p className="text-muted-foreground">Checklist dismissed</p>
+                    <p className="text-muted-foreground">{dismissedText}</p>
                     <button
                         onClick={() => setDismissed(false)}
                         className="mt-2 text-sm text-primary underline"
                     >
-                        Show again
+                        {showAgainText}
                     </button>
                 </div>
             </div>
@@ -182,13 +196,11 @@ export function Onboarding() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className={cn(wrapperClass, className)}>
             <div className="w-full max-w-xl">
                 <div className="w-xl rounded-lg border bg-card p-4 text-card-foreground shadow-xs">
                     <div className="mb-4 mr-2 flex flex-col justify-between sm:flex-row sm:items-center">
-                        <h3 className="ml-2 font-semibold text-foreground">
-                            Get started with Documenso
-                        </h3>
+                        <h3 className="ml-2 font-semibold text-foreground">{title}</h3>
                         <div className="mt-2 flex items-center justify-end sm:mt-0">
                             <CircularProgress
                                 completed={remainingCount}
@@ -212,18 +224,14 @@ export function Onboarding() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-40">
-                                    <DropdownMenuItem onClick={() => setDismissed(true)}>
+                                    <DropdownMenuItem onClick={handleDismiss}>
                                         <IconArchive
                                             className="mr-2 h-4 w-4 shrink-0"
                                             aria-hidden="true"
                                         />
                                         Dismiss
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() =>
-                                            window.open("mailto:hello@example.com?subject=Feedback")
-                                        }
-                                    >
+                                    <DropdownMenuItem onClick={handleFeedback}>
                                         <IconMail
                                             className="mr-2 h-4 w-4 shrink-0"
                                             aria-hidden="true"
@@ -306,9 +314,13 @@ export function Onboarding() {
                                                                     e.stopPropagation();
                                                                     handleStepAction(step);
                                                                 }}
-                                                                asChild
+                                                                asChild={!!step.actionHref}
                                                             >
-                                                                <a href={step.actionHref}>{step.actionLabel}</a>
+                                                                {step.actionHref ? (
+                                                                    <a href={step.actionHref}>{step.actionLabel}</a>
+                                                                ) : (
+                                                                    step.actionLabel
+                                                                )}
                                                             </Button>
                                                         </div>
                                                     </div>
