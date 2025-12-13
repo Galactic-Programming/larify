@@ -6,6 +6,31 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/password/confirm';
 import { Form, Head } from '@inertiajs/react';
+import { motion, Variants } from 'motion/react';
+
+// Animation variants
+const formVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+        },
+    },
+};
+
+const fieldVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 12,
+        },
+    },
+};
 
 export default function ConfirmPassword() {
     return (
@@ -17,8 +42,13 @@ export default function ConfirmPassword() {
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
-                    <div className="space-y-6">
-                        <div className="grid gap-2">
+                    <motion.div
+                        className="space-y-6"
+                        variants={formVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.div className="grid gap-2" variants={fieldVariants}>
                             <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
@@ -30,9 +60,9 @@ export default function ConfirmPassword() {
                             />
 
                             <InputError message={errors.password} />
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center">
+                        <motion.div className="flex items-center" variants={fieldVariants}>
                             <Button
                                 className="w-full"
                                 disabled={processing}
@@ -41,8 +71,8 @@ export default function ConfirmPassword() {
                                 {processing && <Spinner />}
                                 Confirm password
                             </Button>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 )}
             </Form>
         </AuthLayout>

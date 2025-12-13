@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/react';
+import { motion, Variants } from 'motion/react';
 
 import InputError from '@/components/input-error';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
@@ -13,6 +14,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+
+// Animation variants for staggered form fields
+const formVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.06,
+        },
+    },
+};
+
+const fieldVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 12,
+        },
+    },
+};
 
 export default function Register() {
     const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -31,8 +56,16 @@ export default function Register() {
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
+                        <motion.div
+                            className="grid gap-6"
+                            variants={formVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <Label htmlFor="name">Name</Label>
                                 <Input
                                     id="name"
@@ -47,9 +80,12 @@ export default function Register() {
                                     message={errors.name}
                                     className="mt-2"
                                 />
-                            </div>
+                            </motion.div>
 
-                            <div className="grid gap-2">
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
@@ -60,9 +96,12 @@ export default function Register() {
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
-                            </div>
+                            </motion.div>
 
-                            <div className="grid gap-2">
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <Label htmlFor="password">Password</Label>
                                 <Input
                                     id="password"
@@ -73,9 +112,12 @@ export default function Register() {
                                     placeholder="Password"
                                 />
                                 <InputError message={errors.password} />
-                            </div>
+                            </motion.div>
 
-                            <div className="grid gap-2">
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <Label htmlFor="password_confirmation">
                                     Confirm password
                                 </Label>
@@ -90,9 +132,12 @@ export default function Register() {
                                 <InputError
                                     message={errors.password_confirmation}
                                 />
-                            </div>
+                            </motion.div>
 
-                            <div className="flex items-start space-x-3">
+                            <motion.div
+                                className="flex items-start space-x-3"
+                                variants={fieldVariants}
+                            >
                                 <Checkbox
                                     id="terms"
                                     name="terms"
@@ -116,28 +161,41 @@ export default function Register() {
                                         Privacy Policy
                                     </TextLink>
                                 </Label>
-                            </div>
+                            </motion.div>
 
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={8}
-                                disabled={!agreedToTerms || processing}
-                                data-test="register-user-button"
-                            >
-                                {processing && <Spinner />}
-                                Create account
-                            </Button>
-                        </div>
+                            <motion.div variants={fieldVariants}>
+                                <Button
+                                    type="submit"
+                                    className="mt-2 w-full"
+                                    tabIndex={8}
+                                    disabled={!agreedToTerms || processing}
+                                    data-test="register-user-button"
+                                >
+                                    {processing && <Spinner />}
+                                    Create account
+                                </Button>
+                            </motion.div>
+                        </motion.div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <motion.div
+                            className="text-center text-sm text-muted-foreground"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                        >
                             Already have an account?{' '}
                             <TextLink href={login()} tabIndex={9}>
                                 Log in
                             </TextLink>
-                        </div>
+                        </motion.div>
 
-                        <SocialLoginButtons className="flex flex-col gap-6" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                        >
+                            <SocialLoginButtons className="flex flex-col gap-6" />
+                        </motion.div>
                     </>
                 )}
             </Form>

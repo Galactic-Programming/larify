@@ -11,6 +11,31 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
+import { motion, Variants } from 'motion/react';
+
+// Animation variants for staggered form fields
+const formVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08,
+        },
+    },
+};
+
+const fieldVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 12,
+        },
+    },
+};
 
 interface LoginProps {
     status?: string;
@@ -37,8 +62,16 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
+                        <motion.div
+                            className="grid gap-6"
+                            variants={formVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
@@ -50,9 +83,12 @@ export default function Login({
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
-                            </div>
+                            </motion.div>
 
-                            <div className="grid gap-2">
+                            <motion.div
+                                className="grid gap-2"
+                                variants={fieldVariants}
+                            >
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
                                     {canResetPassword && (
@@ -74,54 +110,79 @@ export default function Login({
                                     placeholder="Password"
                                 />
                                 <InputError message={errors.password} />
-                            </div>
+                            </motion.div>
 
-                            <div className="flex items-center space-x-3">
+                            <motion.div
+                                className="flex items-center space-x-3"
+                                variants={fieldVariants}
+                            >
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
                                 />
                                 <Label htmlFor="remember">Remember me</Label>
-                            </div>
+                            </motion.div>
 
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && <Spinner />}
-                                Log in
-                            </Button>
-                        </div>
+                            <motion.div variants={fieldVariants}>
+                                <Button
+                                    type="submit"
+                                    className="mt-4 w-full"
+                                    tabIndex={4}
+                                    disabled={processing}
+                                    data-test="login-button"
+                                >
+                                    {processing && <Spinner />}
+                                    Log in
+                                </Button>
+                            </motion.div>
+                        </motion.div>
 
                         {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
+                            <motion.div
+                                className="text-center text-sm text-muted-foreground"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                            >
                                 Don't have an account?{' '}
                                 <TextLink href={register()} tabIndex={5}>
                                     Sign up
                                 </TextLink>
-                            </div>
+                            </motion.div>
                         )}
 
-                        <SocialLoginButtons className="flex flex-col gap-6" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <SocialLoginButtons className="flex flex-col gap-6" />
+                        </motion.div>
 
-                        <div className="text-center text-xs text-muted-foreground">
+                        <motion.div
+                            className="text-center text-xs text-muted-foreground"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                        >
                             By continuing, you agree to our{' '}
                             <TextLink href="/terms">Terms of Service</TextLink>{' '}
                             and{' '}
                             <TextLink href="/privacy">Privacy Policy</TextLink>
-                        </div>
+                        </motion.div>
                     </>
                 )}
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <motion.div
+                    className="mb-4 text-center text-sm font-medium text-green-600"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                >
                     {status}
-                </div>
+                </motion.div>
             )}
         </AuthLayout>
     );

@@ -1,5 +1,6 @@
 import { update } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
+import { motion, Variants } from 'motion/react';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+
+// Animation variants
+const formVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08,
+        },
+    },
+};
+
+const fieldVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 12,
+        },
+    },
+};
 
 interface ResetPasswordProps {
     token: string;
@@ -27,8 +52,13 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
+                    <motion.div
+                        className="grid gap-6"
+                        variants={formVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.div className="grid gap-2" variants={fieldVariants}>
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
@@ -43,9 +73,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 message={errors.email}
                                 className="mt-2"
                             />
-                        </div>
+                        </motion.div>
 
-                        <div className="grid gap-2">
+                        <motion.div className="grid gap-2" variants={fieldVariants}>
                             <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
@@ -57,9 +87,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 placeholder="Password"
                             />
                             <InputError message={errors.password} />
-                        </div>
+                        </motion.div>
 
-                        <div className="grid gap-2">
+                        <motion.div className="grid gap-2" variants={fieldVariants}>
                             <Label htmlFor="password_confirmation">
                                 Confirm password
                             </Label>
@@ -75,18 +105,20 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 message={errors.password_confirmation}
                                 className="mt-2"
                             />
-                        </div>
+                        </motion.div>
 
-                        <Button
-                            type="submit"
-                            className="mt-4 w-full"
-                            disabled={processing}
-                            data-test="reset-password-button"
-                        >
-                            {processing && <Spinner />}
-                            Reset password
-                        </Button>
-                    </div>
+                        <motion.div variants={fieldVariants}>
+                            <Button
+                                type="submit"
+                                className="mt-4 w-full"
+                                disabled={processing}
+                                data-test="reset-password-button"
+                            >
+                                {processing && <Spinner />}
+                                Reset password
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 )}
             </Form>
         </AuthLayout>

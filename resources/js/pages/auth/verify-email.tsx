@@ -6,6 +6,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 import { Form, Head } from '@inertiajs/react';
+import { motion } from 'motion/react';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     return (
@@ -16,15 +17,25 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title="Email verification" />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <motion.div
+                    className="mb-4 text-center text-sm font-medium text-green-600"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                >
                     A new verification link has been sent to the email address
                     you provided during registration.
-                </div>
+                </motion.div>
             )}
 
             <Form {...send.form()} className="space-y-6 text-center">
                 {({ processing }) => (
-                    <>
+                    <motion.div
+                        className="space-y-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
                         <Button disabled={processing} variant="secondary">
                             {processing && <Spinner />}
                             Resend verification email
@@ -36,7 +47,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
                         >
                             Log out
                         </TextLink>
-                    </>
+                    </motion.div>
                 )}
             </Form>
         </AuthLayout>
