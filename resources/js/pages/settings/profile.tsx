@@ -4,9 +4,10 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 
+import AvatarUpload from '@/components/avatar-upload';
 import DeleteUser from '@/components/delete-user';
-import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
+import { SettingsCard } from '@/components/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,11 +36,19 @@ export default function Profile({
             <Head title="Profile settings" />
 
             <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall
-                        title="Profile information"
-                        description="Update your name and email address"
-                    />
+                {/* Avatar Section */}
+                <SettingsCard
+                    title="Avatar"
+                    description="Update your profile picture"
+                >
+                    <AvatarUpload />
+                </SettingsCard>
+
+                {/* Profile Information Section */}
+                <SettingsCard
+                    title="Profile information"
+                    description="Update your name and email address"
+                >
 
                     <Form
                         {...ProfileController.update.form()}
@@ -105,12 +114,12 @@ export default function Profile({
 
                                             {status ===
                                                 'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has
-                                                    been sent to your email
-                                                    address.
-                                                </div>
-                                            )}
+                                                    <div className="mt-2 text-sm font-medium text-green-600">
+                                                        A new verification link has
+                                                        been sent to your email
+                                                        address.
+                                                    </div>
+                                                )}
                                         </div>
                                     )}
 
@@ -137,7 +146,7 @@ export default function Profile({
                             </>
                         )}
                     </Form>
-                </div>
+                </SettingsCard>
 
                 <DeleteUser />
             </SettingsLayout>
