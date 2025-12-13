@@ -6,7 +6,7 @@ const DashboardFooter = () => {
             <p className='text-center text-sm text-balance'>
                 {`©${new Date().getFullYear()}`}{' '}
                 <a href='#' className='text-primary'>
-                    FlowState
+                    Larify
                 </a>
             </p>
             <div className='flex items-center gap-5'>

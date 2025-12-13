@@ -17,7 +17,7 @@ import {
     ZapIcon,
 } from 'lucide-react';
 
-import FlowStateLogo from '@/assets/svg/flowstate-logo';
+import LarifyLogo from '@/assets/svg/larify-logo';
 import { LogoLoop } from '@/components/logo-loop';
 import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -116,7 +116,7 @@ const contactInfo: ContactInfo[] = [
     {
         title: 'Email Us',
         icon: MailIcon,
-        description: 'flowstate@gmail.com',
+        description: 'Larify@gmail.com',
     },
     {
         title: 'Call Us',
@@ -138,7 +138,7 @@ const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
         rating: 5,
         content:
-            'FlowState has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
+            'Larify has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
     },
     {
         name: 'Michael Rodriguez',
@@ -156,7 +156,7 @@ const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
         rating: 4.5,
         content:
-            'As a freelancer, tracking time across multiple projects was always a pain. FlowState makes it effortless and even enjoyable.',
+            'As a freelancer, tracking time across multiple projects was always a pain. Larify makes it effortless and even enjoyable.',
     },
     {
         name: 'David Kim',
@@ -171,24 +171,24 @@ const testimonials: Testimonial[] = [
 
 const faqItems: FAQItem[] = [
     {
-        question: 'What is FlowState?',
-        answer: 'FlowState is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
+        question: 'What is Larify?',
+        answer: 'Larify is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
     },
     {
         question: 'Is there a free trial available?',
-        answer: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to start. You can explore everything FlowState has to offer before making a commitment.',
+        answer: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to start. You can explore everything Larify has to offer before making a commitment.',
     },
     {
         question: 'How does the Focus Mode work?',
         answer: 'Focus Mode creates a distraction-free environment by blocking notifications, muting non-essential apps, and tracking your focus sessions. You can customize the duration and intensity of your focus sessions based on your preferences.',
     },
     {
-        question: 'Can I use FlowState with my team?',
-        answer: 'Absolutely! FlowState offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
+        question: 'Can I use Larify with my team?',
+        answer: 'Absolutely! Larify offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
     },
     {
-        question: 'What platforms does FlowState support?',
-        answer: 'FlowState is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
+        question: 'What platforms does Larify support?',
+        answer: 'Larify is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
     },
     {
         question: 'How secure is my data?',
@@ -268,15 +268,15 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
             className="bg-background sticky top-0 z-50 h-16 border-b"
         >
             <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-                {/* FlowStateLogo */}
+                {/* LarifyLogo */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                 >
                     <Link href="/" className="flex items-center gap-2">
-                        <FlowStateLogo className="size-8" />
-                        <span className="text-xl font-bold">FlowState</span>
+                        <LarifyLogo className="size-8" />
+                        <span className="text-xl font-bold">Larify</span>
                     </Link>
                 </motion.div>
 
@@ -388,7 +388,7 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
     ];
 
     return (
-        <BackgroundBeamsWithCollision className="py-16 sm:py-20 lg:py-24 bg-background">
+        <BackgroundBeamsWithCollision className="min-h-[calc(100dvh-12rem)] bg-background">
             <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -418,7 +418,7 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     transition={{ delay: 0.7, duration: 0.5 }}
                     className="text-muted-foreground max-w-2xl text-lg"
                 >
-                    FlowState helps you focus, plan, and accomplish more with intelligent task management and
+                    Larify helps you focus, plan, and accomplish more with intelligent task management and
                     distraction-free work sessions. Get more done in less time.
                 </motion.p>
 
@@ -574,7 +574,7 @@ function TestimonialsSection() {
                     <p className="text-primary text-sm font-medium uppercase">Real customers</p>
                     <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">What Our Users Say</h2>
                     <p className="text-muted-foreground text-lg">
-                        Discover how FlowState has helped thousands achieve their productivity goals.
+                        Discover how Larify has helped thousands achieve their productivity goals.
                     </p>
                     <div className="flex items-center gap-4">
                         <CarouselPrevious
@@ -666,7 +666,7 @@ function FAQSection() {
                 >
                     <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">Frequently Asked Questions</h2>
                     <p className="text-muted-foreground text-lg">
-                        Everything you need to know about FlowState. Can't find what you're looking for? Contact us.
+                        Everything you need to know about Larify. Can't find what you're looking for? Contact us.
                     </p>
                 </motion.div>
 
@@ -756,12 +756,12 @@ function SocialProofSection() {
                         transition={{ duration: 0.6 }}
                     >
                         <div className="space-y-4">
-                            <p className="text-primary text-sm font-medium uppercase">Why FlowState</p>
+                            <p className="text-primary text-sm font-medium uppercase">Why Larify</p>
                             <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
                                 Everything You Need to Achieve Peak Productivity
                             </h2>
                             <p className="text-muted-foreground text-lg">
-                                FlowState combines the best productivity techniques with modern AI to help you work
+                                Larify combines the best productivity techniques with modern AI to help you work
                                 smarter, not harder. Join thousands of professionals who have transformed their
                                 workflow.
                             </p>
@@ -861,7 +861,7 @@ function ContactSection() {
                     >
                         <h3 className="mb-6 text-2xl font-semibold">Happy to help you!</h3>
                         <p className="text-muted-foreground mb-10 text-lg font-medium">
-                            Have questions about FlowState? Want to learn more about our team plans? Or just want to
+                            Have questions about Larify? Want to learn more about our team plans? Or just want to
                             say hello? We're here for you.
                         </p>
 
@@ -930,8 +930,8 @@ function Footer() {
         >
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 max-md:flex-col sm:px-6 sm:py-6 md:gap-6 md:py-8">
                 <Link href="/" className="flex items-center gap-2">
-                    <FlowStateLogo className="size-6" />
-                    <span className="font-semibold">FlowState</span>
+                    <LarifyLogo className="size-6" />
+                    <span className="font-semibold">Larify</span>
                 </Link>
 
                 <div className="text-muted-foreground flex items-center gap-5 text-sm whitespace-nowrap">
@@ -952,7 +952,7 @@ function Footer() {
 
             <div className="mx-auto flex max-w-7xl justify-center px-4 py-6 sm:px-6">
                 <p className="text-muted-foreground text-center text-sm text-balance">
-                    © {new Date().getFullYear()} FlowState - All rights reserved.
+                    © {new Date().getFullYear()} Larify - All rights reserved.
                 </p>
             </div>
         </motion.footer>
@@ -966,7 +966,7 @@ function Footer() {
 export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
     return (
         <>
-            <Head title="Welcome to FlowState" />
+            <Head title="Welcome to Larify" />
             <div className="bg-background text-foreground min-h-screen">
                 <Header canRegister={canRegister} />
                 <main>

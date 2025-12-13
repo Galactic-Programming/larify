@@ -43,7 +43,7 @@ const defaultSocialLinks: SocialLink[] = [
 const Footer = ({
     navLinks = defaultNavLinks,
     socialLinks = defaultSocialLinks,
-    brandName = 'FlowState',
+    brandName = 'Larify',
     tagline = 'Made with ❤️ for better productivity',
     showLogo = true,
     className,
