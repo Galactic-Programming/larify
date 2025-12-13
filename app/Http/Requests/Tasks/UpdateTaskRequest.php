@@ -32,12 +32,24 @@ class UpdateTaskRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Project $project */
+        $project = $this->route('project');
+
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'priority' => ['sometimes', 'required', Rule::enum(TaskPriority::class)],
             'due_date' => ['nullable', 'date'],
             'due_time' => ['nullable', 'date_format:H:i'],
+            'assigned_to' => [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) use ($project) {
+                    if ($value && !$project->hasMember(\App\Models\User::find($value))) {
+                        $fail('The assigned user must be a member of the project.');
+                    }
+                },
+            ],
         ];
     }
 }

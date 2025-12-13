@@ -13,7 +13,7 @@ class TaskListPolicy
      */
     public function view(User $user, TaskList $taskList, Project $project): bool
     {
-        return $user->id === $project->user_id
+        return $project->hasMember($user)
             && $taskList->project_id === $project->id;
     }
 
@@ -22,7 +22,7 @@ class TaskListPolicy
      */
     public function create(User $user, Project $project): bool
     {
-        return $user->id === $project->user_id;
+        return $project->canEdit($user);
     }
 
     /**
@@ -30,7 +30,7 @@ class TaskListPolicy
      */
     public function update(User $user, TaskList $taskList, Project $project): bool
     {
-        return $user->id === $project->user_id
+        return $project->canEdit($user)
             && $taskList->project_id === $project->id;
     }
 
@@ -39,7 +39,7 @@ class TaskListPolicy
      */
     public function delete(User $user, TaskList $taskList, Project $project): bool
     {
-        return $user->id === $project->user_id
+        return $project->canEdit($user)
             && $taskList->project_id === $project->id;
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Projects\ProjectController;
+use App\Http\Controllers\Projects\ProjectMemberController;
 use App\Http\Controllers\TaskLists\TaskListController;
 use App\Http\Controllers\Tasks\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('projects', ProjectController::class);
     Route::patch('projects/{project}/archive', [ProjectController::class, 'toggleArchive'])
         ->name('projects.archive');
+
+    // Project Members
+    Route::get('projects/{project}/members', [ProjectMemberController::class, 'index'])
+        ->name('projects.members.index');
+    Route::post('projects/{project}/members', [ProjectMemberController::class, 'store'])
+        ->name('projects.members.store');
+    Route::patch('projects/{project}/members/{member}', [ProjectMemberController::class, 'update'])
+        ->name('projects.members.update');
+    Route::delete('projects/{project}/members/{member}', [ProjectMemberController::class, 'destroy'])
+        ->name('projects.members.destroy');
 
     // Task Lists (nested under projects)
     Route::post('projects/{project}/lists', [TaskListController::class, 'store'])
@@ -71,4 +82,4 @@ Route::get('auth/{provider}/callback', [SocialController::class, 'callback'])
     ->whereIn('provider', ['google', 'github'])
     ->name('social.callback');
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

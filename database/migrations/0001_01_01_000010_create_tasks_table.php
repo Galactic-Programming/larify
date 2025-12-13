@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,6 +15,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->foreignId('list_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('position')->default(0); // Thứ tự trong list
@@ -24,6 +26,7 @@ return new class extends Migration {
             $table->timestamp('completed_at')->nullable(); // Hoàn thành
             $table->timestamps();
 
+            $table->index('assigned_to');
             $table->index(['list_id', 'position']);
             $table->index(['project_id', 'completed_at']);
         });

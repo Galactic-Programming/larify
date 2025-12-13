@@ -20,7 +20,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->id === $project->user_id;
+        return $project->hasMember($user);
     }
 
     /**
@@ -36,7 +36,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->id === $project->user_id;
+        return $project->canEdit($user);
     }
 
     /**
@@ -51,6 +51,14 @@ class ProjectPolicy
      * Determine whether the user can archive the project.
      */
     public function archive(User $user, Project $project): bool
+    {
+        return $user->id === $project->user_id;
+    }
+
+    /**
+     * Determine whether the user can manage project members.
+     */
+    public function manageMembers(User $user, Project $project): bool
     {
         return $user->id === $project->user_id;
     }
