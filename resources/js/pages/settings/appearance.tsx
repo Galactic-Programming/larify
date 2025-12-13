@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
-import BackgroundSelector from '@/components/background-selector';
+// import BackgroundSelector from '@/components/background-selector';
 import { SettingsCard } from '@/components/settings';
 import { type BreadcrumbItem } from '@/types';
 
@@ -29,12 +29,14 @@ export default function Appearance() {
                     <AppearanceTabs />
                 </SettingsCard>
 
+                {/* TODO: Fix background image visibility in light mode
                 <SettingsCard
                     title="Background settings"
                     description="Choose a background image for your workspace"
                 >
                     <BackgroundSelector />
                 </SettingsCard>
+                */}
             </SettingsLayout>
         </AppLayout>
     );

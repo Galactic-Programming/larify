@@ -87,14 +87,14 @@ export default function BackgroundSelector({
                     <Slider
                         value={[config.opacity]}
                         onValueChange={handleOpacityChange}
-                        min={5}
-                        max={50}
-                        step={5}
+                        min={10}
+                        max={100}
+                        step={10}
                         className="w-full"
                     />
                     <p className="text-xs text-neutral-500">
-                        Adjust the visibility of the background image. Lower
-                        values make the background more subtle.
+                        Adjust the visibility of the background image. Higher
+                        values make the background more visible.
                     </p>
                 </div>
             )}

@@ -15,13 +15,23 @@ function BackgroundLayer() {
     }
 
     return (
-        <div
-            className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{
-                backgroundImage: `url(${backgroundUrl})`,
-                opacity: config.opacity / 100,
-            }}
-        />
+        <>
+            {/* Background image layer */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                    backgroundImage: `url(${backgroundUrl})`,
+                    opacity: config.opacity / 100,
+                }}
+            />
+            {/* Dark overlay for light mode - helps text readability */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 bg-black/20 dark:bg-transparent"
+                style={{
+                    opacity: config.opacity > 30 ? (config.opacity - 30) / 100 : 0,
+                }}
+            />
+        </>
     );
 }
 
