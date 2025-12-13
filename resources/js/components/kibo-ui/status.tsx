@@ -17,7 +17,6 @@ export const Status = ({ className, status, ...props }: StatusProps) => (
 export type StatusIndicatorProps = HTMLAttributes<HTMLSpanElement>;
 
 export const StatusIndicator = ({
-    className,
     ...props
 }: StatusIndicatorProps) => (
     <span className="relative flex h-2 w-2" {...props}>
