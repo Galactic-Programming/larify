@@ -109,8 +109,9 @@ export type GanttContextProps = {
 };
 
 const getsDaysIn = (range: Range) => {
-    // For when range is daily
-    let fn = (_date: Date) => 1;
+    // For when range is daily - return 1 regardless of date
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    let fn = (date: Date) => 1;
 
     if (range === "monthly" || range === "quarterly") {
         fn = getDaysInMonth;
@@ -640,14 +641,22 @@ export const GanttColumn: FC<GanttColumnProps> = ({
     const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
     const [hovering, setHovering] = useState(false);
     const [windowScroll] = useWindowScroll();
+    const [refY, setRefY] = useState(0);
 
     const handleMouseEnter = () => setHovering(true);
     const handleMouseLeave = () => setHovering(false);
 
+    // Update refY when mouseRef changes
+    // biome-ignore lint/correctness/useExhaustiveDependencies: mouseRef is stable from useMouse hook
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (mouseRef.current) {
+            setRefY(mouseRef.current.getBoundingClientRect().y);
+        }
+    }, [mousePosition.y]);
+
     const top = useThrottle(
-        mousePosition.y -
-        (mouseRef.current?.getBoundingClientRect().y ?? 0) -
-        (windowScroll.y ?? 0),
+        mousePosition.y - refY - (windowScroll.y ?? 0),
         10
     );
 
@@ -711,10 +720,19 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
     const gantt = useContext(GanttContext);
     const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
     const [windowScroll] = useWindowScroll();
+    const [refX, setRefX] = useState(0);
+
+    // Update refX when mouseRef changes
+    // biome-ignore lint/correctness/useExhaustiveDependencies: mouseRef is stable from useMouse hook
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (mouseRef.current) {
+            setRefX(mouseRef.current.getBoundingClientRect().x);
+        }
+    }, [mousePosition.x]);
+
     const x = useThrottle(
-        mousePosition.x -
-        (mouseRef.current?.getBoundingClientRect().x ?? 0) -
-        (windowScroll.x ?? 0),
+        mousePosition.x - refX - (windowScroll.x ?? 0),
         10
     );
 
@@ -1241,26 +1259,35 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         };
     }, []);
 
-    // Fix the useCallback to include all dependencies
-    const handleScroll = useCallback(
-        throttle(() => {
-            const scrollElement = scrollRef.current;
-            if (!scrollElement) {
-                return;
-            }
+    // Store timelineData in a ref for scroll handler to access
+    const timelineDataRef = useRef(timelineData);
 
+    // Update ref when timelineData changes (in an effect, not during render)
+    useEffect(() => {
+        timelineDataRef.current = timelineData;
+    }, [timelineData]);
+
+    // Setup scroll handler in effect to avoid accessing refs during render
+    useEffect(() => {
+        const scrollElement = scrollRef.current;
+        if (!scrollElement) {
+            return;
+        }
+
+        const handleScroll = throttle(() => {
             const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
             setScrollX(scrollLeft);
 
             if (scrollLeft === 0) {
                 // Extend timelineData to the past
-                const firstYear = timelineData[0]?.year;
+                const currentTimelineData = timelineDataRef.current;
+                const firstYear = currentTimelineData[0]?.year;
 
                 if (!firstYear) {
                     return;
                 }
 
-                const newTimelineData: TimelineData = [...timelineData];
+                const newTimelineData: TimelineData = [...currentTimelineData];
                 newTimelineData.unshift({
                     year: firstYear - 1,
                     quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
@@ -1280,13 +1307,14 @@ export const GanttProvider: FC<GanttProviderProps> = ({
                 setScrollX(scrollElement.scrollLeft);
             } else if (scrollLeft + clientWidth >= scrollWidth) {
                 // Extend timelineData to the future
-                const lastYear = timelineData.at(-1)?.year;
+                const currentTimelineData = timelineDataRef.current;
+                const lastYear = currentTimelineData.at(-1)?.year;
 
                 if (!lastYear) {
                     return;
                 }
 
-                const newTimelineData: TimelineData = [...timelineData];
+                const newTimelineData: TimelineData = [...currentTimelineData];
                 newTimelineData.push({
                     year: lastYear + 1,
                     quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
@@ -1306,23 +1334,17 @@ export const GanttProvider: FC<GanttProviderProps> = ({
                     scrollElement.scrollWidth - scrollElement.clientWidth;
                 setScrollX(scrollElement.scrollLeft);
             }
-        }, 100),
-        []
-    );
+        }, 100);
 
-    useEffect(() => {
-        const scrollElement = scrollRef.current;
-        if (scrollElement) {
-            scrollElement.addEventListener("scroll", handleScroll);
-        }
+        scrollElement.addEventListener("scroll", handleScroll);
 
         return () => {
-            // Fix memory leak by properly referencing the scroll element
-            if (scrollElement) {
-                scrollElement.removeEventListener("scroll", handleScroll);
-            }
+            handleScroll.cancel();
+            scrollElement.removeEventListener("scroll", handleScroll);
         };
-    }, [handleScroll]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: setScrollX is stable, only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const scrollToFeature = useCallback(
         (feature: GanttFeature) => {
