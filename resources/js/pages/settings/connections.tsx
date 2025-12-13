@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SocialConnections, type SocialProvider } from '@/types';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { Link2, Link2Off } from 'lucide-react';
 import { type ReactNode } from 'react';
@@ -14,10 +14,8 @@ import { type ReactNode } from 'react';
 // Types
 // =============================================================================
 
-type Provider = 'google' | 'github';
-
 type ConnectionsProps = {
-    connections: Record<Provider, boolean>;
+    connections: SocialConnections;
     status?: string;
 };
 
@@ -94,8 +92,8 @@ function ConnectionItem({
 // =============================================================================
 
 export default function Connections({ connections, status }: ConnectionsProps) {
-    const linkUrl = (provider: Provider) => `/auth/${provider}/redirect` as const;
-    const unlinkAction = (provider: Provider) => `/settings/connections/${provider}` as const;
+    const linkUrl = (provider: SocialProvider) => `/auth/${provider}/redirect` as const;
+    const unlinkAction = (provider: SocialProvider) => `/settings/connections/${provider}` as const;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {

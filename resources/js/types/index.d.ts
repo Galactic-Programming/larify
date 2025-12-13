@@ -35,6 +35,7 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    plan?: 'free' | 'premium';
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;
@@ -69,4 +70,12 @@ export interface TimeRangeOption {
     value: string;
     label: string;
     days: number;
+}
+
+// Social Provider types
+export type SocialProvider = 'google' | 'github';
+
+export interface SocialConnections {
+    google: boolean;
+    github: boolean;
 }
