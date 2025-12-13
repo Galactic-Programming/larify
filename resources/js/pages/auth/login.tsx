@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { SocialLoginButtons } from '@/components/social-login-buttons';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -104,6 +105,15 @@ export default function Login({
                                 </TextLink>
                             </div>
                         )}
+
+                        <SocialLoginButtons className="flex flex-col gap-6" />
+
+                        <div className="text-center text-xs text-muted-foreground">
+                            By continuing, you agree to our{' '}
+                            <TextLink href="/terms">Terms of Service</TextLink>{' '}
+                            and{' '}
+                            <TextLink href="/privacy">Privacy Policy</TextLink>
+                        </div>
                     </>
                 )}
             </Form>
