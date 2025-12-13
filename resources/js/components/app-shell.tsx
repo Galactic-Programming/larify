@@ -1,4 +1,5 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { BackgroundProvider } from '@/hooks/use-background';
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 
@@ -16,5 +17,9 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
         );
     }
 
-    return <SidebarProvider defaultOpen={isOpen}>{children}</SidebarProvider>;
+    return (
+        <BackgroundProvider>
+            <SidebarProvider defaultOpen={isOpen}>{children}</SidebarProvider>
+        </BackgroundProvider>
+    );
 }

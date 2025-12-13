@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
+import BackgroundSelector from '@/components/background-selector';
 import { SettingsCard } from '@/components/settings';
 import { type BreadcrumbItem } from '@/types';
 
@@ -26,6 +27,13 @@ export default function Appearance() {
                     description="Update your account's appearance settings"
                 >
                     <AppearanceTabs />
+                </SettingsCard>
+
+                <SettingsCard
+                    title="Background settings"
+                    description="Choose a background image for your workspace"
+                >
+                    <BackgroundSelector />
                 </SettingsCard>
             </SettingsLayout>
         </AppLayout>
