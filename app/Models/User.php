@@ -79,4 +79,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->socialAccounts()->where('provider', $provider)->first();
     }
+
+    /**
+     * Get the projects for the user.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }
