@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialController;
+use App\Http\Controllers\Projects\ProjectController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -17,6 +18,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    // Projects
+    Route::resource('projects', ProjectController::class);
+    Route::patch('projects/{project}/archive', [ProjectController::class, 'toggleArchive'])
+        ->name('projects.archive');
 });
 
 // Terms & Privacy
