@@ -1,3 +1,4 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { index as projectsIndex, show as projectShow } from '@/routes/projects';
@@ -20,8 +23,10 @@ import {
     CheckCircle2,
     Circle,
     Clock,
+    Columns3,
     FolderKanban,
     LayoutList,
+    List,
     MoreHorizontal,
     Pencil,
     Plus,
@@ -32,6 +37,9 @@ import { useState } from 'react';
 import { CreateListDialog } from './components/create-list-dialog';
 import { EditListDialog } from './components/edit-list-dialog';
 import { DeleteListDialog } from './components/delete-list-dialog';
+
+// View mode type
+type ViewMode = 'board' | 'list';
 
 // Helper component to render project icon
 function ProjectIconDisplay({ iconName, color, className }: { iconName?: string | null; color: string; className?: string }) {
@@ -109,6 +117,7 @@ const getTaskStatusIcon = (task: Task) => {
 };
 
 export default function ListsIndex({ project }: Props) {
+    const [viewMode, setViewMode] = useState<ViewMode>('board');
     const [editingList, setEditingList] = useState<TaskList | null>(null);
     const [deletingList, setDeletingList] = useState<TaskList | null>(null);
 
@@ -180,15 +189,41 @@ export default function ListsIndex({ project }: Props) {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3, delay: 0.3 }}
+                        className="flex items-center gap-2"
                     >
+                        <ToggleGroup
+                            type="single"
+                            value={viewMode}
+                            onValueChange={(value) => value && setViewMode(value as ViewMode)}
+                            className="bg-muted rounded-lg p-1"
+                        >
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <ToggleGroupItem value="board" aria-label="Board view" className="px-3">
+                                        <Columns3 className="size-4" />
+                                    </ToggleGroupItem>
+                                </TooltipTrigger>
+                                <TooltipContent>Board View</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <ToggleGroupItem value="list" aria-label="List view" className="px-3">
+                                        <List className="size-4" />
+                                    </ToggleGroupItem>
+                                </TooltipTrigger>
+                                <TooltipContent>List View</TooltipContent>
+                            </Tooltip>
+                        </ToggleGroup>
                         <CreateListDialog project={project} />
                     </motion.div>
                 </motion.div>
 
-                {/* Kanban Board */}
+                {/* Content based on view mode */}
                 {project.lists.length > 0 ? (
-                    <ScrollArea className="flex-1 pb-4">
-                        <div className="flex gap-4 pb-4">
+                    viewMode === 'board' ? (
+                        // Board View (Kanban)
+                        <ScrollArea className="flex-1 pb-4">
+                            <div className="flex gap-4 pb-4">
                             {project.lists.map((list, listIdx) => (
                                 <motion.div
                                     key={list.id}
@@ -333,6 +368,153 @@ export default function ListsIndex({ project }: Props) {
                         </div>
                         <ScrollBar orientation="horizontal" />
                     </ScrollArea>
+                    ) : (
+                        // List View (Accordion)
+                        <ScrollArea className="flex-1">
+                            <div className="mx-auto max-w-4xl space-y-4">
+                                <Accordion
+                                    type="multiple"
+                                    defaultValue={project.lists.map((list) => `list-${list.id}`)}
+                                    className="space-y-4"
+                                >
+                                    {project.lists.map((list, listIdx) => (
+                                        <motion.div
+                                            key={list.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: listIdx * 0.1 }}
+                                        >
+                                            <AccordionItem
+                                                value={`list-${list.id}`}
+                                                className="rounded-lg border bg-card px-0"
+                                            >
+                                                <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]>div>.chevron]:rotate-180">
+                                                    <div className="flex flex-1 items-center justify-between pr-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <div
+                                                                className="size-3 rounded-full"
+                                                                style={{ backgroundColor: project.color }}
+                                                            />
+                                                            <span className="text-base font-semibold">{list.name}</span>
+                                                            <Badge variant="secondary">{list.tasks.length}</Badge>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {list.tasks.filter((t) => t.completed_at).length}/
+                                                                {list.tasks.length} done
+                                                            </Badge>
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon-sm"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <MoreHorizontal className="size-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem onClick={() => setEditingList(list)}>
+                                                                        <Pencil className="mr-2 size-4" />
+                                                                        Edit List
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => setDeletingList(list)}
+                                                                        className="text-destructive focus:text-destructive"
+                                                                    >
+                                                                        <Trash2 className="mr-2 size-4" />
+                                                                        Delete List
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </div>
+                                                    </div>
+                                                </AccordionTrigger>
+                                                <AccordionContent className="px-4 pb-4 pt-0">
+                                                    {list.tasks.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {list.tasks.map((task, taskIdx) => (
+                                                                <motion.div
+                                                                    key={task.id}
+                                                                    initial={{ opacity: 0, x: -10 }}
+                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                    transition={{ duration: 0.2, delay: taskIdx * 0.03 }}
+                                                                    className="group flex items-center gap-3 rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
+                                                                >
+                                                                    <div className="shrink-0">{getTaskStatusIcon(task)}</div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <p
+                                                                            className={`text-sm font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
+                                                                        >
+                                                                            {task.title}
+                                                                        </p>
+                                                                        {task.description && (
+                                                                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                                                                                {task.description}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex shrink-0 items-center gap-2">
+                                                                        {task.due_date && (
+                                                                            <Badge variant="outline" className="text-xs">
+                                                                                {new Date(task.due_date).toLocaleDateString()}
+                                                                            </Badge>
+                                                                        )}
+                                                                        <Badge
+                                                                            variant="secondary"
+                                                                            className={`text-xs ${getPriorityColor(task.priority)}`}
+                                                                        >
+                                                                            {task.priority}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </motion.div>
+                                                            ))}
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                                                            >
+                                                                <Plus className="size-4" />
+                                                                Add task
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-6 text-center">
+                                                            <Circle className="mb-2 size-6 text-muted-foreground/50" />
+                                                            <p className="text-sm text-muted-foreground">No tasks in this list</p>
+                                                            <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                                <Plus className="size-3" />
+                                                                Add task
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </motion.div>
+                                    ))}
+                                </Accordion>
+
+                                {/* Add new list button at bottom */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: project.lists.length * 0.1 }}
+                                >
+                                    <CreateListDialog
+                                        project={project}
+                                        trigger={
+                                            <Card className="flex cursor-pointer items-center justify-center border-dashed bg-muted/20 py-6 transition-all hover:border-primary hover:bg-muted/40">
+                                                <div className="flex items-center gap-2 text-muted-foreground">
+                                                    <Plus className="size-5" />
+                                                    <span className="font-medium">Add new list</span>
+                                                </div>
+                                            </Card>
+                                        }
+                                    />
+                                </motion.div>
+                            </div>
+                        </ScrollArea>
+                    )
                 ) : (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
