@@ -24,7 +24,8 @@ import { DeleteProjectDialog } from '@/pages/projects/components/delete-project-
 import { EditProjectDialog } from '@/pages/projects/components/edit-project-dialog';
 import { ShowProjectDialog } from '@/pages/projects/components/show-project-dialog';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
-import { archive, index, show } from '@/routes/projects';
+import { archive, index } from '@/routes/projects';
+import { index as listsIndex } from '@/routes/projects/lists';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -272,7 +273,7 @@ export default function ProjectsIndex({ projects }: Props) {
                                         <CardHeader className="pb-3 pt-4">
                                             <div className="flex items-start justify-between gap-2">
                                                 <Link
-                                                    href={show(project).url}
+                                                    href={listsIndex(project).url}
                                                     className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80"
                                                 >
                                                     <div
@@ -313,7 +314,7 @@ export default function ProjectsIndex({ projects }: Props) {
                                                             View Details
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={show(project).url}>
+                                                            <Link href={listsIndex(project).url}>
                                                                 <FolderKanban className="mr-2 size-4" />
                                                                 Open Board
                                                             </Link>
@@ -413,7 +414,7 @@ export default function ProjectsIndex({ projects }: Props) {
                             /* Custom empty state with bouncing badge */
                             <div className="flex flex-col items-center justify-center rounded-lg border bg-card py-20">
                                 <div className="relative mb-6">
-                                    <div className="flex size-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-xl shadow-primary/10">
+                                    <div className="flex size-24 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 shadow-xl shadow-primary/10">
                                         <FolderKanban className="size-12 text-primary" />
                                     </div>
                                     <div className="absolute -top-2 -right-2 flex size-8 animate-bounce items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">

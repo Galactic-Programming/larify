@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.members.destroy');
 
     // Task Lists (nested under projects)
+    Route::get('projects/{project}/lists', [TaskListController::class, 'index'])
+        ->name('projects.lists.index');
     Route::post('projects/{project}/lists', [TaskListController::class, 'store'])
         ->name('projects.lists.store');
     Route::patch('projects/{project}/lists/{list}', [TaskListController::class, 'update'])
@@ -82,4 +84,4 @@ Route::get('auth/{provider}/callback', [SocialController::class, 'callback'])
     ->whereIn('provider', ['google', 'github'])
     ->name('social.callback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

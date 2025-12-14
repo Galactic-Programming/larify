@@ -10,9 +10,28 @@ use App\Models\Project;
 use App\Models\TaskList;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TaskListController extends Controller
 {
+    /**
+     * Display a listing of the lists for a project.
+     */
+    public function index(Project $project): Response
+    {
+        Gate::authorize('view', $project);
+
+        $project->load([
+            'lists' => fn ($query) => $query->orderBy('position')->withCount('tasks'),
+            'lists.tasks' => fn ($query) => $query->orderBy('position'),
+        ]);
+
+        return Inertia::render('projects/lists/index', [
+            'project' => $project,
+        ]);
+    }
+
     /**
      * Store a newly created list in storage.
      */
