@@ -140,7 +140,7 @@ export function CommandMenu({
                         </button>
                     </div>
 
-                    <CommandList className="max-h-[400px] py-2">
+                    <CommandList className="max-h-100 py-2">
                         <CommandEmpty>{emptyMessage}</CommandEmpty>
 
                         {groups.map((group, groupIndex) => (

@@ -8,15 +8,28 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { getProjectIcon } from '@/pages/projects/lib/project-icons';
 import {
     Archive,
     Calendar,
     CheckSquare,
-    FolderKanban,
     LayoutList,
     Palette,
     Users,
 } from 'lucide-react';
+import { createElement, memo } from 'react';
+
+// Memoized component to avoid "Cannot create components during render" error
+const ProjectIconDisplay = memo(function ProjectIconDisplay({
+    iconName,
+    className,
+}: {
+    iconName: string | null;
+    className?: string;
+}) {
+    const Icon = getProjectIcon(iconName);
+    return createElement(Icon, { className });
+});
 
 interface Project {
     id: number;
@@ -24,6 +37,7 @@ interface Project {
     name: string;
     description: string | null;
     color: string;
+    icon: string | null;
     is_archived: boolean;
     lists_count: number;
     tasks_count: number;
@@ -60,7 +74,7 @@ export function ShowProjectDialog({ project, open, onOpenChange }: ShowProjectDi
                             className="flex h-10 w-10 items-center justify-center rounded-lg"
                             style={{ backgroundColor: project.color }}
                         >
-                            <FolderKanban className="h-5 w-5 text-white" />
+                            <ProjectIconDisplay iconName={project.icon} className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1">
                             <DialogTitle className="text-xl">{project.name}</DialogTitle>

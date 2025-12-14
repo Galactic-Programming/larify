@@ -307,7 +307,7 @@ export default function TableWithAction({
                                 <TableCell
                                     key={`${task.id}-${column.key}`}
                                     className={`h-16 px-4 ${column.key === "title" ? "font-medium" : ""
-                                        } ${column.key === "notes" ? "max-w-[300px]" : ""
+                                        } ${column.key === "notes" ? "max-w-75" : ""
                                         } ${["assignee", "dueDate", "notes"].includes(column.key)
                                             ? "text-sm text-muted-foreground"
                                             : ""

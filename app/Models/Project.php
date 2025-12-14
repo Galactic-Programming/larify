@@ -18,6 +18,7 @@ class Project extends Model
         'name',
         'description',
         'color',
+        'icon',
         'is_archived',
     ];
 

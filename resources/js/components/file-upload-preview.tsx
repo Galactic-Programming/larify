@@ -342,7 +342,7 @@ export default function FileUploadPreview({
                                         <div className="flex-1 pr-1">
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm text-foreground truncate max-w-[250px]">
+                                                    <span className="text-sm text-foreground truncate max-w-62.5">
                                                         {file.name}
                                                     </span>
                                                     <span className="text-sm text-muted-foreground whitespace-nowrap">
@@ -396,7 +396,7 @@ export default function FileUploadPreview({
                                     <TooltipContent className="py-3 bg-background text-foreground border">
                                         <div className="space-y-1">
                                             <p className="text-[13px] font-medium">{helpTitle}</p>
-                                            <p className="text-muted-foreground dark:text-muted-background text-xs max-w-[200px]">
+                                            <p className="text-muted-foreground dark:text-muted-background text-xs max-w-50">
                                                 {computedHelpContent}
                                             </p>
                                         </div>

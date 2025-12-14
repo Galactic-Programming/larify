@@ -114,7 +114,7 @@ export function ChartAreaInteractive({
                         value={timeRange}
                         onValueChange={setTimeRange}
                         variant="outline"
-                        className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
+                        className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
                     >
                         {timeRanges.map((range) => (
                             <ToggleGroupItem key={range.value} value={range.value}>
@@ -143,7 +143,7 @@ export function ChartAreaInteractive({
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
                 <ChartContainer
                     config={chartConfig}
-                    className="aspect-auto h-[250px] w-full"
+                    className="aspect-auto h-62.5 w-full"
                 >
                     <AreaChart data={filteredData}>
                         <defs>

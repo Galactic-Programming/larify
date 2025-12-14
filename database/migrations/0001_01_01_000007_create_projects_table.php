@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('color', 7)->default('#6366f1'); // Hex color
+            $table->string('icon', 50)->default('folder-kanban'); // Lucide icon name
             $table->boolean('is_archived')->default(false);
             $table->timestamps();
 

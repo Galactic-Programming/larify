@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { store } from '@/routes/projects';
 import { Form } from '@inertiajs/react';
 import { Check, Plus } from 'lucide-react';
@@ -36,15 +37,17 @@ const PRESET_COLORS = [
 ];
 
 interface CreateProjectDialogProps {
-    children?: ReactNode;
+    trigger?: ReactNode;
 }
 
-export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
+export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
     const [open, setOpen] = useState(false);
     const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0].value);
+    const [selectedIcon, setSelectedIcon] = useState(PROJECT_ICONS[0].name);
 
     const resetForm = () => {
         setSelectedColor(PRESET_COLORS[0].value);
+        setSelectedIcon(PROJECT_ICONS[0].name);
     };
 
     const handleOpenChange = (isOpen: boolean) => {
@@ -57,14 +60,14 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                {children ?? (
+                {trigger ?? (
                     <Button>
                         <Plus className="size-4" />
                         New Project
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
                 <Form
                     {...store.form()}
                     className="space-y-6"
@@ -101,7 +104,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                                 <div className="grid gap-2">
                                     <Label htmlFor="description">
                                         Description{' '}
-                                        <span className="text-muted-foreground font-normal">(optional)</span>
+                                        <span className="font-normal text-muted-foreground">(optional)</span>
                                     </Label>
                                     <Textarea
                                         id="description"
@@ -124,12 +127,14 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full transition-all hover:scale-110',
                                                     selectedColor === color.value &&
-                                                    'ring-2 ring-offset-2 ring-offset-background'
+                                                    'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
-                                                style={{
-                                                    backgroundColor: color.value,
-                                                    '--tw-ring-color': color.value,
-                                                } as React.CSSProperties}
+                                                style={
+                                                    {
+                                                        backgroundColor: color.value,
+                                                        '--tw-ring-color': color.value,
+                                                    } as React.CSSProperties
+                                                }
                                                 title={color.name}
                                             >
                                                 {selectedColor === color.value && (
@@ -140,6 +145,44 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                                     </div>
                                     <input type="hidden" name="color" value={selectedColor} />
                                     <InputError message={errors.color} />
+                                </div>
+
+                                {/* Icon Picker */}
+                                <div className="grid gap-2">
+                                    <Label>Icon</Label>
+                                    <div className="grid grid-cols-10 gap-1.5">
+                                        {PROJECT_ICONS.map((icon) => {
+                                            const IconComponent = icon.icon;
+                                            const isSelected = selectedIcon === icon.name;
+                                            return (
+                                                <button
+                                                    key={icon.name}
+                                                    type="button"
+                                                    onClick={() => setSelectedIcon(icon.name)}
+                                                    className={cn(
+                                                        'group relative flex size-8 items-center justify-center rounded-lg transition-all duration-200',
+                                                        isSelected
+                                                            ? 'bg-primary text-primary-foreground shadow-md'
+                                                            : 'hover:bg-muted hover:shadow-sm',
+                                                    )}
+                                                    title={icon.label}
+                                                >
+                                                    <IconComponent
+                                                        className={cn(
+                                                            'size-4 transition-transform duration-200',
+                                                            !isSelected && 'group-hover:scale-110',
+                                                        )}
+                                                    />
+                                                    {isSelected && (
+                                                        <div className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-primary-foreground shadow-sm">
+                                                            <Check className="size-2 text-primary" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <input type="hidden" name="icon" value={selectedIcon} />
                                 </div>
                             </div>
 

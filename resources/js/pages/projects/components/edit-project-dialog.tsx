@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { Form } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
@@ -39,6 +40,7 @@ interface Project {
     name: string;
     description: string | null;
     color: string;
+    icon: string | null;
 }
 
 interface EditProjectDialogProps {
@@ -49,18 +51,20 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDialogProps) {
     const [selectedColor, setSelectedColor] = useState(project.color);
+    const [selectedIcon, setSelectedIcon] = useState(project.icon ?? PROJECT_ICONS[0].name);
 
     const handleOpenChange = (isOpen: boolean) => {
         onOpenChange(isOpen);
         if (!isOpen) {
-            // Reset to project's original color when closing without save
+            // Reset to project's original values when closing without save
             setSelectedColor(project.color);
+            setSelectedIcon(project.icon ?? PROJECT_ICONS[0].name);
         }
     };
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
                 <Form
                     {...ProjectController.update.form(project)}
                     className="space-y-6"
@@ -73,9 +77,7 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                         <>
                             <DialogHeader>
                                 <DialogTitle>Edit Project</DialogTitle>
-                                <DialogDescription>
-                                    Update project details and settings.
-                                </DialogDescription>
+                                <DialogDescription>Update project details and settings.</DialogDescription>
                             </DialogHeader>
 
                             <div className="space-y-4">
@@ -97,7 +99,7 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                 <div className="grid gap-2">
                                     <Label htmlFor="edit-description">
                                         Description{' '}
-                                        <span className="text-muted-foreground font-normal">(optional)</span>
+                                        <span className="font-normal text-muted-foreground">(optional)</span>
                                     </Label>
                                     <Textarea
                                         id="edit-description"
@@ -121,12 +123,14 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full transition-all hover:scale-110',
                                                     selectedColor === color.value &&
-                                                    'ring-2 ring-offset-2 ring-offset-background'
+                                                    'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
-                                                style={{
-                                                    backgroundColor: color.value,
-                                                    '--tw-ring-color': color.value,
-                                                } as React.CSSProperties}
+                                                style={
+                                                    {
+                                                        backgroundColor: color.value,
+                                                        '--tw-ring-color': color.value,
+                                                    } as React.CSSProperties
+                                                }
                                                 title={color.name}
                                             >
                                                 {selectedColor === color.value && (
@@ -137,6 +141,44 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                     </div>
                                     <input type="hidden" name="color" value={selectedColor} />
                                     <InputError message={errors.color} />
+                                </div>
+
+                                {/* Icon Picker */}
+                                <div className="grid gap-2">
+                                    <Label>Icon</Label>
+                                    <div className="grid grid-cols-10 gap-1.5">
+                                        {PROJECT_ICONS.map((icon) => {
+                                            const IconComponent = icon.icon;
+                                            const isSelected = selectedIcon === icon.name;
+                                            return (
+                                                <button
+                                                    key={icon.name}
+                                                    type="button"
+                                                    onClick={() => setSelectedIcon(icon.name)}
+                                                    className={cn(
+                                                        'group relative flex size-8 items-center justify-center rounded-lg transition-all duration-200',
+                                                        isSelected
+                                                            ? 'bg-primary text-primary-foreground shadow-md'
+                                                            : 'hover:bg-muted hover:shadow-sm',
+                                                    )}
+                                                    title={icon.label}
+                                                >
+                                                    <IconComponent
+                                                        className={cn(
+                                                            'size-4 transition-transform duration-200',
+                                                            !isSelected && 'group-hover:scale-110',
+                                                        )}
+                                                    />
+                                                    {isSelected && (
+                                                        <div className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-primary-foreground shadow-sm">
+                                                            <Check className="size-2 text-primary" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <input type="hidden" name="icon" value={selectedIcon} />
                                 </div>
                             </div>
 
