@@ -224,150 +224,150 @@ export default function ListsIndex({ project }: Props) {
                         // Board View (Kanban)
                         <ScrollArea className="flex-1 pb-4">
                             <div className="flex gap-4 pb-4">
-                            {project.lists.map((list, listIdx) => (
-                                <motion.div
-                                    key={list.id}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.3, delay: listIdx * 0.1 }}
-                                    className="w-80 shrink-0"
-                                >
-                                    <Card className="flex h-fit max-h-[calc(100vh-280px)] flex-col bg-muted/30">
-                                        {/* List Header */}
-                                        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className="size-3 rounded-full"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                                <CardTitle className="text-base font-semibold">
-                                                    {list.name}
-                                                </CardTitle>
-                                                <Badge variant="secondary" className="ml-1">
-                                                    {list.tasks.length}
-                                                </Badge>
-                                            </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon-sm">
-                                                        <MoreHorizontal className="size-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => setEditingList(list)}>
-                                                        <Pencil className="mr-2 size-4" />
-                                                        Edit List
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => setDeletingList(list)}
-                                                        className="text-destructive focus:text-destructive"
-                                                    >
-                                                        <Trash2 className="mr-2 size-4" />
-                                                        Delete List
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </CardHeader>
+                                {project.lists.map((list, listIdx) => (
+                                    <motion.div
+                                        key={list.id}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.3, delay: listIdx * 0.1 }}
+                                        className="w-80 shrink-0"
+                                    >
+                                        <Card className="flex h-fit max-h-[calc(100vh-280px)] flex-col bg-muted/30">
+                                            {/* List Header */}
+                                            <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="size-3 rounded-full"
+                                                        style={{ backgroundColor: project.color }}
+                                                    />
+                                                    <CardTitle className="text-base font-semibold">
+                                                        {list.name}
+                                                    </CardTitle>
+                                                    <Badge variant="secondary" className="ml-1">
+                                                        {list.tasks.length}
+                                                    </Badge>
+                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon-sm">
+                                                            <MoreHorizontal className="size-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setEditingList(list)}>
+                                                            <Pencil className="mr-2 size-4" />
+                                                            Edit List
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() => setDeletingList(list)}
+                                                            className="text-destructive focus:text-destructive"
+                                                        >
+                                                            <Trash2 className="mr-2 size-4" />
+                                                            Delete List
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </CardHeader>
 
-                                        {/* Tasks */}
-                                        <CardContent className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-                                            {list.tasks.length > 0 ? (
-                                                list.tasks.map((task, taskIdx) => (
-                                                    <motion.div
-                                                        key={task.id}
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ duration: 0.2, delay: taskIdx * 0.05 }}
-                                                    >
-                                                        <Card className="group cursor-pointer bg-card transition-all hover:shadow-md">
-                                                            <CardContent className="p-3">
-                                                                <div className="flex items-start gap-2">
-                                                                    <div className="mt-0.5 shrink-0">
-                                                                        {getTaskStatusIcon(task)}
-                                                                    </div>
-                                                                    <div className="min-w-0 flex-1">
-                                                                        <p
-                                                                            className={`text-sm font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
-                                                                        >
-                                                                            {task.title}
-                                                                        </p>
-                                                                        {task.description && (
-                                                                            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                                                                                {task.description}
-                                                                            </p>
-                                                                        )}
-                                                                        <div className="mt-2 flex items-center gap-2">
-                                                                            {task.due_date && (
-                                                                                <Badge
-                                                                                    variant="outline"
-                                                                                    className="text-xs"
-                                                                                >
-                                                                                    {new Date(
-                                                                                        task.due_date,
-                                                                                    ).toLocaleDateString()}
-                                                                                </Badge>
-                                                                            )}
-                                                                            <span
-                                                                                className={`text-xs font-medium ${getPriorityColor(task.priority)}`}
+                                            {/* Tasks */}
+                                            <CardContent className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+                                                {list.tasks.length > 0 ? (
+                                                    list.tasks.map((task, taskIdx) => (
+                                                        <motion.div
+                                                            key={task.id}
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ duration: 0.2, delay: taskIdx * 0.05 }}
+                                                        >
+                                                            <Card className="group cursor-pointer bg-card transition-all hover:shadow-md">
+                                                                <CardContent className="p-3">
+                                                                    <div className="flex items-start gap-2">
+                                                                        <div className="mt-0.5 shrink-0">
+                                                                            {getTaskStatusIcon(task)}
+                                                                        </div>
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <p
+                                                                                className={`text-sm font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
                                                                             >
-                                                                                {task.priority}
-                                                                            </span>
+                                                                                {task.title}
+                                                                            </p>
+                                                                            {task.description && (
+                                                                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                                                                                    {task.description}
+                                                                                </p>
+                                                                            )}
+                                                                            <div className="mt-2 flex items-center gap-2">
+                                                                                {task.due_date && (
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {new Date(
+                                                                                            task.due_date,
+                                                                                        ).toLocaleDateString()}
+                                                                                    </Badge>
+                                                                                )}
+                                                                                <span
+                                                                                    className={`text-xs font-medium ${getPriorityColor(task.priority)}`}
+                                                                                >
+                                                                                    {task.priority}
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </motion.div>
-                                                ))
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-                                                    <Circle className="mb-2 size-8 text-muted-foreground/50" />
-                                                    <p className="text-sm text-muted-foreground">No tasks yet</p>
-                                                    <Button variant="ghost" size="sm" className="mt-2 gap-1">
-                                                        <Plus className="size-3" />
+                                                                </CardContent>
+                                                            </Card>
+                                                        </motion.div>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
+                                                        <Circle className="mb-2 size-8 text-muted-foreground/50" />
+                                                        <p className="text-sm text-muted-foreground">No tasks yet</p>
+                                                        <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                            <Plus className="size-3" />
+                                                            Add task
+                                                        </Button>
+                                                    </div>
+                                                )}
+
+                                                {/* Add Task Button */}
+                                                {list.tasks.length > 0 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Plus className="size-4" />
                                                         Add task
                                                     </Button>
-                                                </div>
-                                            )}
-
-                                            {/* Add Task Button */}
-                                            {list.tasks.length > 0 && (
-                                                <Button
-                                                    variant="ghost"
-                                                    className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-                                                >
-                                                    <Plus className="size-4" />
-                                                    Add task
-                                                </Button>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            ))}
-
-                            {/* Add List Card */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: project.lists.length * 0.1 }}
-                                className="w-80 shrink-0"
-                            >
-                                <CreateListDialog
-                                    project={project}
-                                    trigger={
-                                        <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
-                                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                                <Plus className="size-8" />
-                                                <span className="font-medium">Add new list</span>
-                                            </div>
+                                                )}
+                                            </CardContent>
                                         </Card>
-                                    }
-                                />
-                            </motion.div>
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                                    </motion.div>
+                                ))}
+
+                                {/* Add List Card */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: project.lists.length * 0.1 }}
+                                    className="w-80 shrink-0"
+                                >
+                                    <CreateListDialog
+                                        project={project}
+                                        trigger={
+                                            <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
+                                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                                    <Plus className="size-8" />
+                                                    <span className="font-medium">Add new list</span>
+                                                </div>
+                                            </Card>
+                                        }
+                                    />
+                                </motion.div>
+                            </div>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
                     ) : (
                         // List View (Accordion)
                         <ScrollArea className="flex-1">
