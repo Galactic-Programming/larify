@@ -40,7 +40,7 @@ class UpdateTaskRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'priority' => ['sometimes', 'required', Rule::enum(TaskPriority::class)],
             'due_date' => ['nullable', 'date'],
-            'due_time' => ['nullable', 'date_format:H:i'],
+            'due_time' => ['nullable', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'assigned_to' => [
                 'nullable',
                 'exists:users,id',

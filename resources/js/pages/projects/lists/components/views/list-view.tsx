@@ -5,10 +5,13 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Circle, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { Project, TaskList } from '../../lib/types';
+import { useState } from 'react';
+import type { Project, Task, TaskList } from '../../lib/types';
+import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
+import { TaskCard } from '../../tasks/components/task-card';
+import { TaskDetailSheet } from '../../tasks/components/task-detail-sheet';
 import { CreateListDialog } from '../create-list-dialog';
 import { ListDropdownMenu } from '../list-dropdown-menu';
-import { TaskCard } from '../task-card';
 
 interface ListViewProps {
     project: Project;
@@ -17,8 +20,11 @@ interface ListViewProps {
 }
 
 export function ListView({ project, onEditList, onDeleteList }: ListViewProps) {
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
     return (
-        <ScrollArea className="flex-1">
+        <>
+            <ScrollArea className="flex-1">
             <div className="mx-auto max-w-4xl space-y-4">
                 <Accordion
                     type="multiple"
@@ -68,26 +74,40 @@ export function ListView({ project, onEditList, onDeleteList }: ListViewProps) {
                                                 <TaskCard
                                                     key={task.id}
                                                     task={task}
+                                                    project={project}
                                                     index={taskIdx}
                                                     variant="list"
+                                                    onClick={setSelectedTask}
                                                 />
                                             ))}
-                                            <Button
-                                                variant="ghost"
-                                                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-                                            >
-                                                <Plus className="size-4" />
-                                                Add task
-                                            </Button>
+                                            <CreateTaskDialog
+                                                project={project}
+                                                list={list}
+                                                trigger={
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Plus className="size-4" />
+                                                        Add task
+                                                    </Button>
+                                                }
+                                            />
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-6 text-center">
                                             <Circle className="mb-2 size-6 text-muted-foreground/50" />
                                             <p className="text-sm text-muted-foreground">No tasks in this list</p>
-                                            <Button variant="ghost" size="sm" className="mt-2 gap-1">
-                                                <Plus className="size-3" />
-                                                Add task
-                                            </Button>
+                                            <CreateTaskDialog
+                                                project={project}
+                                                list={list}
+                                                trigger={
+                                                    <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                        <Plus className="size-3" />
+                                                        Add task
+                                                    </Button>
+                                                }
+                                            />
                                         </div>
                                     )}
                                 </AccordionContent>
@@ -116,5 +136,14 @@ export function ListView({ project, onEditList, onDeleteList }: ListViewProps) {
                 </motion.div>
             </div>
         </ScrollArea>
+
+            {/* Task Detail Sheet */}
+            <TaskDetailSheet
+                task={selectedTask}
+                project={project}
+                open={!!selectedTask}
+                onOpenChange={(open) => !open && setSelectedTask(null)}
+            />
+        </>
     );
 }

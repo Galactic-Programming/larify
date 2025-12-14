@@ -109,7 +109,6 @@ const DialogInviteFriends = ({
                             placeholder={emailPlaceholder}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
                         />
                     </div>
                     <Button type="submit" className="sm:self-end" disabled={isSubmitting}>

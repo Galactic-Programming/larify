@@ -1,12 +1,23 @@
 // Task and List types for the Lists page
 
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent';
+
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string | null;
+}
+
 export interface Task {
     id: number;
     list_id: number;
+    assigned_to: number | null;
+    assignee: User | null;
     title: string;
     description: string | null;
     position: number;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
+    priority: TaskPriority;
     due_date: string | null;
     due_time: string | null;
     started_at: string | null;
