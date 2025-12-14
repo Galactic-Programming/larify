@@ -42,12 +42,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.lists.index');
     Route::post('projects/{project}/lists', [TaskListController::class, 'store'])
         ->name('projects.lists.store');
+    Route::patch('projects/{project}/lists/reorder', [TaskListController::class, 'reorder'])
+        ->name('projects.lists.reorder');
     Route::patch('projects/{project}/lists/{list}', [TaskListController::class, 'update'])
         ->name('projects.lists.update');
     Route::delete('projects/{project}/lists/{list}', [TaskListController::class, 'destroy'])
         ->name('projects.lists.destroy');
-    Route::patch('projects/{project}/lists/reorder', [TaskListController::class, 'reorder'])
-        ->name('projects.lists.reorder');
 
     // Tasks (nested under projects/lists)
     Route::post('projects/{project}/lists/{list}/tasks', [TaskController::class, 'store'])
