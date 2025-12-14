@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { store } from '@/routes/projects';
 import { Form } from '@inertiajs/react';
-import { Check, Plus } from 'lucide-react';
+import { Check, Palette, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 // Preset colors for project
@@ -35,6 +35,9 @@ const PRESET_COLORS = [
     { name: 'Purple', value: '#a855f7' },
     { name: 'Slate', value: '#64748b' },
 ];
+
+// Check if color is a preset color
+const isPresetColor = (color: string) => PRESET_COLORS.some((c) => c.value.toLowerCase() === color.toLowerCase());
 
 interface CreateProjectDialogProps {
     trigger?: ReactNode;
@@ -118,7 +121,7 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                 {/* Color Picker */}
                                 <div className="grid gap-2">
                                     <Label>Color</Label>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                         {PRESET_COLORS.map((color) => (
                                             <button
                                                 key={color.value}
@@ -126,7 +129,7 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                                 onClick={() => setSelectedColor(color.value)}
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full transition-all hover:scale-110',
-                                                    selectedColor === color.value &&
+                                                    selectedColor.toLowerCase() === color.value.toLowerCase() &&
                                                     'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
                                                 style={
@@ -137,11 +140,42 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                                 }
                                                 title={color.name}
                                             >
-                                                {selectedColor === color.value && (
+                                                {selectedColor.toLowerCase() === color.value.toLowerCase() && (
                                                     <Check className="size-4 text-white" />
                                                 )}
                                             </button>
                                         ))}
+                                        {/* Custom color picker */}
+                                        <div className="relative">
+                                            <input
+                                                type="color"
+                                                value={selectedColor}
+                                                onChange={(e) => setSelectedColor(e.target.value)}
+                                                className="absolute inset-0 size-8 cursor-pointer opacity-0"
+                                                title="Pick custom color"
+                                            />
+                                            <div
+                                                className={cn(
+                                                    'flex size-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-foreground',
+                                                    !isPresetColor(selectedColor) &&
+                                                    'ring-2 ring-offset-2 ring-offset-background',
+                                                )}
+                                                style={
+                                                    {
+                                                        backgroundColor: !isPresetColor(selectedColor)
+                                                            ? selectedColor
+                                                            : 'transparent',
+                                                        '--tw-ring-color': selectedColor,
+                                                    } as React.CSSProperties
+                                                }
+                                            >
+                                                {isPresetColor(selectedColor) ? (
+                                                    <Palette className="size-4 text-muted-foreground" />
+                                                ) : (
+                                                    <Check className="size-4 text-white" />
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                     <input type="hidden" name="color" value={selectedColor} />
                                     <InputError message={errors.color} />
@@ -186,7 +220,7 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                 </div>
                             </div>
 
-                            <DialogFooter className="gap-2 sm:gap-0">
+                            <DialogFooter className="gap-3">
                                 <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                                     Cancel
                                 </Button>
