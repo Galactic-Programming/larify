@@ -21,7 +21,7 @@ class ProjectController extends Controller
     {
         $projects = $request->user()
             ->projects()
-            ->withCount(['lists', 'tasks'])
+            ->withCount(['lists', 'tasks', 'members'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -54,7 +54,7 @@ class ProjectController extends Controller
             ]);
         }
 
-        return to_route('projects.show', $project);
+        return to_route('projects.index');
     }
 
     /**
@@ -93,7 +93,7 @@ class ProjectController extends Controller
     {
         $project->update($request->validated());
 
-        return to_route('projects.show', $project);
+        return back();
     }
 
     /**

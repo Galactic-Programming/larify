@@ -35,7 +35,7 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, ease: 'easeOut' }}
-                        className="relative col-span-full overflow-hidden rounded-xl border border-sidebar-border/70 bg-gradient-to-br from-primary/10 via-card to-card p-6 dark:border-sidebar-border"
+                        className="relative col-span-full overflow-hidden rounded-xl border border-sidebar-border/70 bg-linear-to-br from-primary/10 via-card to-card p-6 dark:border-sidebar-border"
                     >
                         <div className="relative z-10">
                             <motion.p
@@ -90,7 +90,7 @@ export default function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.9, duration: 0.5, ease: 'easeOut' }}
                     whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
-                    className="bg-card relative min-h-[100vh] flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg md:min-h-min dark:border-sidebar-border"
+                    className="bg-card relative min-h-screen flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg md:min-h-min dark:border-sidebar-border"
                 >
                     <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </motion.div>
