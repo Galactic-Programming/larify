@@ -92,9 +92,9 @@ export function ProjectCard({
                             onDelete={onDelete}
                         />
                     </div>
-                    {project.description && (
-                        <CardDescription className="line-clamp-2 pt-2">{project.description}</CardDescription>
-                    )}
+                    <CardDescription className="line-clamp-2 min-h-10 pt-2">
+                        {project.description || <span className="text-transparent">-</span>}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
