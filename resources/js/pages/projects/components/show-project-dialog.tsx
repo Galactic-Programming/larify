@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
+import type { Project } from '@/pages/projects/lib/types';
 import {
     Archive,
     Calendar,
@@ -30,21 +31,6 @@ const ProjectIconDisplay = memo(function ProjectIconDisplay({
     const Icon = getProjectIcon(iconName);
     return createElement(Icon, { className });
 });
-
-interface Project {
-    id: number;
-    user_id: number;
-    name: string;
-    description: string | null;
-    color: string;
-    icon: string | null;
-    is_archived: boolean;
-    lists_count: number;
-    tasks_count: number;
-    members_count: number;
-    created_at: string;
-    updated_at: string;
-}
 
 interface ShowProjectDialogProps {
     project: Project | null;

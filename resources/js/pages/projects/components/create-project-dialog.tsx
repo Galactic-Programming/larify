@@ -14,30 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { isPresetColor, PRESET_COLORS } from '@/pages/projects/lib/constants';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { store } from '@/routes/projects';
 import { Form } from '@inertiajs/react';
 import { Check, Palette, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-
-// Preset colors for project
-const PRESET_COLORS = [
-    { name: 'Indigo', value: '#6366f1' },
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Cyan', value: '#06b6d4' },
-    { name: 'Teal', value: '#14b8a6' },
-    { name: 'Green', value: '#22c55e' },
-    { name: 'Lime', value: '#84cc16' },
-    { name: 'Yellow', value: '#eab308' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Pink', value: '#ec4899' },
-    { name: 'Purple', value: '#a855f7' },
-    { name: 'Slate', value: '#64748b' },
-];
-
-// Check if color is a preset color
-const isPresetColor = (color: string) => PRESET_COLORS.some((c) => c.value.toLowerCase() === color.toLowerCase());
 
 interface CreateProjectDialogProps {
     trigger?: ReactNode;

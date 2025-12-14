@@ -9,14 +9,10 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
+import type { Project } from '@/pages/projects/lib/types';
 import { destroy } from '@/routes/projects';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
-
-interface Project {
-    id: number;
-    name: string;
-}
 
 interface DeleteProjectDialogProps {
     project: Project;

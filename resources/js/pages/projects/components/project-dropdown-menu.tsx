@@ -1,0 +1,82 @@
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { index as listsIndex } from '@/routes/projects/lists';
+import { Link } from '@inertiajs/react';
+import { Archive, ArchiveRestore, Eye, FolderKanban, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import type { Project } from '../lib/types';
+
+interface ProjectDropdownMenuProps {
+    project: Project;
+    onView: (project: Project) => void;
+    onEdit: (project: Project) => void;
+    onArchive: (project: Project) => void;
+    onDelete: (project: Project) => void;
+    triggerClassName?: string;
+}
+
+export function ProjectDropdownMenu({
+    project,
+    onView,
+    onEdit,
+    onArchive,
+    onDelete,
+    triggerClassName,
+}: ProjectDropdownMenuProps) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className={triggerClassName ?? 'opacity-0 transition-opacity group-hover:opacity-100'}
+                >
+                    <MoreHorizontal className="size-4" />
+                    <span className="sr-only">Open menu</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onView(project)}>
+                    <Eye className="mr-2 size-4" />
+                    View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href={listsIndex(project).url}>
+                        <FolderKanban className="mr-2 size-4" />
+                        Open Board
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(project)}>
+                    <Pencil className="mr-2 size-4" />
+                    Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onArchive(project)}>
+                    {project.is_archived ? (
+                        <>
+                            <ArchiveRestore className="mr-2 size-4" />
+                            Restore
+                        </>
+                    ) : (
+                        <>
+                            <Archive className="mr-2 size-4" />
+                            Archive
+                        </>
+                    )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    onClick={() => onDelete(project)}
+                    className="text-destructive focus:text-destructive"
+                >
+                    <Trash2 className="mr-2 size-4" />
+                    Delete
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
