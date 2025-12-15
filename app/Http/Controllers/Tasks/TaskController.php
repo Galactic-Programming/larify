@@ -149,6 +149,60 @@ class TaskController extends Controller
     }
 
     /**
+     * Pause time tracking for a task.
+     */
+    public function pause(Project $project, Task $task): RedirectResponse
+    {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
+        Gate::authorize('update', [$task, $project]);
+
+        // Only pause if task is in progress (started but not paused or completed)
+        if ($task->started_at !== null && $task->paused_at === null && $task->completed_at === null) {
+            $task->update([
+                'paused_at' => now(),
+            ]);
+
+            // Broadcast real-time update
+            broadcast(new TaskUpdated($task->load('assignee'), 'paused'))->toOthers();
+        }
+
+        return back();
+    }
+
+    /**
+     * Resume time tracking for a paused task.
+     */
+    public function resume(Project $project, Task $task): RedirectResponse
+    {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
+        Gate::authorize('update', [$task, $project]);
+
+        // Only resume if task is paused
+        if ($task->paused_at !== null && $task->completed_at === null) {
+            // Calculate paused duration and add to total (absolute value to prevent negative)
+            $pausedDuration = max(0, (int) $task->paused_at->diffInSeconds(now()));
+
+            $task->update([
+                'paused_at' => null,
+                'total_paused_seconds' => $task->total_paused_seconds + $pausedDuration,
+            ]);
+
+            // Broadcast real-time update
+            broadcast(new TaskUpdated($task->load('assignee'), 'resumed'))->toOthers();
+        }
+
+        return back();
+    }
+
+    /**
      * Mark task as completed.
      */
     public function complete(Project $project, Task $task): RedirectResponse
@@ -165,9 +219,25 @@ class TaskController extends Controller
             // Refresh to get latest data (optimistic locking)
             $task->refresh();
 
-            $task->update([
-                'completed_at' => $task->completed_at ? null : now(),
-            ]);
+            if ($task->completed_at) {
+                // If already completed, mark as incomplete (toggle off)
+                $task->update([
+                    'completed_at' => null,
+                ]);
+            } else {
+                // Mark as completed
+                // If task was paused, calculate final paused time
+                $additionalPausedSeconds = 0;
+                if ($task->paused_at !== null) {
+                    $additionalPausedSeconds = max(0, (int) $task->paused_at->diffInSeconds(now()));
+                }
+
+                $task->update([
+                    'completed_at' => now(),
+                    'paused_at' => null,
+                    'total_paused_seconds' => max(0, $task->total_paused_seconds + $additionalPausedSeconds),
+                ]);
+            }
         });
 
         // Broadcast real-time update

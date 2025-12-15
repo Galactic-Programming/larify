@@ -62,6 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.tasks.reorder');
     Route::patch('projects/{project}/tasks/{task}/start', [TaskController::class, 'start'])
         ->name('projects.tasks.start');
+    Route::patch('projects/{project}/tasks/{task}/pause', [TaskController::class, 'pause'])
+        ->name('projects.tasks.pause');
+    Route::patch('projects/{project}/tasks/{task}/resume', [TaskController::class, 'resume'])
+        ->name('projects.tasks.resume');
     Route::patch('projects/{project}/tasks/{task}/complete', [TaskController::class, 'complete'])
         ->name('projects.tasks.complete');
 });
@@ -84,4 +88,4 @@ Route::get('auth/{provider}/callback', [SocialController::class, 'callback'])
     ->whereIn('provider', ['google', 'github'])
     ->name('social.callback');
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

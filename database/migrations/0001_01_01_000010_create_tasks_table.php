@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -23,6 +22,8 @@ return new class extends Migration
             $table->date('due_date')->nullable();
             $table->time('due_time')->nullable(); // Optional: thời gian cụ thể
             $table->timestamp('started_at')->nullable(); // Bắt đầu tính giờ
+            $table->timestamp('paused_at')->nullable(); // Tạm dừng
+            $table->unsignedInteger('total_paused_seconds')->default(0); // Tổng thời gian đã pause
             $table->timestamp('completed_at')->nullable(); // Hoàn thành
             $table->timestamps();
 

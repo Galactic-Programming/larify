@@ -11,7 +11,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { complete, move, start } from '@/actions/App/Http/Controllers/Tasks/TaskController';
+import { complete, move, start, pause, resume } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
 import { format, formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
 import {
@@ -22,6 +22,7 @@ import {
     Calendar,
     CheckCircle2,
     Minus,
+    Pause,
     Pencil,
     Play,
     Square,
@@ -54,23 +55,34 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
     const [isProcessing, setIsProcessing] = useState(false);
     const [elapsedTime, setElapsedTime] = useState(0);
 
-    // Real-time elapsed timer for in-progress tasks
+    // Real-time elapsed timer for in-progress tasks (not paused)
     useEffect(() => {
-        if (!task?.started_at || task?.completed_at) {
-            setElapsedTime(0);
+        if (!task?.started_at || task?.completed_at || task?.paused_at) {
+            // If paused, calculate time up to pause point
+            if (task?.paused_at && task?.started_at) {
+                const startTime = parseISO(task.started_at);
+                const pauseTime = parseISO(task.paused_at);
+                const elapsed = differenceInSeconds(pauseTime, startTime) - (task.total_paused_seconds || 0);
+                setElapsedTime(Math.max(0, elapsed));
+            } else {
+                setElapsedTime(0);
+            }
             return;
         }
 
         const startTime = parseISO(task.started_at);
+        const pausedSeconds = task.total_paused_seconds || 0;
+
         const updateElapsed = () => {
-            setElapsedTime(differenceInSeconds(new Date(), startTime));
+            const totalElapsed = differenceInSeconds(new Date(), startTime) - pausedSeconds;
+            setElapsedTime(Math.max(0, totalElapsed));
         };
 
         updateElapsed();
         const interval = setInterval(updateElapsed, 1000);
 
         return () => clearInterval(interval);
-    }, [task?.started_at, task?.completed_at]);
+    }, [task?.started_at, task?.completed_at, task?.paused_at, task?.total_paused_seconds]);
 
     // Format elapsed time as HH:MM:SS
     const formatElapsedTime = useCallback((seconds: number) => {
@@ -99,7 +111,8 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
 
     // Status helpers
     const isCompleted = !!task.completed_at;
-    const isInProgress = !!task.started_at && !task.completed_at;
+    const isPaused = !!task.paused_at && !task.completed_at;
+    const isInProgress = !!task.started_at && !task.paused_at && !task.completed_at;
     const isNotStarted = !task.started_at && !task.completed_at;
 
     const handleToggleComplete = () => {
@@ -109,6 +122,7 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
             {},
             {
                 preserveScroll: true,
+                preserveState: false,
                 onFinish: () => setIsProcessing(false),
                 onError: () => {
                     setIsProcessing(false);
@@ -126,6 +140,41 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
             {},
             {
                 preserveScroll: true,
+                preserveState: false,
+                onFinish: () => setIsProcessing(false),
+                onError: () => {
+                    setIsProcessing(false);
+                    onOpenChange(false);
+                },
+            },
+        );
+    };
+
+    const handlePauseTask = () => {
+        setIsProcessing(true);
+        router.patch(
+            pause({ project, task }).url,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: false,
+                onFinish: () => setIsProcessing(false),
+                onError: () => {
+                    setIsProcessing(false);
+                    onOpenChange(false);
+                },
+            },
+        );
+    };
+
+    const handleResumeTask = () => {
+        setIsProcessing(true);
+        router.patch(
+            resume({ project, task }).url,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: false,
                 onFinish: () => setIsProcessing(false),
                 onError: () => {
                     setIsProcessing(false);
@@ -208,12 +257,14 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
 
                     <ScrollArea className="flex-1">
                         <div className="space-y-5 p-6">
-                            {/* Timer Section - Bordio style: Prominent when active */}
-                            {(isInProgress || isCompleted) && (
+                            {/* Timer Section - Prominent when active */}
+                            {(isInProgress || isPaused || isCompleted) && (
                                 <div
                                     className={`overflow-hidden rounded-xl ${isInProgress
                                             ? 'bg-linear-to-r from-blue-500/10 via-blue-500/5 to-transparent'
-                                            : 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent'
+                                            : isPaused
+                                                ? 'bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent'
+                                                : 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent'
                                         }`}
                                 >
                                     <div className="p-4">
@@ -236,16 +287,69 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    className="gap-1.5 bg-blue-500 text-white hover:bg-blue-600"
-                                                    onClick={handleToggleComplete}
-                                                    disabled={isProcessing}
-                                                >
-                                                    <Square className="size-3.5 fill-current" />
-                                                    Stop
-                                                </Button>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="gap-1.5 bg-amber-500 text-white hover:bg-amber-600"
+                                                        onClick={handlePauseTask}
+                                                        disabled={isProcessing}
+                                                    >
+                                                        <Pause className="size-3.5 fill-current" />
+                                                        Pause
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
+                                                        onClick={handleToggleComplete}
+                                                        disabled={isProcessing}
+                                                    >
+                                                        <Square className="size-3.5 fill-current" />
+                                                        Complete
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Paused Timer Display */}
+                                        {isPaused && (
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex size-10 items-center justify-center rounded-full bg-amber-500 text-white">
+                                                        <Pause className="size-5 fill-current" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-medium uppercase tracking-wider text-amber-600">
+                                                            Paused
+                                                        </p>
+                                                        <p className="text-2xl font-bold tabular-nums text-amber-700">
+                                                            {formatElapsedTime(elapsedTime)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="gap-1.5 bg-blue-500 text-white hover:bg-blue-600"
+                                                        onClick={handleResumeTask}
+                                                        disabled={isProcessing}
+                                                    >
+                                                        <Play className="size-3.5 fill-current" />
+                                                        Resume
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
+                                                        onClick={handleToggleComplete}
+                                                        disabled={isProcessing}
+                                                    >
+                                                        <Square className="size-3.5 fill-current" />
+                                                        Complete
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )}
 
@@ -265,7 +369,7 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                                 differenceInSeconds(
                                                                     parseISO(task.completed_at!),
                                                                     parseISO(task.started_at),
-                                                                ),
+                                                                ) - (task.total_paused_seconds || 0),
                                                             )}
                                                         </p>
                                                     </div>
@@ -284,6 +388,12 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                     {format(parseISO(task.started_at), 'MMM d, HH:mm')}
                                                 </div>
                                             )}
+                                            {task.paused_at && (
+                                                <div>
+                                                    <span className="font-medium">Paused:</span>{' '}
+                                                    {format(parseISO(task.paused_at), 'MMM d, HH:mm')}
+                                                </div>
+                                            )}
                                             {task.completed_at && (
                                                 <div>
                                                     <span className="font-medium">Completed:</span>{' '}
@@ -295,7 +405,7 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                 </div>
                             )}
 
-                            {/* Start Timer Button - Bordio style: Clear CTA when not started */}
+                            {/* Start Timer Button - Clear CTA when not started */}
                             {isNotStarted && (
                                 <Button
                                     onClick={handleStartTask}

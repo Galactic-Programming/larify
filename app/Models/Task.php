@@ -22,6 +22,8 @@ class Task extends Model
         'due_date',
         'due_time',
         'started_at',
+        'paused_at',
+        'total_paused_seconds',
         'completed_at',
     ];
 
@@ -32,6 +34,8 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'due_date' => 'date',
             'started_at' => 'datetime',
+            'paused_at' => 'datetime',
+            'total_paused_seconds' => 'integer',
             'completed_at' => 'datetime',
         ];
     }
