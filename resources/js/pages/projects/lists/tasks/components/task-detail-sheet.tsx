@@ -177,27 +177,13 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
         <>
             <Sheet open={open} onOpenChange={onOpenChange}>
                 <SheetContent className="flex w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-                    {/* Header - Bordio style: Clean, minimal with big checkbox */}
+                    {/* Header - Clean, minimal */}
                     <SheetHeader className="border-b bg-linear-to-b from-muted/50 to-background px-6 py-5">
                         <div className="flex items-start gap-4">
-                            {/* Large completion checkbox */}
-                            <button
-                                onClick={handleToggleComplete}
-                                disabled={isProcessing}
-                                className={`mt-1 flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                                    isCompleted
-                                        ? 'border-emerald-500 bg-emerald-500 text-white'
-                                        : 'border-muted-foreground/30 hover:border-emerald-500 hover:bg-emerald-500/10'
-                                }`}
-                            >
-                                {isCompleted && <CheckCircle2 className="size-4" />}
-                            </button>
-
                             <div className="min-w-0 flex-1 space-y-1">
                                 <SheetTitle
-                                    className={`text-xl font-semibold leading-tight ${
-                                        isCompleted ? 'text-muted-foreground line-through' : ''
-                                    }`}
+                                    className={`text-xl font-semibold leading-tight ${isCompleted ? 'text-muted-foreground line-through' : ''
+                                        }`}
                                 >
                                     {task.title}
                                 </SheetTitle>
@@ -209,6 +195,12 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                         />
                                         {currentList?.name}
                                     </Badge>
+                                    {isCompleted && (
+                                        <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700">
+                                            <CheckCircle2 className="size-3" />
+                                            Completed
+                                        </Badge>
+                                    )}
                                 </SheetDescription>
                             </div>
                         </div>
@@ -219,11 +211,10 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                             {/* Timer Section - Bordio style: Prominent when active */}
                             {(isInProgress || isCompleted) && (
                                 <div
-                                    className={`overflow-hidden rounded-xl ${
-                                        isInProgress
+                                    className={`overflow-hidden rounded-xl ${isInProgress
                                             ? 'bg-linear-to-r from-blue-500/10 via-blue-500/5 to-transparent'
                                             : 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent'
-                                    }`}
+                                        }`}
                                 >
                                     <div className="p-4">
                                         {/* Active Timer Display */}
@@ -458,7 +449,7 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                className="text-destructive hover:bg-destructive/10 hover:text-background-foreground"
                                 onClick={() => setDeleteOpen(true)}
                             >
                                 <Trash2 className="size-4" />
