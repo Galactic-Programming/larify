@@ -46,8 +46,14 @@ class StoreTaskRequest extends FormRequest
                 'nullable',
                 'exists:users,id',
                 function ($attribute, $value, $fail) use ($project) {
-                    if ($value && !$project->hasMember(\App\Models\User::find($value))) {
-                        $fail('The assigned user must be a member of the project.');
+                    if ($value) {
+                        // Optimize: Check if user is project member without N+1 query
+                        $isMember = $project->user_id === $value
+                            || $project->projectMembers()->where('user_id', $value)->exists();
+
+                        if (!$isMember) {
+                            $fail('The assigned user must be a member of the project.');
+                        }
                     }
                 },
             ],

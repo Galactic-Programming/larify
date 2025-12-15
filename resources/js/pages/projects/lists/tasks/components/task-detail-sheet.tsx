@@ -61,6 +61,13 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
     if (!task) return null;
 
     const currentList = project.lists.find((l) => l.id === task.list_id);
+
+    // Handle orphaned data - task's list was deleted
+    if (!currentList && open) {
+        onOpenChange(false);
+        return null;
+    }
+
     const priorityConfig = PRIORITY_CONFIG[task.priority];
     const PriorityIcon = priorityConfig.icon;
 
@@ -100,6 +107,11 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
             {
                 preserveScroll: true,
                 onFinish: () => setIsProcessing(false),
+                onError: () => {
+                    // Handle error (e.g., task was deleted)
+                    setIsProcessing(false);
+                    onOpenChange(false);
+                },
             },
         );
     };
@@ -113,6 +125,11 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
             {
                 preserveScroll: true,
                 onFinish: () => setIsProcessing(false),
+                onError: () => {
+                    // Handle error (e.g., task was deleted)
+                    setIsProcessing(false);
+                    onOpenChange(false);
+                },
             },
         );
     };
@@ -121,19 +138,24 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
         const newListId = parseInt(listId, 10);
         if (newListId === task.list_id) return;
 
-        const targetList = project.lists.find((l) => l.id === newListId);
-        if (!targetList) return;
-
         setIsProcessing(true);
         router.patch(
             move({ project, task }).url,
             {
                 list_id: newListId,
-                position: targetList.tasks.length, // Add at the end
+                // Position auto-calculated by backend to prevent race condition
             },
             {
                 preserveScroll: true,
-                onFinish: () => setIsProcessing(false),
+                onFinish: () => {
+                    setIsProcessing(false);
+                    onOpenChange(false); // Close sheet after moving
+                },
+                onError: () => {
+                    // Handle error (e.g., task or target list was deleted)
+                    setIsProcessing(false);
+                    onOpenChange(false);
+                },
             },
         );
     };

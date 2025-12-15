@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
@@ -36,6 +37,11 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Project $project, Task $task): RedirectResponse
     {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
         $task->update($request->validated());
 
         return back();
@@ -46,6 +52,11 @@ class TaskController extends Controller
      */
     public function destroy(Project $project, Task $task): RedirectResponse
     {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
         Gate::authorize('delete', [$task, $project]);
 
         $task->delete();
@@ -58,11 +69,22 @@ class TaskController extends Controller
      */
     public function move(MoveTaskRequest $request, Project $project, Task $task): RedirectResponse
     {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
+        Gate::authorize('update', [$task, $project]);
+
         $validated = $request->validated();
+        $newListId = $validated['list_id'];
+
+        // Auto-calculate position at the end of target list to prevent race condition
+        $maxPosition = Task::where('list_id', $newListId)->max('position') ?? -1;
 
         $task->update([
-            'list_id' => $validated['list_id'],
-            'position' => $validated['position'],
+            'list_id' => $newListId,
+            'position' => $maxPosition + 1,
         ]);
 
         return back();
@@ -87,11 +109,19 @@ class TaskController extends Controller
      */
     public function start(Project $project, Task $task): RedirectResponse
     {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
         Gate::authorize('update', [$task, $project]);
 
-        $task->update([
-            'started_at' => now(),
-        ]);
+        // Only set started_at if not already started (prevent overwrite)
+        if ($task->started_at === null) {
+            $task->update([
+                'started_at' => now(),
+            ]);
+        }
 
         return back();
     }
@@ -101,11 +131,22 @@ class TaskController extends Controller
      */
     public function complete(Project $project, Task $task): RedirectResponse
     {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
         Gate::authorize('update', [$task, $project]);
 
-        $task->update([
-            'completed_at' => $task->completed_at ? null : now(),
-        ]);
+        // Use DB transaction with fresh data to prevent race condition
+        DB::transaction(function () use ($task) {
+            // Refresh to get latest data (optimistic locking)
+            $task->refresh();
+
+            $task->update([
+                'completed_at' => $task->completed_at ? null : now(),
+            ]);
+        });
 
         return back();
     }
