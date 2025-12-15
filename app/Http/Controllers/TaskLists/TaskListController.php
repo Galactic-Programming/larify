@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\TaskLists;
 
+use App\Events\ListUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskLists\ReorderTaskListRequest;
 use App\Http\Requests\TaskLists\StoreTaskListRequest;
@@ -23,8 +24,8 @@ class TaskListController extends Controller
         Gate::authorize('view', $project);
 
         $project->load([
-            'lists' => fn($query) => $query->orderBy('position')->withCount('tasks'),
-            'lists.tasks' => fn($query) => $query->orderBy('position'),
+            'lists' => fn ($query) => $query->orderBy('position')->withCount('tasks'),
+            'lists.tasks' => fn ($query) => $query->orderBy('position'),
             'lists.tasks.assignee',
         ]);
 
@@ -40,10 +41,12 @@ class TaskListController extends Controller
     {
         $maxPosition = $project->lists()->max('position') ?? -1;
 
-        $project->lists()->create([
+        $list = $project->lists()->create([
             ...$request->validated(),
             'position' => $maxPosition + 1,
         ]);
+
+        broadcast(new ListUpdated($list, 'created'))->toOthers();
 
         return back();
     }
@@ -53,7 +56,14 @@ class TaskListController extends Controller
      */
     public function update(UpdateTaskListRequest $request, Project $project, TaskList $list): RedirectResponse
     {
+        // Verify the list belongs to the project (security check)
+        if ($list->project_id !== $project->id) {
+            abort(404);
+        }
+
         $list->update($request->validated());
+
+        broadcast(new ListUpdated($list, 'updated'))->toOthers();
 
         return back();
     }
@@ -64,6 +74,9 @@ class TaskListController extends Controller
     public function destroy(Project $project, TaskList $list): RedirectResponse
     {
         Gate::authorize('delete', [$list, $project]);
+
+        // Broadcast before delete so we have the list data
+        broadcast(new ListUpdated($list, 'deleted'))->toOthers();
 
         $list->delete();
 
@@ -79,6 +92,12 @@ class TaskListController extends Controller
             TaskList::where('id', $item['id'])
                 ->where('project_id', $project->id)
                 ->update(['position' => $item['position']]);
+        }
+
+        // Broadcast a generic list update for reordering
+        $firstList = $project->lists()->first();
+        if ($firstList) {
+            broadcast(new ListUpdated($firstList, 'reordered'))->toOthers();
         }
 
         return back();

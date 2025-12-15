@@ -91,6 +91,8 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
+        Gate::authorize('update', $project);
+
         $project->update($request->validated());
 
         return back();

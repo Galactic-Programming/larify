@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tasks;
 
+use App\Events\TaskUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tasks\MoveTaskRequest;
 use App\Http\Requests\Tasks\ReorderTaskRequest;
@@ -23,11 +24,14 @@ class TaskController extends Controller
     {
         $maxPosition = $list->tasks()->max('position') ?? -1;
 
-        $list->tasks()->create([
+        $task = $list->tasks()->create([
             ...$request->validated(),
             'project_id' => $project->id,
             'position' => $maxPosition + 1,
         ]);
+
+        // Broadcast real-time update
+        broadcast(new TaskUpdated($task->load('assignee'), 'created'))->toOthers();
 
         return back();
     }
@@ -44,6 +48,9 @@ class TaskController extends Controller
 
         $task->update($request->validated());
 
+        // Broadcast real-time update
+        broadcast(new TaskUpdated($task->load('assignee'), 'updated'))->toOthers();
+
         return back();
     }
 
@@ -59,7 +66,13 @@ class TaskController extends Controller
 
         Gate::authorize('delete', [$task, $project]);
 
+        // Store task data before deletion for broadcast
+        $taskData = $task->toArray();
+
         $task->delete();
+
+        // Broadcast deletion event
+        broadcast(new TaskUpdated($task, 'deleted'))->toOthers();
 
         return back();
     }
@@ -87,6 +100,9 @@ class TaskController extends Controller
             'position' => $maxPosition + 1,
         ]);
 
+        // Broadcast real-time update
+        broadcast(new TaskUpdated($task->load('assignee'), 'moved'))->toOthers();
+
         return back();
     }
 
@@ -95,11 +111,14 @@ class TaskController extends Controller
      */
     public function reorder(ReorderTaskRequest $request, Project $project, TaskList $list): RedirectResponse
     {
-        foreach ($request->validated('tasks') as $item) {
-            Task::where('id', $item['id'])
-                ->where('list_id', $list->id)
-                ->update(['position' => $item['position']]);
-        }
+        // Use DB transaction to prevent race condition during bulk position updates
+        DB::transaction(function () use ($request, $list) {
+            foreach ($request->validated('tasks') as $item) {
+                Task::where('id', $item['id'])
+                    ->where('list_id', $list->id)
+                    ->update(['position' => $item['position']]);
+            }
+        });
 
         return back();
     }
@@ -121,6 +140,9 @@ class TaskController extends Controller
             $task->update([
                 'started_at' => now(),
             ]);
+
+            // Broadcast real-time update
+            broadcast(new TaskUpdated($task->load('assignee'), 'started'))->toOthers();
         }
 
         return back();
@@ -147,6 +169,9 @@ class TaskController extends Controller
                 'completed_at' => $task->completed_at ? null : now(),
             ]);
         });
+
+        // Broadcast real-time update
+        broadcast(new TaskUpdated($task->load('assignee'), 'completed'))->toOthers();
 
         return back();
     }

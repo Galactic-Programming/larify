@@ -11,6 +11,7 @@ export interface User {
 
 export interface Task {
     id: number;
+    project_id: number;
     list_id: number;
     assigned_to: number | null;
     assignee: User | null;

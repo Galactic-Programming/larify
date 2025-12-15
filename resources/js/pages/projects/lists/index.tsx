@@ -23,6 +23,9 @@ export default function ListsIndex({ project }: Props) {
     const [editingList, setEditingList] = useState<TaskList | null>(null);
     const [deletingList, setDeletingList] = useState<TaskList | null>(null);
 
+    // Note: Real-time updates are handled in each view component (BoardView, ListView, TableView)
+    // to properly handle task deletion when detail sheet is open
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Projects', href: projectsIndex().url },
         { title: project.name, href: projectShow(project).url },

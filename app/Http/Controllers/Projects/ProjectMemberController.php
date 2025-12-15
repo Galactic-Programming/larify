@@ -24,7 +24,7 @@ class ProjectMemberController extends Controller
             'members' => $project->members()
                 ->withPivot(['role', 'joined_at'])
                 ->get()
-                ->map(fn($user) => [
+                ->map(fn ($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -58,6 +58,13 @@ class ProjectMemberController extends Controller
      */
     public function update(UpdateMemberRequest $request, Project $project, ProjectMember $member): RedirectResponse
     {
+        Gate::authorize('manageMembers', $project);
+
+        // Verify the member belongs to this project
+        if ($member->project_id !== $project->id) {
+            abort(404);
+        }
+
         $member->update([
             'role' => $request->validated('role'),
         ]);

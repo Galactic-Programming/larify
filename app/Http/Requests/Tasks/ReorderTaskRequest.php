@@ -31,9 +31,21 @@ class ReorderTaskRequest extends FormRequest
      */
     public function rules(): array
     {
+        $list = $this->route('list');
+
         return [
             'tasks' => ['required', 'array'],
-            'tasks.*.id' => ['required', 'integer', 'exists:tasks,id'],
+            'tasks.*.id' => [
+                'required',
+                'integer',
+                'exists:tasks,id',
+                function ($attribute, $value, $fail) use ($list) {
+                    // Verify the task belongs to this list
+                    if ($list && ! $list->tasks()->where('id', $value)->exists()) {
+                        $fail('The task does not belong to this list.');
+                    }
+                },
+            ],
             'tasks.*.position' => ['required', 'integer', 'min:0'],
         ];
     }
