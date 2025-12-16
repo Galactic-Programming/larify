@@ -93,6 +93,11 @@ class TaskController extends Controller
         $validated = $request->validated();
         $newListId = $validated['list_id'];
 
+        // Check if target list is a done list
+        $targetList = TaskList::find($newListId);
+        $isMovingToDoneList = $targetList && $targetList->is_done_list;
+        $isMovingFromDoneList = $task->list->is_done_list ?? false;
+
         // Use provided position or auto-calculate at end of list
         if (isset($validated['position'])) {
             $newPosition = $validated['position'];
@@ -106,10 +111,24 @@ class TaskController extends Controller
             $newPosition = (Task::where('list_id', $newListId)->max('position') ?? -1) + 1;
         }
 
-        $task->update([
+        $updateData = [
             'list_id' => $newListId,
             'position' => $newPosition,
-        ]);
+        ];
+
+        // Auto-complete task when moving to done list
+        if ($isMovingToDoneList && ! $task->completed_at) {
+            $updateData['completed_at'] = now();
+            $updateData['original_list_id'] = $task->list_id;
+        }
+
+        // Auto-uncomplete task when moving from done list to another list
+        if ($isMovingFromDoneList && ! $isMovingToDoneList && $task->completed_at) {
+            $updateData['completed_at'] = null;
+            $updateData['original_list_id'] = null;
+        }
+
+        $task->update($updateData);
 
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'moved'))->toOthers();
