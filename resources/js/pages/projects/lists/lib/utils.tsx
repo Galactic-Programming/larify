@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, Circle, Clock } from 'lucide-react';
-import { differenceInSeconds, parseISO } from 'date-fns';
+import { differenceInSeconds } from 'date-fns';
 import type { Task } from './types';
 
 export const getPriorityColor = (priority: Task['priority']) => {
