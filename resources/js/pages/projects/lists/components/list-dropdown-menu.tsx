@@ -34,6 +34,9 @@ export function ListDropdownMenu({
 }: ListDropdownMenuProps) {
     const [editStatusesOpen, setEditStatusesOpen] = useState(false);
 
+    // Check if another list is already the done list
+    const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
+
     return (
         <>
             <DropdownMenu>
@@ -48,24 +51,29 @@ export function ListDropdownMenu({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                        onClick={() => {
-                            router.patch(setDoneList.url({ project: project.id, list: list.id }));
-                        }}
-                    >
-                        {list.is_done_list ? (
-                            <>
-                                <Circle className="mr-2 size-4" />
-                                Unset as Done List
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle2 className="mr-2 size-4" />
-                                Set as Done List
-                            </>
-                        )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    {/* Show done list option only if: this list is already done list OR no other list is done list */}
+                    {(list.is_done_list || !hasDoneListElsewhere) && (
+                        <>
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    router.patch(setDoneList.url({ project: project.id, list: list.id }));
+                                }}
+                            >
+                                {list.is_done_list ? (
+                                    <>
+                                        <Circle className="mr-2 size-4" />
+                                        Unset as Done List
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="mr-2 size-4" />
+                                        Set as Done List
+                                    </>
+                                )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                        </>
+                    )}
                     <DropdownMenuItem onClick={() => onEdit(list)}>
                         <Pencil className="mr-2 size-4" />
                         Edit List

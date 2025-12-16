@@ -20,6 +20,7 @@ interface Project {
     id: number;
     name: string;
     color: string;
+    lists: Array<{ id: number; is_done_list: boolean }>;
 }
 
 interface TaskList {
@@ -37,6 +38,9 @@ interface EditListDialogProps {
 }
 
 export function EditListDialog({ project, list, open, onOpenChange }: EditListDialogProps) {
+    // Check if another list is already the done list
+    const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
@@ -85,12 +89,15 @@ export function EditListDialog({ project, list, open, onOpenChange }: EditListDi
                                     <div className="space-y-0.5">
                                         <Label htmlFor="is_done_list" className="text-base">Done List</Label>
                                         <p className="text-muted-foreground text-sm">
-                                            Completed tasks will automatically move to this list.
+                                            {hasDoneListElsewhere && !list.is_done_list
+                                                ? 'Another list is already set as Done List. Unset it first to change.'
+                                                : 'Completed tasks will automatically move to this list.'}
                                         </p>
                                     </div>
                                     <Switch
                                         id="is_done_list"
                                         checked={list.is_done_list}
+                                        disabled={hasDoneListElsewhere && !list.is_done_list}
                                         onCheckedChange={() => {
                                             router.patch(setDoneList.url({ project: project.id, list: list.id }));
                                         }}

@@ -44,11 +44,12 @@ class StoreTaskRequest extends FormRequest
             'due_time' => ['required', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'assigned_to' => [
                 'nullable',
+                'integer',
                 'exists:users,id',
                 function ($attribute, $value, $fail) use ($project) {
                     if ($value) {
-                        // Optimize: Check if user is project member without N+1 query
-                        $isMember = $project->user_id === $value
+                        // Check if user is project owner or member
+                        $isMember = $project->user_id == $value
                             || $project->projectMembers()->where('user_id', $value)->exists();
 
                         if (! $isMember) {

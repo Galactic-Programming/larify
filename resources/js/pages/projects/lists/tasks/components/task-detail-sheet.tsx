@@ -13,7 +13,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { complete, move } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
-import { format, parseISO, differenceInSeconds } from 'date-fns';
+import { format, parseISO, differenceInSeconds, formatDistanceToNow } from 'date-fns';
 import {
     AlertTriangle,
     ArrowDown,

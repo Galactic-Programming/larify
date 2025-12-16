@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,22 +9,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { complete } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
 import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import type { Task } from '../../lib/types';
+import type { Project, Task } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon, isCompletedLate, isTaskOverdue } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { ReopenTaskDialog } from './reopen-task-dialog';
-
-interface Project {
-    id: number;
-    name: string;
-    color: string;
-}
 
 interface TaskCardProps {
     task: Task;
@@ -31,6 +27,15 @@ interface TaskCardProps {
     index?: number;
     variant?: 'board' | 'list';
     onClick?: (task: Task) => void;
+}
+
+function getInitials(name: string): string {
+    return name
+        .split(' ')
+        .map((word) => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
 }
 
 export function TaskCard({ task, project, index = 0, variant = 'board', onClick }: TaskCardProps) {
@@ -129,10 +134,10 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.03 }}
                     className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${isOverdue
-                            ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
-                            : completedLate
-                                ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
-                                : 'bg-muted/30'
+                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                        : completedLate
+                            ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                            : 'bg-muted/30'
                         }`}
                     onClick={() => onClick?.(task)}
                 >
@@ -146,6 +151,19 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                         </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
+                        {task.assignee && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Avatar className="size-5">
+                                        <AvatarImage src={task.assignee.avatar ?? undefined} />
+                                        <AvatarFallback className="text-[9px]">
+                                            {getInitials(task.assignee.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>{task.assignee.name}</TooltipContent>
+                            </Tooltip>
+                        )}
                         {completedLate && (
                             <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-xs">
                                 Late
@@ -177,10 +195,10 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                 onClick={() => onClick?.(task)}
             >
                 <Card className={`group cursor-pointer transition-all hover:shadow-md ${isOverdue
-                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
-                        : completedLate
-                            ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
-                            : 'bg-card'
+                    ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                    : completedLate
+                        ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                        : 'bg-card'
                     }`}>
                     <CardContent className="px-2.5 py-2">
                         <div className="flex items-center gap-2">
@@ -194,6 +212,19 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                                 </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
+                                {task.assignee && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Avatar className="size-4">
+                                                <AvatarImage src={task.assignee.avatar ?? undefined} />
+                                                <AvatarFallback className="text-[8px]">
+                                                    {getInitials(task.assignee.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{task.assignee.name}</TooltipContent>
+                                    </Tooltip>
+                                )}
                                 {completedLate && (
                                     <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-[10px] px-1.5 py-0">
                                         Late

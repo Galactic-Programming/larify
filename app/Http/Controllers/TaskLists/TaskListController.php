@@ -24,9 +24,11 @@ class TaskListController extends Controller
         Gate::authorize('view', $project);
 
         $project->load([
-            'lists' => fn($query) => $query->orderBy('position')->withCount('tasks'),
-            'lists.tasks' => fn($query) => $query->orderBy('position'),
+            'lists' => fn ($query) => $query->orderBy('position')->withCount('tasks'),
+            'lists.tasks' => fn ($query) => $query->orderBy('position'),
             'lists.tasks.assignee',
+            'user:id,name,email',
+            'members:id,name,email',
         ]);
 
         return Inertia::render('projects/lists/index', [

@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -22,8 +23,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { SharedData } from '@/types';
 import { store } from '@/actions/App/Http/Controllers/Tasks/TaskController';
-import { Form } from '@inertiajs/react';
+import { Form, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
     AlertTriangle,
@@ -35,15 +38,10 @@ import {
     ListTodo,
     Minus,
     Plus,
+    UserCircle,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import type { TaskList, TaskPriority } from '../../lib/types';
-
-interface Project {
-    id: number;
-    name: string;
-    color: string;
-}
+import { useMemo, useState, type ReactNode } from 'react';
+import type { Project, TaskList, TaskPriority, User } from '../../lib/types';
 
 interface CreateTaskDialogProps {
     project: Project;
@@ -59,17 +57,54 @@ const PRIORITY_OPTIONS: { value: TaskPriority; label: string; icon: typeof Minus
     { value: 'urgent', label: 'Urgent', icon: AlertTriangle, color: 'text-red-500' },
 ];
 
+function getInitials(name: string): string {
+    return name
+        .split(' ')
+        .map((word) => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+}
+
 export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogProps) {
+    const { auth } = usePage<SharedData>().props;
     const [open, setOpen] = useState(false);
     const [priority, setPriority] = useState<TaskPriority>('none');
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
     const [dueTime, setDueTime] = useState<string>('');
     const [datePickerOpen, setDatePickerOpen] = useState(false);
+    const [assigneeId, setAssigneeId] = useState<number | null>(null);
+
+    // Combine owner and members into a single list
+    const allMembers = useMemo((): User[] => {
+        const members: User[] = [];
+        if (project.user) {
+            members.push(project.user);
+        }
+        if (project.members) {
+            project.members.forEach((member) => {
+                if (member.id !== project.user_id) {
+                    members.push(member);
+                }
+            });
+        }
+        return members;
+    }, [project.user, project.members, project.user_id]);
+
+    // Check if there's only one member (owner only)
+    const isSoloProject = allMembers.length <= 1;
+
+    // Auto-assign to current user for solo project
+    const effectiveAssigneeId = isSoloProject ? auth.user.id : assigneeId;
+
+    // Get the selected assignee
+    const selectedAssignee = allMembers.find((m) => m.id === effectiveAssigneeId);
 
     const resetForm = () => {
         setPriority('none');
         setDueDate(undefined);
         setDueTime('');
+        setAssigneeId(null);
     };
 
     const handleOpenChange = (isOpen: boolean) => {
@@ -147,29 +182,107 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                     <InputError message={errors.description} />
                                 </div>
 
-                                {/* Priority */}
-                                <div className="grid gap-2">
-                                    <Label>Priority</Label>
-                                    <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select priority" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {PRIORITY_OPTIONS.map((option) => {
-                                                const Icon = option.icon;
-                                                return (
-                                                    <SelectItem key={option.value} value={option.value}>
+                                {/* Priority & Assignee */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Priority */}
+                                    <div className="grid gap-2">
+                                        <Label>Priority</Label>
+                                        <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select priority" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {PRIORITY_OPTIONS.map((option) => {
+                                                    const Icon = option.icon;
+                                                    return (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Icon className={`size-4 ${option.color}`} />
+                                                                <span>{option.label}</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    );
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                        <input type="hidden" name="priority" value={priority} />
+                                        <InputError message={errors.priority} />
+                                    </div>
+
+                                    {/* Assignee */}
+                                    <div className="grid gap-2">
+                                        <Label>Assignee</Label>
+                                        {isSoloProject ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex h-9 items-center gap-2 rounded-md border px-3">
+                                                        <Avatar className="size-5">
+                                                            <AvatarImage src={selectedAssignee?.avatar ?? undefined} />
+                                                            <AvatarFallback className="text-[10px]">
+                                                                {selectedAssignee ? getInitials(selectedAssignee.name) : '?'}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="truncate text-sm">
+                                                            {selectedAssignee?.name ?? 'You'}
+                                                        </span>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Auto-assigned to you</TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <Select
+                                                value={assigneeId?.toString() ?? ''}
+                                                onValueChange={(v) => setAssigneeId(v ? parseInt(v, 10) : null)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select assignee">
+                                                        {selectedAssignee ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="size-5">
+                                                                    <AvatarImage src={selectedAssignee.avatar ?? undefined} />
+                                                                    <AvatarFallback className="text-[10px]">
+                                                                        {getInitials(selectedAssignee.name)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="truncate">{selectedAssignee.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2">
+                                                                <UserCircle className="size-5 text-muted-foreground" />
+                                                                <span>Unassigned</span>
+                                                            </div>
+                                                        )}
+                                                    </SelectValue>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="">
                                                         <div className="flex items-center gap-2">
-                                                            <Icon className={`size-4 ${option.color}`} />
-                                                            <span>{option.label}</span>
+                                                            <UserCircle className="size-5 text-muted-foreground" />
+                                                            <span>Unassigned</span>
                                                         </div>
                                                     </SelectItem>
-                                                );
-                                            })}
-                                        </SelectContent>
-                                    </Select>
-                                    <input type="hidden" name="priority" value={priority} />
-                                    <InputError message={errors.priority} />
+                                                    {allMembers.map((member) => (
+                                                        <SelectItem key={member.id} value={member.id.toString()}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="size-5">
+                                                                    <AvatarImage src={member.avatar ?? undefined} />
+                                                                    <AvatarFallback className="text-[10px]">
+                                                                        {getInitials(member.name)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span>{member.name}</span>
+                                                                {member.id === project.user_id && (
+                                                                    <span className="text-xs text-muted-foreground">(Owner)</span>
+                                                                )}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                        <input type="hidden" name="assigned_to" value={effectiveAssigneeId ?? ''} />
+                                        <InputError message={errors.assigned_to} />
+                                    </div>
                                 </div>
 
                                 {/* Due Date & Time */}

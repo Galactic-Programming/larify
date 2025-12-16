@@ -9,6 +9,13 @@ export interface User {
     avatar?: string | null;
 }
 
+export interface ProjectMember extends User {
+    pivot?: {
+        role: 'owner' | 'admin' | 'editor' | 'viewer';
+        joined_at: string;
+    };
+}
+
 export interface Task {
     id: number;
     project_id: number;
@@ -42,6 +49,8 @@ export interface TaskList {
 export interface Project {
     id: number;
     user_id: number;
+    user?: User;
+    members?: ProjectMember[];
     name: string;
     description: string | null;
     color: string;
