@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Projects;
 
+use App\Events\ProjectUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
@@ -51,8 +52,12 @@ class ProjectController extends Controller
             $project->lists()->create([
                 'name' => $name,
                 'position' => $position,
+                'is_done_list' => $name === 'Done',
             ]);
         }
+
+        // Broadcast project created event
+        broadcast(new ProjectUpdated($project, 'created'))->toOthers();
 
         return to_route('projects.index');
     }
@@ -95,6 +100,9 @@ class ProjectController extends Controller
 
         $project->update($request->validated());
 
+        // Broadcast project updated event
+        broadcast(new ProjectUpdated($project, 'updated'))->toOthers();
+
         return back();
     }
 
@@ -104,6 +112,9 @@ class ProjectController extends Controller
     public function destroy(Project $project): RedirectResponse
     {
         Gate::authorize('delete', $project);
+
+        // Broadcast before delete so we have the project data
+        broadcast(new ProjectUpdated($project, 'deleted'))->toOthers();
 
         $project->delete();
 
@@ -120,6 +131,9 @@ class ProjectController extends Controller
         $project->update([
             'is_archived' => ! $project->is_archived,
         ]);
+
+        // Broadcast project archived/unarchived event
+        broadcast(new ProjectUpdated($project, 'archived'))->toOthers();
 
         return back();
     }

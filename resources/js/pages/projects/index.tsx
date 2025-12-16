@@ -1,4 +1,5 @@
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
+import { useProjectRealtime } from '@/hooks/use-project-realtime';
 import AppLayout from '@/layouts/app-layout';
 import { DeleteProjectDialog } from '@/pages/projects/components/delete-project-dialog';
 import { EditProjectDialog } from '@/pages/projects/components/edit-project-dialog';
@@ -7,11 +8,11 @@ import { ProjectsFilters } from '@/pages/projects/components/projects-filters';
 import { ProjectsGrid } from '@/pages/projects/components/projects-grid';
 import { ProjectsHeader } from '@/pages/projects/components/projects-header';
 import { ShowProjectDialog } from '@/pages/projects/components/show-project-dialog';
-import type { FilterType, Project, SortType } from '@/pages/projects/lib/types';
+import type { Project } from '@/pages/projects/lib/types';
 import { archive, index } from '@/routes/projects';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 interface Props {
     projects: Project[];
@@ -31,6 +32,22 @@ export default function ProjectsIndex({ projects }: Props) {
     const [viewingProject, setViewingProject] = useState<Project | null>(null);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+
+    // Handle project deletion from real-time updates
+    const handleProjectDeleted = useCallback(
+        (projectId: number) => {
+            // Close dialogs if the deleted project is being viewed/edited
+            if (viewingProject?.id === projectId) setViewingProject(null);
+            if (editingProject?.id === projectId) setEditingProject(null);
+            if (deletingProject?.id === projectId) setDeletingProject(null);
+        },
+        [viewingProject, editingProject, deletingProject],
+    );
+
+    // Subscribe to real-time project updates
+    useProjectRealtime({
+        onProjectDeleted: handleProjectDeleted,
+    });
 
     const filteredProjects = useMemo(() => {
         return projects

@@ -7,6 +7,13 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 /**
+ * User projects channel - authorize user to listen to their own projects
+ */
+Broadcast::channel('user.{userId}.projects', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+/**
  * Project channel - authorize users who are owner or member of the project
  */
 Broadcast::channel('project.{projectId}', function ($user, $projectId) {

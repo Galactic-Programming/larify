@@ -46,6 +46,7 @@ class ListUpdated implements ShouldBroadcastNow
                 'project_id' => $this->list->project_id,
                 'name' => $this->list->name,
                 'position' => $this->list->position,
+                'is_done_list' => $this->list->is_done_list,
                 'created_at' => $this->list->created_at->toISOString(),
                 'updated_at' => $this->list->updated_at->toISOString(),
             ],

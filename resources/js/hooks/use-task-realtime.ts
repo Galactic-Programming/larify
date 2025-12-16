@@ -32,6 +32,7 @@ interface ListEventData {
         project_id: number;
         name: string;
         position: number;
+        is_done_list: boolean;
         created_at: string;
         updated_at: string;
     };

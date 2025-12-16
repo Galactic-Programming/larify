@@ -39,7 +39,8 @@ function TaskRowActions({ project, task }: { project: Project; task: Task }) {
     const [deleteOpen, setDeleteOpen] = useState(false);
 
     return (
-        <>
+        // Stop propagation to prevent row click from opening task detail sheet
+        <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100">
@@ -63,7 +64,7 @@ function TaskRowActions({ project, task }: { project: Project; task: Task }) {
             </DropdownMenu>
             <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} />
             <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
-        </>
+        </div>
     );
 }
 
