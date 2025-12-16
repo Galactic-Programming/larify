@@ -1,5 +1,14 @@
 // Project types for the Projects page
 
+export type ProjectRole = 'owner' | 'editor' | 'viewer';
+
+export interface ProjectOwner {
+    id: number;
+    name: string;
+    email: string;
+    avatar: string | null;
+}
+
 export interface Project {
     id: number;
     user_id: number;
@@ -11,6 +20,9 @@ export interface Project {
     lists_count: number;
     tasks_count: number;
     members_count: number;
+    is_owner: boolean;
+    my_role: ProjectRole;
+    user?: ProjectOwner;
     created_at: string;
     updated_at: string;
 }

@@ -20,11 +20,19 @@ class ProjectController extends Controller
      */
     public function index(Request $request): Response
     {
+        // Get all projects the user has access to (owned + member)
         $projects = $request->user()
-            ->projects()
+            ->allProjects()
+            ->with('user:id,name,email,avatar')
             ->withCount(['lists', 'tasks', 'members'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($project) use ($request) {
+                $project->is_owner = $project->user_id === $request->user()->id;
+                $project->my_role = $project->getMemberRole($request->user())?->value;
+
+                return $project;
+            });
 
         return Inertia::render('projects/index', [
             'projects' => $projects,

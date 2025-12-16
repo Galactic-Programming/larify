@@ -122,3 +122,34 @@ it('prevents unauthorized user from viewing members', function () {
 
     $response->assertForbidden();
 });
+
+it('shows shared projects in member project list', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+
+    // Member can see the project in their projects list
+    $projects = $member->allProjects()->get();
+
+    expect($projects)->toHaveCount(1);
+    expect($projects->first()->id)->toBe($project->id);
+});
+
+it('allows member to access shared project board', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+
+    $response = $this->actingAs($member)->get(route('projects.lists.index', $project));
+
+    // Check it doesn't return forbidden
+    expect($response->status())->not->toBe(403);
+});

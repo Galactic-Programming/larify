@@ -6,6 +6,7 @@ use App\Enums\SocialProvider;
 use App\Enums\UserPlan;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -82,10 +83,29 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the projects for the user.
+     * Get the projects owned by the user.
      */
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    /**
+     * Get the projects where the user is a member (not owner).
+     */
+    public function memberProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_members')
+            ->withPivot(['role', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all projects the user has access to (owned + member).
+     */
+    public function allProjects()
+    {
+        return Project::where('user_id', $this->id)
+            ->orWhereHas('members', fn ($q) => $q->where('user_id', $this->id));
     }
 }

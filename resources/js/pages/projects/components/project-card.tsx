@@ -1,9 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
 import { index as listsIndex } from '@/routes/projects/lists';
 import { Link } from '@inertiajs/react';
-import { Archive, CheckSquare, LayoutList, Users } from 'lucide-react';
+import { Archive, CheckSquare, Crown, LayoutList, Shield, Eye, Users } from 'lucide-react';
 import { motion } from 'motion/react';
 import { createElement, memo } from 'react';
 import type { Project } from '../lib/types';
@@ -76,12 +77,38 @@ export function ProjectCard({
                             </div>
                             <div className="min-w-0 flex-1">
                                 <CardTitle className="truncate text-base">{project.name}</CardTitle>
-                                {project.is_archived && (
-                                    <Badge variant="secondary" className="mt-1 text-xs">
-                                        <Archive className="mr-1 size-3" />
-                                        Archived
-                                    </Badge>
-                                )}
+                                <div className="mt-1 flex items-center gap-1.5">
+                                    {project.is_archived && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            <Archive className="mr-1 size-3" />
+                                            Archived
+                                        </Badge>
+                                    )}
+                                    {!project.is_owner && project.my_role && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={
+                                                        project.my_role === 'editor'
+                                                            ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                                            : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400'
+                                                    }
+                                                >
+                                                    {project.my_role === 'editor' ? (
+                                                        <Shield className="mr-1 size-3" />
+                                                    ) : (
+                                                        <Eye className="mr-1 size-3" />
+                                                    )}
+                                                    {project.my_role === 'editor' ? 'Editor' : 'Viewer'}
+                                                </Badge>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                Shared by {project.user?.name ?? 'Unknown'}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                             </div>
                         </Link>
                         <ProjectDropdownMenu

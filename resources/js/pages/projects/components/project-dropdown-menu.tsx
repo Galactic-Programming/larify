@@ -29,6 +29,9 @@ export function ProjectDropdownMenu({
     onDelete,
     triggerClassName,
 }: ProjectDropdownMenuProps) {
+    const isOwner = project.is_owner;
+    const canEdit = isOwner || project.my_role === 'editor';
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -58,31 +61,37 @@ export function ProjectDropdownMenu({
                         Members
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(project)}>
-                    <Pencil className="mr-2 size-4" />
-                    Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onArchive(project)}>
-                    {project.is_archived ? (
-                        <>
-                            <ArchiveRestore className="mr-2 size-4" />
-                            Restore
-                        </>
-                    ) : (
-                        <>
-                            <Archive className="mr-2 size-4" />
-                            Archive
-                        </>
-                    )}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    onClick={() => onDelete(project)}
-                    className="text-destructive focus:text-destructive"
-                >
-                    <Trash2 className="mr-2 size-4" />
-                    Delete
-                </DropdownMenuItem>
+                {canEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(project)}>
+                        <Pencil className="mr-2 size-4" />
+                        Edit
+                    </DropdownMenuItem>
+                )}
+                {isOwner && (
+                    <>
+                        <DropdownMenuItem onClick={() => onArchive(project)}>
+                            {project.is_archived ? (
+                                <>
+                                    <ArchiveRestore className="mr-2 size-4" />
+                                    Restore
+                                </>
+                            ) : (
+                                <>
+                                    <Archive className="mr-2 size-4" />
+                                    Archive
+                                </>
+                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            onClick={() => onDelete(project)}
+                            className="text-destructive focus:text-destructive"
+                        >
+                            <Trash2 className="mr-2 size-4" />
+                            Delete
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
