@@ -38,11 +38,12 @@ class MoveTaskRequest extends FormRequest
                 'integer',
                 'exists:lists,id',
                 function ($attribute, $value, $fail) use ($project) {
-                    if ($project && !$project->lists()->where('id', $value)->exists()) {
+                    if ($project && ! $project->lists()->where('id', $value)->exists()) {
                         $fail('The selected list does not belong to this project.');
                     }
                 },
             ],
+            'position' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

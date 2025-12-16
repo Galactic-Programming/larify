@@ -93,12 +93,22 @@ class TaskController extends Controller
         $validated = $request->validated();
         $newListId = $validated['list_id'];
 
-        // Auto-calculate position at the end of target list to prevent race condition
-        $maxPosition = Task::where('list_id', $newListId)->max('position') ?? -1;
+        // Use provided position or auto-calculate at end of list
+        if (isset($validated['position'])) {
+            $newPosition = $validated['position'];
+
+            // Shift existing tasks to make room for the new position
+            Task::where('list_id', $newListId)
+                ->where('position', '>=', $newPosition)
+                ->increment('position');
+        } else {
+            // Auto-calculate position at the end of target list
+            $newPosition = (Task::where('list_id', $newListId)->max('position') ?? -1) + 1;
+        }
 
         $task->update([
             'list_id' => $newListId,
-            'position' => $maxPosition + 1,
+            'position' => $newPosition,
         ]);
 
         // Broadcast real-time update
@@ -223,7 +233,7 @@ class TaskController extends Controller
             $task->refresh();
 
             // Only allow reopen if task is completed
-            if (!$task->completed_at) {
+            if (! $task->completed_at) {
                 return;
             }
 
