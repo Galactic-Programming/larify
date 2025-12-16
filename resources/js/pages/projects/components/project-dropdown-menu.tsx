@@ -7,8 +7,9 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { index as listsIndex } from '@/routes/projects/lists';
+import { index as membersIndex } from '@/routes/projects/members';
 import { Link } from '@inertiajs/react';
-import { Archive, ArchiveRestore, Eye, FolderKanban, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, Eye, FolderKanban, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react';
 import type { Project } from '../lib/types';
 
 interface ProjectDropdownMenuProps {
@@ -49,6 +50,12 @@ export function ProjectDropdownMenu({
                     <Link href={listsIndex(project).url}>
                         <FolderKanban className="mr-2 size-4" />
                         Open Board
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href={membersIndex(project).url}>
+                        <Users className="mr-2 size-4" />
+                        Members
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(project)}>

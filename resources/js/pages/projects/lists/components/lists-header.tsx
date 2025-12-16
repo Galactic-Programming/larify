@@ -4,8 +4,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Badge } from '@/components/ui/badge';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { index as projectsIndex } from '@/routes/projects';
+import { index as membersIndex } from '@/routes/projects/members';
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, ArrowLeft, CheckCircle2, CircleAlert, Clock, Columns3, FolderKanban, LayoutList, List, Table2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, CircleAlert, Clock, Columns3, FolderKanban, LayoutList, List, Table2, Users } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
@@ -199,6 +200,20 @@ export function ListsHeader({
                         <TooltipContent>Table View</TooltipContent>
                     </Tooltip>
                 </ToggleGroup>
+
+                {/* Members Button */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" asChild className="gap-2">
+                            <Link href={membersIndex(project).url}>
+                                <Users className="size-4" />
+                                <span className="hidden sm:inline">Members</span>
+                            </Link>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Manage Members</TooltipContent>
+                </Tooltip>
+
                 <CreateListDialog project={project} />
             </motion.div>
         </motion.div>
