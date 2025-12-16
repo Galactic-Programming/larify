@@ -8,36 +8,62 @@ use App\Http\Requests\Projects\AddMemberRequest;
 use App\Http\Requests\Projects\UpdateMemberRequest;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProjectMemberController extends Controller
 {
     /**
      * Display a listing of the project members.
      */
-    public function index(Project $project): array
+    public function index(Project $project): Response
     {
         Gate::authorize('view', $project);
 
-        return [
-            'members' => $project->members()
-                ->withPivot(['role', 'joined_at'])
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->pivot->role,
-                    'joined_at' => $user->pivot->joined_at,
-                    'is_owner' => $project->user_id === $user->id,
-                ]),
-            'owner' => [
-                'id' => $project->user->id,
-                'name' => $project->user->name,
-                'email' => $project->user->email,
+        // Load project with owner and members
+        $project->load([
+            'user:id,name,email,avatar',
+            'members' => fn ($query) => $query->withPivot(['role', 'joined_at']),
+        ]);
+
+        // Get members with their pivot data
+        $members = $project->members->map(fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+            'role' => $user->pivot->role,
+            'joined_at' => $user->pivot->joined_at,
+            'is_owner' => false,
+        ]);
+
+        // Get available users (not already members and not the owner)
+        $existingMemberIds = $project->members->pluck('id')->push($project->user_id)->toArray();
+        $availableUsers = User::whereNotIn('id', $existingMemberIds)
+            ->select(['id', 'name', 'email', 'avatar'])
+            ->orderBy('name')
+            ->limit(100)
+            ->get();
+
+        return Inertia::render('projects/members/index', [
+            'project' => [
+                'id' => $project->id,
+                'user_id' => $project->user_id,
+                'name' => $project->name,
+                'description' => $project->description,
+                'color' => $project->color,
+                'icon' => $project->icon,
+                'is_archived' => $project->is_archived,
+                'created_at' => $project->created_at,
+                'updated_at' => $project->updated_at,
+                'user' => $project->user,
+                'members' => $members,
             ],
-        ];
+            'availableUsers' => $availableUsers,
+        ]);
     }
 
     /**

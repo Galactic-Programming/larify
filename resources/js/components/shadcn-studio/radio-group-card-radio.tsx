@@ -51,7 +51,7 @@ const RadioGroupCard = ({
                     className={cn(
                         'border-input has-data-[state=checked]:border-primary/50 has-data-[state=checked]:bg-primary/5 relative flex w-full items-center gap-3 rounded-md border p-4 shadow-xs outline-none transition-colors',
                         option.disabled && 'opacity-50 cursor-not-allowed',
-                        orientation === 'horizontal' && 'flex-1 min-w-[200px]'
+                        orientation === 'horizontal' && 'flex-1 min-w-50'
                     )}
                 >
                     <RadioGroupItem
