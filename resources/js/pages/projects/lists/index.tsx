@@ -30,6 +30,22 @@ function isTaskDueSoon(task: Task): boolean {
     return hoursUntilDue > 0 && hoursUntilDue <= 24;
 }
 
+// Helper to check if task was completed late (after deadline)
+function isTaskCompletedLate(task: Task): boolean {
+    if (!task.completed_at) return false;
+    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const completedAt = new Date(task.completed_at);
+    return completedAt > deadline;
+}
+
+// Helper to check if task was completed on time (before or at deadline)
+function isTaskCompletedOnTime(task: Task): boolean {
+    if (!task.completed_at) return false;
+    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const completedAt = new Date(task.completed_at);
+    return completedAt <= deadline;
+}
+
 interface Props {
     project: Project;
 }
@@ -55,6 +71,7 @@ export default function ListsIndex({ project }: Props) {
     const completedTasks = allTasks.filter((t) => t.completed_at).length;
     const overdueTasks = allTasks.filter(isTaskOverdue).length;
     const dueSoonTasks = allTasks.filter(isTaskDueSoon).length;
+    const completedLateTasks = allTasks.filter(isTaskCompletedLate).length;
 
     // Filter project lists based on selected filter
     const filteredProject = useMemo(() => {
@@ -67,7 +84,9 @@ export default function ListsIndex({ project }: Props) {
                 case 'due-soon':
                     return isTaskDueSoon(task);
                 case 'completed':
-                    return task.completed_at !== null;
+                    return isTaskCompletedOnTime(task);
+                case 'completed-late':
+                    return isTaskCompletedLate(task);
                 default:
                     return true;
             }
@@ -132,6 +151,7 @@ export default function ListsIndex({ project }: Props) {
                     completedTasks={completedTasks}
                     overdueTasks={overdueTasks}
                     dueSoonTasks={dueSoonTasks}
+                    completedLateTasks={completedLateTasks}
                 />
 
                 {renderView()}

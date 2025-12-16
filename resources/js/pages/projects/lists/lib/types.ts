@@ -54,4 +54,9 @@ export interface Project {
 
 export type ViewMode = 'board' | 'list' | 'table';
 
-export type TaskFilter = 'all' | 'overdue' | 'due-soon' | 'completed';
+export type TaskFilter =
+    | 'all'
+    | 'overdue'
+    | 'due-soon'
+    | 'completed'
+    | 'completed-late';

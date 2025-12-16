@@ -14,7 +14,7 @@ import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import type { Task } from '../../lib/types';
-import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
+import { getPriorityColor, getTaskStatusIcon, isCompletedLate, isTaskOverdue } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { ReopenTaskDialog } from './reopen-task-dialog';
@@ -40,14 +40,8 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
     const [isProcessing, setIsProcessing] = useState(false);
 
     const isCompleted = !!task.completed_at;
-
-    // Check if task is overdue (for non-completed tasks)
-    const isOverdue = (() => {
-        if (isCompleted) return false;
-        const dateOnly = task.due_date.split('T')[0];
-        const deadline = new Date(`${dateOnly}T${task.due_time}`);
-        return new Date() > deadline;
-    })();
+    const isOverdue = isTaskOverdue(task);
+    const completedLate = isCompletedLate(task);
 
     // Check if task was overdue when completed (for reopen check)
     const wasOverdueWhenCompleted = (() => {
@@ -134,7 +128,11 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.03 }}
-                    className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20' : 'bg-muted/30'
+                    className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${isOverdue
+                            ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                            : completedLate
+                                ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                                : 'bg-muted/30'
                         }`}
                     onClick={() => onClick?.(task)}
                 >
@@ -148,7 +146,12 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                         </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                        {task.due_date && (
+                        {completedLate && (
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-xs">
+                                Late
+                            </Badge>
+                        )}
+                        {task.due_date && !completedLate && (
                             <Badge variant="outline" className="text-xs">
                                 {new Date(task.due_date).toLocaleDateString()}
                             </Badge>
@@ -173,7 +176,11 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                 transition={{ duration: 0.2, delay: index * 0.05 }}
                 onClick={() => onClick?.(task)}
             >
-                <Card className={`group cursor-pointer transition-all hover:shadow-md ${isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20' : 'bg-card'
+                <Card className={`group cursor-pointer transition-all hover:shadow-md ${isOverdue
+                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                        : completedLate
+                            ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                            : 'bg-card'
                     }`}>
                     <CardContent className="px-2.5 py-2">
                         <div className="flex items-center gap-2">
@@ -187,7 +194,12 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                                 </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
-                                {task.due_date && (
+                                {completedLate && (
+                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-[10px] px-1.5 py-0">
+                                        Late
+                                    </Badge>
+                                )}
+                                {task.due_date && !completedLate && (
                                     <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                                         {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                     </Badge>

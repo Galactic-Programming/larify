@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Circle, Clock, CircleAlert } from 'lucide-react';
 import { differenceInSeconds } from 'date-fns';
 import type { Task } from './types';
 
@@ -16,21 +16,57 @@ export const getPriorityColor = (priority: Task['priority']) => {
     }
 };
 
+/**
+ * Get the deadline Date object from a task
+ */
+export const getTaskDeadline = (task: Task): Date => {
+    const dateOnly = task.due_date.split('T')[0];
+    return new Date(`${dateOnly}T${task.due_time}`);
+};
+
+/**
+ * Check if a task was completed late (after deadline)
+ */
+export const isCompletedLate = (task: Task): boolean => {
+    if (!task.completed_at) return false;
+    const deadline = getTaskDeadline(task);
+    const completedAt = new Date(task.completed_at);
+    return completedAt > deadline;
+};
+
+/**
+ * Check if a task is currently overdue (not completed and past deadline)
+ */
+export const isTaskOverdue = (task: Task): boolean => {
+    if (task.completed_at) return false;
+    const deadline = getTaskDeadline(task);
+    return new Date() > deadline;
+};
+
 export const getTaskStatusIcon = (task: Task) => {
+    const deadline = getTaskDeadline(task);
+
     if (task.completed_at) {
+        const completedAt = new Date(task.completed_at);
+        // Completed late - orange/amber icon
+        if (completedAt > deadline) {
+            return <CircleAlert className="size-4 text-orange-500" />;
+        }
+        // Completed on time - green icon
         return <CheckCircle2 className="size-4 text-green-500" />;
     }
-    // Parse due_date (handle both ISO format and date-only format)
-    const dateOnly = task.due_date.split('T')[0];
-    const deadline = new Date(`${dateOnly}T${task.due_time}`);
+
+    // Not completed - check if overdue
     const isOverdue = differenceInSeconds(deadline, new Date()) < 0;
     if (isOverdue) {
         return <AlertTriangle className="size-4 text-red-500" />;
     }
+
     // Check if due soon (< 24 hours)
     const remaining = differenceInSeconds(deadline, new Date());
     if (remaining < 86400) {
         return <Clock className="size-4 text-amber-500" />;
     }
+
     return <Circle className="size-4 text-muted-foreground" />;
 };

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { index as projectsIndex } from '@/routes/projects';
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Columns3, FolderKanban, LayoutList, List, Table2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, CircleAlert, Clock, Columns3, FolderKanban, LayoutList, List, Table2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
@@ -20,6 +20,7 @@ interface ListsHeaderProps {
     completedTasks: number;
     overdueTasks: number;
     dueSoonTasks: number;
+    completedLateTasks: number;
 }
 
 function ProjectIconDisplay({
@@ -46,6 +47,7 @@ export function ListsHeader({
     completedTasks,
     overdueTasks,
     dueSoonTasks,
+    completedLateTasks,
 }: ListsHeaderProps) {
     return (
         <motion.div
@@ -148,7 +150,20 @@ export function ListsHeader({
                                 <CheckCircle2 className="size-3.5" />
                             </ToggleGroupItem>
                         </TooltipTrigger>
-                        <TooltipContent>Completed Tasks</TooltipContent>
+                        <TooltipContent>Completed On Time</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem value="completed-late" aria-label="Completed late tasks" className="gap-1.5 px-3">
+                                <CircleAlert className="size-3.5" />
+                                {completedLateTasks > 0 && (
+                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 h-5 min-w-5 px-1.5">
+                                        {completedLateTasks}
+                                    </Badge>
+                                )}
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Completed Late</TooltipContent>
                     </Tooltip>
                 </ToggleGroup>
 

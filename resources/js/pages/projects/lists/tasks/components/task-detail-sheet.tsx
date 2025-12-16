@@ -13,7 +13,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { complete, move } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
-import { format, formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
+import { format, parseISO, differenceInSeconds } from 'date-fns';
 import {
     AlertTriangle,
     ArrowDown,
@@ -21,6 +21,7 @@ import {
     ArrowUp,
     Calendar,
     CheckCircle2,
+    CircleAlert,
     Clock,
     Minus,
     Pencil,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Project, Task, TaskPriority } from '../../lib/types';
+import { isCompletedLate, getTaskDeadline } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { ReopenTaskDialog } from './reopen-task-dialog';
@@ -137,7 +139,18 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
     // Status helpers
     const isCompleted = !!task.completed_at;
     const isOverdue = timeRemaining < 0 && !isCompleted;
+    const completedLate = isCompletedLate(task);
     const urgencyLevel = getUrgencyLevel(timeRemaining);
+
+    // Calculate how late the task was completed
+    const getLateBySeconds = (): number => {
+        if (!completedLate || !task.completed_at) return 0;
+        const deadline = getTaskDeadline(task);
+        const completedAt = new Date(task.completed_at);
+        return Math.floor((completedAt.getTime() - deadline.getTime()) / 1000);
+    };
+
+    const lateBySeconds = getLateBySeconds();
 
     // Check if task was overdue when completed (for reopen check)
     const wasOverdueWhenCompleted = (() => {
@@ -204,11 +217,21 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
     // Get countdown section styling based on urgency
     const getCountdownStyles = () => {
         if (isCompleted) {
+            // Completed late - orange styling
+            if (completedLate) {
+                return {
+                    bg: 'bg-linear-to-r from-orange-500/10 via-orange-500/5 to-transparent',
+                    iconBg: 'bg-orange-500',
+                    textPrimary: 'text-orange-700 dark:text-orange-400',
+                    textSecondary: 'text-orange-600 dark:text-orange-500',
+                };
+            }
+            // Completed on time - green styling
             return {
                 bg: 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent',
                 iconBg: 'bg-emerald-500',
-                textPrimary: 'text-emerald-700',
-                textSecondary: 'text-emerald-600',
+                textPrimary: 'text-emerald-700 dark:text-emerald-400',
+                textSecondary: 'text-emerald-600 dark:text-emerald-500',
             };
         }
         switch (urgencyLevel) {
@@ -216,29 +239,29 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                 return {
                     bg: 'bg-linear-to-r from-red-500/10 via-red-500/5 to-transparent',
                     iconBg: 'bg-red-500',
-                    textPrimary: 'text-red-700',
-                    textSecondary: 'text-red-600',
+                    textPrimary: 'text-red-700 dark:text-red-400',
+                    textSecondary: 'text-red-600 dark:text-red-500',
                 };
             case 'urgent':
                 return {
                     bg: 'bg-linear-to-r from-red-500/10 via-red-500/5 to-transparent',
                     iconBg: 'bg-red-500',
-                    textPrimary: 'text-red-700',
-                    textSecondary: 'text-red-600',
+                    textPrimary: 'text-red-700 dark:text-red-400',
+                    textSecondary: 'text-red-600 dark:text-red-500',
                 };
             case 'warning':
                 return {
                     bg: 'bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent',
                     iconBg: 'bg-amber-500',
-                    textPrimary: 'text-amber-700',
-                    textSecondary: 'text-amber-600',
+                    textPrimary: 'text-amber-700 dark:text-amber-400',
+                    textSecondary: 'text-amber-600 dark:text-amber-500',
                 };
             default:
                 return {
                     bg: 'bg-linear-to-r from-blue-500/10 via-blue-500/5 to-transparent',
                     iconBg: 'bg-blue-500',
-                    textPrimary: 'text-blue-700',
-                    textSecondary: 'text-blue-600',
+                    textPrimary: 'text-blue-700 dark:text-blue-400',
+                    textSecondary: 'text-blue-600 dark:text-blue-500',
                 };
         }
     };
@@ -267,10 +290,16 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                         />
                                         {currentList?.name}
                                     </Badge>
-                                    {isCompleted && (
-                                        <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700">
+                                    {isCompleted && !completedLate && (
+                                        <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                                             <CheckCircle2 className="size-3" />
                                             Completed
+                                        </Badge>
+                                    )}
+                                    {completedLate && (
+                                        <Badge variant="secondary" className="gap-1 bg-orange-500/10 text-orange-700 dark:text-orange-400">
+                                            <CircleAlert className="size-3" />
+                                            Completed Late
                                         </Badge>
                                     )}
                                     {isOverdue && (
@@ -297,7 +326,11 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                 )}
                                                 <div className={`relative flex size-10 items-center justify-center rounded-full ${countdownStyles.iconBg} text-white`}>
                                                     {isCompleted ? (
-                                                        <CheckCircle2 className="size-5" />
+                                                        completedLate ? (
+                                                            <CircleAlert className="size-5" />
+                                                        ) : (
+                                                            <CheckCircle2 className="size-5" />
+                                                        )
                                                     ) : (
                                                         <Clock className="size-5" />
                                                     )}
@@ -305,12 +338,23 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                             </div>
                                             <div>
                                                 <p className={`text-xs font-medium uppercase tracking-wider ${countdownStyles.textSecondary}`}>
-                                                    {isCompleted ? 'Completed' : isOverdue ? 'Overdue' : 'Time Remaining'}
+                                                    {isCompleted
+                                                        ? (completedLate ? 'Completed Late' : 'Completed On Time')
+                                                        : isOverdue
+                                                            ? 'Overdue'
+                                                            : 'Time Remaining'}
                                                 </p>
                                                 {isCompleted ? (
-                                                    <p className={`text-lg font-semibold ${countdownStyles.textPrimary}`}>
-                                                        {format(parseISO(task.completed_at!), 'MMM d, yyyy • HH:mm')}
-                                                    </p>
+                                                    <>
+                                                        <p className={`text-lg font-semibold ${countdownStyles.textPrimary}`}>
+                                                            {format(parseISO(task.completed_at!), 'MMM d, yyyy • HH:mm')}
+                                                        </p>
+                                                        {completedLate && (
+                                                            <p className={`text-sm ${countdownStyles.textSecondary}`}>
+                                                                {formatTimeHumanReadable(-lateBySeconds).replace(' left', ' late')}
+                                                            </p>
+                                                        )}
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <p className={`text-2xl font-bold tabular-nums ${countdownStyles.textPrimary}`}>
