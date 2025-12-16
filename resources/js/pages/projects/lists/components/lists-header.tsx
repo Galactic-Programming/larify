@@ -1,20 +1,25 @@
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { index as projectsIndex } from '@/routes/projects';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Columns3, FolderKanban, LayoutList, List, Table2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Columns3, FolderKanban, LayoutList, List, Table2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { Project, ViewMode } from '../lib/types';
+import type { Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
 
 interface ListsHeaderProps {
     project: Project;
     viewMode: ViewMode;
     onViewModeChange: (mode: ViewMode) => void;
+    taskFilter: TaskFilter;
+    onTaskFilterChange: (filter: TaskFilter) => void;
     totalTasks: number;
     completedTasks: number;
+    overdueTasks: number;
+    dueSoonTasks: number;
 }
 
 function ProjectIconDisplay({
@@ -35,8 +40,12 @@ export function ListsHeader({
     project,
     viewMode,
     onViewModeChange,
+    taskFilter,
+    onTaskFilterChange,
     totalTasks,
     completedTasks,
+    overdueTasks,
+    dueSoonTasks,
 }: ListsHeaderProps) {
     return (
         <motion.div
@@ -90,8 +99,60 @@ export function ListsHeader({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
-                className="flex items-center gap-2"
+                className="flex flex-wrap items-center gap-2"
             >
+                {/* Task Filters */}
+                <ToggleGroup
+                    type="single"
+                    value={taskFilter}
+                    onValueChange={(value) => value && onTaskFilterChange(value as TaskFilter)}
+                    className="bg-muted rounded-lg p-1"
+                >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem value="all" aria-label="All tasks" className="px-3">
+                                All
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>All Tasks</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem value="overdue" aria-label="Overdue tasks" className="gap-1.5 px-3">
+                                <AlertTriangle className="size-3.5" />
+                                {overdueTasks > 0 && (
+                                    <Badge variant="destructive" className="h-5 min-w-5 px-1.5">
+                                        {overdueTasks}
+                                    </Badge>
+                                )}
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Overdue Tasks</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem value="due-soon" aria-label="Due soon" className="gap-1.5 px-3">
+                                <Clock className="size-3.5" />
+                                {dueSoonTasks > 0 && (
+                                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 h-5 min-w-5 px-1.5">
+                                        {dueSoonTasks}
+                                    </Badge>
+                                )}
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Due Within 24 Hours</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem value="completed" aria-label="Completed tasks" className="gap-1.5 px-3">
+                                <CheckCircle2 className="size-3.5" />
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Completed Tasks</TooltipContent>
+                    </Tooltip>
+                </ToggleGroup>
+
+                {/* View Mode */}
                 <ToggleGroup
                     type="single"
                     value={viewMode}

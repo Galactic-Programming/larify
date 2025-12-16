@@ -175,10 +175,7 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                 {/* Due Date & Time */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
-                                        <Label>
-                                            Due Date{' '}
-                                            <span className="font-normal text-muted-foreground">(optional)</span>
-                                        </Label>
+                                        <Label>Due Date</Label>
                                         <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button
@@ -212,10 +209,7 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                         <InputError message={errors.due_date} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label>
-                                            Due Time{' '}
-                                            <span className="font-normal text-muted-foreground">(optional)</span>
-                                        </Label>
+                                        <Label>Due Time</Label>
                                         <Input
                                             type="time"
                                             value={dueTime}

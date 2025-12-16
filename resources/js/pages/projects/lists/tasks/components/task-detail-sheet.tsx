@@ -11,7 +11,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { complete, move, start, pause, resume } from '@/actions/App/Http/Controllers/Tasks/TaskController';
+import { complete, move } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
 import { format, formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
 import {
@@ -21,18 +21,16 @@ import {
     ArrowUp,
     Calendar,
     CheckCircle2,
+    Clock,
     Minus,
-    Pause,
     Pencil,
-    Play,
-    Square,
-    Timer,
     Trash2,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Project, Task, TaskPriority } from '../../lib/types';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
+import { ReopenTaskDialog } from './reopen-task-dialog';
 
 interface TaskDetailSheetProps {
     task: Task | null;
@@ -52,48 +50,75 @@ const PRIORITY_CONFIG: Record<TaskPriority, { label: string; icon: typeof Minus;
 export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetailSheetProps) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [reopenOpen, setReopenOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [elapsedTime, setElapsedTime] = useState(0);
+    const [timeRemaining, setTimeRemaining] = useState(0);
 
-    // Real-time elapsed timer for in-progress tasks (not paused)
+    // Real-time countdown to deadline
     useEffect(() => {
-        if (!task?.started_at || task?.completed_at || task?.paused_at) {
-            // If paused, calculate time up to pause point
-            if (task?.paused_at && task?.started_at) {
-                const startTime = parseISO(task.started_at);
-                const pauseTime = parseISO(task.paused_at);
-                const elapsed = differenceInSeconds(pauseTime, startTime) - (task.total_paused_seconds || 0);
-                setElapsedTime(Math.max(0, elapsed));
-            } else {
-                setElapsedTime(0);
-            }
+        if (!task?.due_date || !task?.due_time || task?.completed_at) {
+            setTimeRemaining(0);
             return;
         }
 
-        const startTime = parseISO(task.started_at);
-        const pausedSeconds = task.total_paused_seconds || 0;
+        // Parse due_date (handle both ISO format and date-only format)
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
 
-        const updateElapsed = () => {
-            const totalElapsed = differenceInSeconds(new Date(), startTime) - pausedSeconds;
-            setElapsedTime(Math.max(0, totalElapsed));
+        const updateRemaining = () => {
+            const remaining = differenceInSeconds(deadline, new Date());
+            setTimeRemaining(remaining);
         };
 
-        updateElapsed();
-        const interval = setInterval(updateElapsed, 1000);
+        updateRemaining();
+        const interval = setInterval(updateRemaining, 1000);
 
         return () => clearInterval(interval);
-    }, [task?.started_at, task?.completed_at, task?.paused_at, task?.total_paused_seconds]);
+    }, [task?.due_date, task?.due_time, task?.completed_at]);
 
-    // Format elapsed time as HH:MM:SS
-    const formatElapsedTime = useCallback((seconds: number) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
+    // Format time as HH:MM:SS
+    const formatTimeHHMMSS = useCallback((seconds: number) => {
+        const isNegative = seconds < 0;
+        const absSeconds = Math.abs(seconds);
 
-        if (hours > 0) {
-            return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        const hours = Math.floor(absSeconds / 3600);
+        const minutes = Math.floor((absSeconds % 3600) / 60);
+        const secs = absSeconds % 60;
+
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return isNegative ? `-${formatted}` : formatted;
+    }, []);
+
+    // Format time as human readable
+    const formatTimeHumanReadable = useCallback((seconds: number) => {
+        const isNegative = seconds < 0;
+        const absSeconds = Math.abs(seconds);
+
+        const days = Math.floor(absSeconds / 86400);
+        const hours = Math.floor((absSeconds % 86400) / 3600);
+        const minutes = Math.floor((absSeconds % 3600) / 60);
+
+        const parts: string[] = [];
+        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+        if (minutes > 0 && days === 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+
+        if (parts.length === 0) {
+            if (absSeconds < 60) {
+                return isNegative ? 'Just overdue' : 'Less than a minute';
+            }
         }
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+
+        const timeStr = parts.join(', ');
+        return isNegative ? `${timeStr} overdue` : `${timeStr} left`;
+    }, []);
+
+    // Get urgency level for styling
+    const getUrgencyLevel = useCallback((seconds: number) => {
+        if (seconds < 0) return 'overdue';
+        if (seconds < 3600) return 'urgent'; // < 1 hour
+        if (seconds < 86400) return 'warning'; // < 24 hours
+        return 'normal';
     }, []);
 
     if (!task) return null;
@@ -111,66 +136,27 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
 
     // Status helpers
     const isCompleted = !!task.completed_at;
-    const isPaused = !!task.paused_at && !task.completed_at;
-    const isInProgress = !!task.started_at && !task.paused_at && !task.completed_at;
-    const isNotStarted = !task.started_at && !task.completed_at;
+    const isOverdue = timeRemaining < 0 && !isCompleted;
+    const urgencyLevel = getUrgencyLevel(timeRemaining);
+
+    // Check if task was overdue when completed (for reopen check)
+    const wasOverdueWhenCompleted = (() => {
+        if (!isCompleted) return false;
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
+        return new Date() > deadline;
+    })();
 
     const handleToggleComplete = () => {
+        // If trying to reopen an overdue task, show reopen dialog instead
+        if (isCompleted && wasOverdueWhenCompleted) {
+            setReopenOpen(true);
+            return;
+        }
+
         setIsProcessing(true);
         router.patch(
             complete({ project, task }).url,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: false,
-                onFinish: () => setIsProcessing(false),
-                onError: () => {
-                    setIsProcessing(false);
-                    onOpenChange(false);
-                },
-            },
-        );
-    };
-
-    const handleStartTask = () => {
-        if (task.started_at) return;
-        setIsProcessing(true);
-        router.patch(
-            start({ project, task }).url,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: false,
-                onFinish: () => setIsProcessing(false),
-                onError: () => {
-                    setIsProcessing(false);
-                    onOpenChange(false);
-                },
-            },
-        );
-    };
-
-    const handlePauseTask = () => {
-        setIsProcessing(true);
-        router.patch(
-            pause({ project, task }).url,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: false,
-                onFinish: () => setIsProcessing(false),
-                onError: () => {
-                    setIsProcessing(false);
-                    onOpenChange(false);
-                },
-            },
-        );
-    };
-
-    const handleResumeTask = () => {
-        setIsProcessing(true);
-        router.patch(
-            resume({ project, task }).url,
             {},
             {
                 preserveScroll: true,
@@ -203,24 +189,61 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
         );
     };
 
-    const getDueDateInfo = () => {
-        if (!task.due_date) return null;
-
-        const dueDate = parseISO(task.due_date);
-        const now = new Date();
-        const isOverdue = !isCompleted && dueDate < now;
-        const diffDays = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        const isDueSoon = !isCompleted && diffDays <= 1 && diffDays >= 0;
-
+    const getDeadlineDisplay = () => {
+        // Parse due_date (handle both ISO format and date-only format)
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
         return {
-            formatted: format(dueDate, 'MMM d, yyyy'),
-            time: task.due_time ? task.due_time.slice(0, 5) : null,
-            isOverdue,
-            isDueSoon,
+            date: format(deadline, 'MMM d, yyyy'),
+            time: task.due_time.slice(0, 5),
         };
     };
 
-    const dueDateInfo = getDueDateInfo();
+    const deadlineDisplay = getDeadlineDisplay();
+
+    // Get countdown section styling based on urgency
+    const getCountdownStyles = () => {
+        if (isCompleted) {
+            return {
+                bg: 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent',
+                iconBg: 'bg-emerald-500',
+                textPrimary: 'text-emerald-700',
+                textSecondary: 'text-emerald-600',
+            };
+        }
+        switch (urgencyLevel) {
+            case 'overdue':
+                return {
+                    bg: 'bg-linear-to-r from-red-500/10 via-red-500/5 to-transparent',
+                    iconBg: 'bg-red-500',
+                    textPrimary: 'text-red-700',
+                    textSecondary: 'text-red-600',
+                };
+            case 'urgent':
+                return {
+                    bg: 'bg-linear-to-r from-red-500/10 via-red-500/5 to-transparent',
+                    iconBg: 'bg-red-500',
+                    textPrimary: 'text-red-700',
+                    textSecondary: 'text-red-600',
+                };
+            case 'warning':
+                return {
+                    bg: 'bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent',
+                    iconBg: 'bg-amber-500',
+                    textPrimary: 'text-amber-700',
+                    textSecondary: 'text-amber-600',
+                };
+            default:
+                return {
+                    bg: 'bg-linear-to-r from-blue-500/10 via-blue-500/5 to-transparent',
+                    iconBg: 'bg-blue-500',
+                    textPrimary: 'text-blue-700',
+                    textSecondary: 'text-blue-600',
+                };
+        }
+    };
+
+    const countdownStyles = getCountdownStyles();
 
     return (
         <>
@@ -250,6 +273,12 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                             Completed
                                         </Badge>
                                     )}
+                                    {isOverdue && (
+                                        <Badge variant="destructive" className="gap-1">
+                                            <AlertTriangle className="size-3" />
+                                            Overdue
+                                        </Badge>
+                                    )}
                                 </SheetDescription>
                             </div>
                         </div>
@@ -257,165 +286,82 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
 
                     <ScrollArea className="flex-1">
                         <div className="space-y-5 p-6">
-                            {/* Timer Section - Prominent when active */}
-                            {(isInProgress || isPaused || isCompleted) && (
-                                <div
-                                    className={`overflow-hidden rounded-xl ${isInProgress
-                                            ? 'bg-linear-to-r from-blue-500/10 via-blue-500/5 to-transparent'
-                                            : isPaused
-                                                ? 'bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent'
-                                                : 'bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent'
-                                        }`}
-                                >
-                                    <div className="p-4">
-                                        {/* Active Timer Display */}
-                                        {isInProgress && (
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative">
-                                                        <div className="absolute inset-0 animate-ping rounded-full bg-blue-500/30" />
-                                                        <div className="relative flex size-10 items-center justify-center rounded-full bg-blue-500 text-white">
-                                                            <Timer className="size-5" />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-medium uppercase tracking-wider text-blue-600">
-                                                            Time Tracking
-                                                        </p>
-                                                        <p className="text-2xl font-bold tabular-nums text-blue-700">
-                                                            {formatElapsedTime(elapsedTime)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="gap-1.5 bg-amber-500 text-white hover:bg-amber-600"
-                                                        onClick={handlePauseTask}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        <Pause className="size-3.5 fill-current" />
-                                                        Pause
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
-                                                        onClick={handleToggleComplete}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        <Square className="size-3.5 fill-current" />
-                                                        Complete
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Paused Timer Display */}
-                                        {isPaused && (
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex size-10 items-center justify-center rounded-full bg-amber-500 text-white">
-                                                        <Pause className="size-5 fill-current" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-medium uppercase tracking-wider text-amber-600">
-                                                            Paused
-                                                        </p>
-                                                        <p className="text-2xl font-bold tabular-nums text-amber-700">
-                                                            {formatElapsedTime(elapsedTime)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="gap-1.5 bg-blue-500 text-white hover:bg-blue-600"
-                                                        onClick={handleResumeTask}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        <Play className="size-3.5 fill-current" />
-                                                        Resume
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
-                                                        onClick={handleToggleComplete}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        <Square className="size-3.5 fill-current" />
-                                                        Complete
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Completed Timer Display */}
-                                        {isCompleted && task.started_at && (
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500 text-white">
+                            {/* Countdown Section */}
+                            <div className={`overflow-hidden rounded-xl ${countdownStyles.bg}`}>
+                                <div className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative">
+                                                {!isCompleted && urgencyLevel === 'urgent' && (
+                                                    <div className="absolute inset-0 animate-ping rounded-full bg-red-500/30" />
+                                                )}
+                                                <div className={`relative flex size-10 items-center justify-center rounded-full ${countdownStyles.iconBg} text-white`}>
+                                                    {isCompleted ? (
                                                         <CheckCircle2 className="size-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-medium uppercase tracking-wider text-emerald-600">
-                                                            Total Time
-                                                        </p>
-                                                        <p className="text-2xl font-bold tabular-nums text-emerald-700">
-                                                            {formatElapsedTime(
-                                                                differenceInSeconds(
-                                                                    parseISO(task.completed_at!),
-                                                                    parseISO(task.started_at),
-                                                                ) - (task.total_paused_seconds || 0),
-                                                            )}
-                                                        </p>
-                                                    </div>
+                                                    ) : (
+                                                        <Clock className="size-5" />
+                                                    )}
                                                 </div>
-                                                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700">
-                                                    Completed
-                                                </Badge>
+                                            </div>
+                                            <div>
+                                                <p className={`text-xs font-medium uppercase tracking-wider ${countdownStyles.textSecondary}`}>
+                                                    {isCompleted ? 'Completed' : isOverdue ? 'Overdue' : 'Time Remaining'}
+                                                </p>
+                                                {isCompleted ? (
+                                                    <p className={`text-lg font-semibold ${countdownStyles.textPrimary}`}>
+                                                        {format(parseISO(task.completed_at!), 'MMM d, yyyy • HH:mm')}
+                                                    </p>
+                                                ) : (
+                                                    <>
+                                                        <p className={`text-2xl font-bold tabular-nums ${countdownStyles.textPrimary}`}>
+                                                            {formatTimeHHMMSS(timeRemaining)}
+                                                        </p>
+                                                        <p className={`text-sm ${countdownStyles.textSecondary}`}>
+                                                            {formatTimeHumanReadable(timeRemaining)}
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {!isCompleted && (
+                                            <Button
+                                                size="sm"
+                                                className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
+                                                onClick={handleToggleComplete}
+                                                disabled={isProcessing}
+                                            >
+                                                <CheckCircle2 className="size-3.5" />
+                                                Complete
+                                            </Button>
+                                        )}
+                                        {isCompleted && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="gap-1.5"
+                                                onClick={handleToggleComplete}
+                                                disabled={isProcessing}
+                                            >
+                                                Reopen
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    {/* Deadline info */}
+                                    <div className="mt-3 flex gap-4 border-t border-current/10 pt-3 text-xs text-muted-foreground">
+                                        <div>
+                                            <span className="font-medium">Deadline:</span>{' '}
+                                            {deadlineDisplay.date} at {deadlineDisplay.time}
+                                        </div>
+                                        {task.completed_at && (
+                                            <div>
+                                                <span className="font-medium">Completed:</span>{' '}
+                                                {format(parseISO(task.completed_at), 'MMM d, HH:mm')}
                                             </div>
                                         )}
-
-                                        {/* Time details */}
-                                        <div className="mt-3 flex gap-4 border-t border-current/10 pt-3 text-xs text-muted-foreground">
-                                            {task.started_at && (
-                                                <div>
-                                                    <span className="font-medium">Started:</span>{' '}
-                                                    {format(parseISO(task.started_at), 'MMM d, HH:mm')}
-                                                </div>
-                                            )}
-                                            {task.paused_at && (
-                                                <div>
-                                                    <span className="font-medium">Paused:</span>{' '}
-                                                    {format(parseISO(task.paused_at), 'MMM d, HH:mm')}
-                                                </div>
-                                            )}
-                                            {task.completed_at && (
-                                                <div>
-                                                    <span className="font-medium">Completed:</span>{' '}
-                                                    {format(parseISO(task.completed_at), 'MMM d, HH:mm')}
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Start Timer Button - Clear CTA when not started */}
-                            {isNotStarted && (
-                                <Button
-                                    onClick={handleStartTask}
-                                    disabled={isProcessing}
-                                    className="w-full gap-2 bg-linear-to-r from-blue-500 to-blue-600 py-6 text-base font-medium text-white shadow-lg shadow-blue-500/25 transition-all hover:from-blue-600 hover:to-blue-700 hover:shadow-xl hover:shadow-blue-500/30"
-                                >
-                                    <Play className="size-5 fill-current" />
-                                    Start Timer
-                                </Button>
-                            )}
+                            </div>
 
                             {/* Description - Only if exists */}
                             {task.description && (
@@ -452,26 +398,18 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                     {/* Due Date */}
                                     <div className="flex items-center justify-between p-3">
                                         <span className="text-sm text-muted-foreground">Due Date</span>
-                                        {dueDateInfo ? (
-                                            <div className="flex items-center gap-2">
-                                                <Badge
-                                                    variant={dueDateInfo.isOverdue ? 'destructive' : 'secondary'}
-                                                    className={
-                                                        dueDateInfo.isDueSoon
-                                                            ? 'border-amber-500 bg-amber-500/10 text-amber-700'
-                                                            : ''
-                                                    }
-                                                >
-                                                    <Calendar className="mr-1.5 size-3" />
-                                                    {dueDateInfo.formatted}
-                                                    {dueDateInfo.time && (
-                                                        <span className="ml-1 opacity-70">• {dueDateInfo.time}</span>
-                                                    )}
-                                                </Badge>
-                                            </div>
-                                        ) : (
-                                            <span className="text-sm text-muted-foreground/60">Not set</span>
-                                        )}
+                                        <Badge
+                                            variant={isOverdue ? 'destructive' : 'secondary'}
+                                            className={
+                                                !isOverdue && urgencyLevel === 'warning'
+                                                    ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                                    : ''
+                                            }
+                                        >
+                                            <Calendar className="mr-1.5 size-3" />
+                                            {deadlineDisplay.date}
+                                            <span className="ml-1 opacity-70">• {deadlineDisplay.time}</span>
+                                        </Badge>
                                     </div>
 
                                     {/* Assignee */}
@@ -586,6 +524,14 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                     setDeleteOpen(open);
                     if (!open) onOpenChange(false);
                 }}
+            />
+
+            {/* Reopen Dialog (for overdue tasks) */}
+            <ReopenTaskDialog
+                project={project}
+                task={task}
+                open={reopenOpen}
+                onOpenChange={setReopenOpen}
             />
         </>
     );

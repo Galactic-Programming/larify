@@ -6,7 +6,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Pencil, Settings2, Trash2 } from 'lucide-react';
+import { setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
+import { router } from '@inertiajs/react';
+import { CheckCircle2, Circle, MoreHorizontal, Pencil, Settings2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { Project, TaskList } from '../lib/types';
 import { EditStatusesDialog } from './edit-statuses-dialog';
@@ -46,6 +48,24 @@ export function ListDropdownMenu({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                        onClick={() => {
+                            router.patch(setDoneList.url({ project: project.id, list: list.id }));
+                        }}
+                    >
+                        {list.is_done_list ? (
+                            <>
+                                <Circle className="mr-2 size-4" />
+                                Unset as Done List
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle2 className="mr-2 size-4" />
+                                Set as Done List
+                            </>
+                        )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => onEdit(list)}>
                         <Pencil className="mr-2 size-4" />
                         Edit List
@@ -54,14 +74,18 @@ export function ListDropdownMenu({
                         <Settings2 className="mr-2 size-4" />
                         Edit Statuses
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => onDelete(list)}
-                        className="text-destructive focus:text-destructive"
-                    >
-                        <Trash2 className="mr-2 size-4" />
-                        Delete List
-                    </DropdownMenuItem>
+                    {!list.is_done_list && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={() => onDelete(list)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <Trash2 className="mr-2 size-4" />
+                                Delete List
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

@@ -20,12 +20,14 @@ class TaskList extends Model
         'project_id',
         'name',
         'position',
+        'is_done_list',
     ];
 
     protected function casts(): array
     {
         return [
             'position' => 'integer',
+            'is_done_list' => 'boolean',
         ];
     }
 

@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { update } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
-import { Form } from '@inertiajs/react';
+import { Switch } from '@/components/ui/switch';
+import { update, setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
+import { Form, router } from '@inertiajs/react';
 import { LayoutList } from 'lucide-react';
 
 interface Project {
@@ -25,6 +26,7 @@ interface TaskList {
     id: number;
     name: string;
     position: number;
+    is_done_list: boolean;
 }
 
 interface EditListDialogProps {
@@ -77,6 +79,22 @@ export function EditListDialog({ project, list, open, onOpenChange }: EditListDi
                                         autoComplete="off"
                                     />
                                     <InputError message={errors.name} />
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="is_done_list" className="text-base">Done List</Label>
+                                        <p className="text-muted-foreground text-sm">
+                                            Completed tasks will automatically move to this list.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="is_done_list"
+                                        checked={list.is_done_list}
+                                        onCheckedChange={() => {
+                                            router.patch(setDoneList.url({ project: project.id, list: list.id }));
+                                        }}
+                                    />
                                 </div>
                             </div>
 

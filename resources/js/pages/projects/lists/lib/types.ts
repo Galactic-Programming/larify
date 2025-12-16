@@ -13,17 +13,15 @@ export interface Task {
     id: number;
     project_id: number;
     list_id: number;
+    original_list_id: number | null;
     assigned_to: number | null;
     assignee: User | null;
     title: string;
     description: string | null;
     position: number;
     priority: TaskPriority;
-    due_date: string | null;
-    due_time: string | null;
-    started_at: string | null;
-    paused_at: string | null;
-    total_paused_seconds: number;
+    due_date: string;
+    due_time: string;
     completed_at: string | null;
     created_at: string;
     updated_at: string;
@@ -34,6 +32,7 @@ export interface TaskList {
     project_id: number;
     name: string;
     position: number;
+    is_done_list: boolean;
     tasks_count: number;
     tasks: Task[];
     created_at: string;
@@ -54,3 +53,5 @@ export interface Project {
 }
 
 export type ViewMode = 'board' | 'list' | 'table';
+
+export type TaskFilter = 'all' | 'overdue' | 'due-soon' | 'completed';

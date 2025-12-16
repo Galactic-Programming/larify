@@ -29,22 +29,10 @@ class TaskFactory extends Factory
             'description' => fake()->optional(0.5)->paragraph(),
             'position' => fake()->numberBetween(0, 100),
             'priority' => fake()->randomElement(TaskPriority::cases()),
-            'due_date' => fake()->optional(0.6)->dateTimeBetween('now', '+30 days'),
-            'due_time' => fake()->optional(0.3)->time('H:i:s'),
-            'started_at' => null,
+            'due_date' => fake()->dateTimeBetween('now', '+30 days'),
+            'due_time' => fake()->time('H:i:s'),
             'completed_at' => null,
         ];
-    }
-
-    /**
-     * Indicate that the task is in progress.
-     */
-    public function inProgress(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'started_at' => fake()->dateTimeBetween('-7 days', 'now'),
-            'completed_at' => null,
-        ]);
     }
 
     /**
@@ -52,11 +40,8 @@ class TaskFactory extends Factory
      */
     public function completed(): static
     {
-        $startedAt = fake()->dateTimeBetween('-14 days', '-1 day');
-
-        return $this->state(fn(array $attributes) => [
-            'started_at' => $startedAt,
-            'completed_at' => fake()->dateTimeBetween($startedAt, 'now'),
+        return $this->state(fn (array $attributes) => [
+            'completed_at' => fake()->dateTimeBetween('-7 days', 'now'),
         ]);
     }
 
@@ -65,7 +50,7 @@ class TaskFactory extends Factory
      */
     public function highPriority(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'priority' => TaskPriority::High,
         ]);
     }
@@ -75,7 +60,7 @@ class TaskFactory extends Factory
      */
     public function urgent(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'priority' => TaskPriority::Urgent,
             'due_date' => fake()->dateTimeBetween('now', '+3 days'),
         ]);

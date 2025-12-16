@@ -17,6 +17,7 @@ import type { Task } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
+import { ReopenTaskDialog } from './reopen-task-dialog';
 
 interface Project {
     id: number;
@@ -35,12 +36,36 @@ interface TaskCardProps {
 export function TaskCard({ task, project, index = 0, variant = 'board', onClick }: TaskCardProps) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [reopenOpen, setReopenOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const isCompleted = !!task.completed_at;
 
+    // Check if task is overdue (for non-completed tasks)
+    const isOverdue = (() => {
+        if (isCompleted) return false;
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
+        return new Date() > deadline;
+    })();
+
+    // Check if task was overdue when completed (for reopen check)
+    const wasOverdueWhenCompleted = (() => {
+        if (!isCompleted) return false;
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
+        return new Date() > deadline;
+    })();
+
     const handleToggleComplete = (e: React.MouseEvent) => {
         e.stopPropagation();
+
+        // If trying to reopen an overdue task, show reopen dialog instead
+        if (isCompleted && wasOverdueWhenCompleted) {
+            setReopenOpen(true);
+            return;
+        }
+
         setIsProcessing(true);
         router.patch(
             complete({ project, task }).url,
@@ -98,6 +123,7 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
         <>
             <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} />
             <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
+            <ReopenTaskDialog project={project} task={task} open={reopenOpen} onOpenChange={setReopenOpen} />
         </>
     );
 
@@ -108,7 +134,8 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.03 }}
-                    className="group flex cursor-pointer items-center gap-3 rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
+                    className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20' : 'bg-muted/30'
+                        }`}
                     onClick={() => onClick?.(task)}
                 >
                     <div className="shrink-0">{getTaskStatusIcon(task)}</div>
@@ -148,7 +175,8 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                 transition={{ duration: 0.2, delay: index * 0.05 }}
                 onClick={() => onClick?.(task)}
             >
-                <Card className="group cursor-pointer bg-card transition-all hover:shadow-md">
+                <Card className={`group cursor-pointer transition-all hover:shadow-md ${isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20' : 'bg-card'
+                    }`}>
                     <CardContent className="p-3">
                         <div className="flex items-start gap-2">
                             <div className="mt-0.5 shrink-0">{getTaskStatusIcon(task)}</div>

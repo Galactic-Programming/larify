@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,9 +15,11 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->integer('position')->default(0); // Thứ tự hiển thị cột
+            $table->boolean('is_done_list')->default(false); // Mark as Done list for auto-move
             $table->timestamps();
 
             $table->index(['project_id', 'position']);
+            $table->index(['project_id', 'is_done_list']);
         });
     }
 

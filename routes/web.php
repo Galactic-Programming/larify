@@ -46,6 +46,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.lists.reorder');
     Route::patch('projects/{project}/lists/{list}', [TaskListController::class, 'update'])
         ->name('projects.lists.update');
+    Route::patch('projects/{project}/lists/{list}/done', [TaskListController::class, 'setDoneList'])
+        ->name('projects.lists.done');
     Route::delete('projects/{project}/lists/{list}', [TaskListController::class, 'destroy'])
         ->name('projects.lists.destroy');
 
@@ -60,14 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.tasks.move');
     Route::patch('projects/{project}/lists/{list}/tasks/reorder', [TaskController::class, 'reorder'])
         ->name('projects.tasks.reorder');
-    Route::patch('projects/{project}/tasks/{task}/start', [TaskController::class, 'start'])
-        ->name('projects.tasks.start');
-    Route::patch('projects/{project}/tasks/{task}/pause', [TaskController::class, 'pause'])
-        ->name('projects.tasks.pause');
-    Route::patch('projects/{project}/tasks/{task}/resume', [TaskController::class, 'resume'])
-        ->name('projects.tasks.resume');
     Route::patch('projects/{project}/tasks/{task}/complete', [TaskController::class, 'complete'])
         ->name('projects.tasks.complete');
+    Route::patch('projects/{project}/tasks/{task}/reopen', [TaskController::class, 'reopen'])
+        ->name('projects.tasks.reopen');
 });
 
 // Terms & Privacy

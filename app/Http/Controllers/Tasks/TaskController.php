@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -124,86 +125,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Start tracking time for a task.
-     */
-    public function start(Project $project, Task $task): RedirectResponse
-    {
-        // Verify task belongs to project (prevent URL manipulation)
-        if ($task->project_id !== $project->id) {
-            abort(404);
-        }
-
-        Gate::authorize('update', [$task, $project]);
-
-        // Only set started_at if not already started (prevent overwrite)
-        if ($task->started_at === null) {
-            $task->update([
-                'started_at' => now(),
-            ]);
-
-            // Broadcast real-time update
-            broadcast(new TaskUpdated($task->load('assignee'), 'started'))->toOthers();
-        }
-
-        return back();
-    }
-
-    /**
-     * Pause time tracking for a task.
-     */
-    public function pause(Project $project, Task $task): RedirectResponse
-    {
-        // Verify task belongs to project (prevent URL manipulation)
-        if ($task->project_id !== $project->id) {
-            abort(404);
-        }
-
-        Gate::authorize('update', [$task, $project]);
-
-        // Only pause if task is in progress (started but not paused or completed)
-        if ($task->started_at !== null && $task->paused_at === null && $task->completed_at === null) {
-            $task->update([
-                'paused_at' => now(),
-            ]);
-
-            // Broadcast real-time update
-            broadcast(new TaskUpdated($task->load('assignee'), 'paused'))->toOthers();
-        }
-
-        return back();
-    }
-
-    /**
-     * Resume time tracking for a paused task.
-     */
-    public function resume(Project $project, Task $task): RedirectResponse
-    {
-        // Verify task belongs to project (prevent URL manipulation)
-        if ($task->project_id !== $project->id) {
-            abort(404);
-        }
-
-        Gate::authorize('update', [$task, $project]);
-
-        // Only resume if task is paused
-        if ($task->paused_at !== null && $task->completed_at === null) {
-            // Calculate paused duration and add to total (absolute value to prevent negative)
-            $pausedDuration = max(0, (int) $task->paused_at->diffInSeconds(now()));
-
-            $task->update([
-                'paused_at' => null,
-                'total_paused_seconds' => $task->total_paused_seconds + $pausedDuration,
-            ]);
-
-            // Broadcast real-time update
-            broadcast(new TaskUpdated($task->load('assignee'), 'resumed'))->toOthers();
-        }
-
-        return back();
-    }
-
-    /**
-     * Mark task as completed.
+     * Toggle task completion status.
      */
     public function complete(Project $project, Task $task): RedirectResponse
     {
@@ -215,33 +137,125 @@ class TaskController extends Controller
         Gate::authorize('update', [$task, $project]);
 
         // Use DB transaction with fresh data to prevent race condition
-        DB::transaction(function () use ($task) {
+        DB::transaction(function () use ($task, $project) {
             // Refresh to get latest data (optimistic locking)
             $task->refresh();
 
             if ($task->completed_at) {
-                // If already completed, mark as incomplete (toggle off)
-                $task->update([
-                    'completed_at' => null,
-                ]);
-            } else {
-                // Mark as completed
-                // If task was paused, calculate final paused time
-                $additionalPausedSeconds = 0;
-                if ($task->paused_at !== null) {
-                    $additionalPausedSeconds = max(0, (int) $task->paused_at->diffInSeconds(now()));
+                // If already completed, mark as incomplete (reopen)
+                // Check if the task is overdue - if so, require new deadline via reopen endpoint
+                if ($task->isOverdue()) {
+                    // Return early - frontend should use reopen endpoint with new deadline
+                    return;
                 }
 
-                $task->update([
-                    'completed_at' => now(),
-                    'paused_at' => null,
-                    'total_paused_seconds' => max(0, $task->total_paused_seconds + $additionalPausedSeconds),
-                ]);
+                // Move back to original list if it exists
+                $updateData = ['completed_at' => null];
+
+                if ($task->original_list_id) {
+                    // Check if original list still exists
+                    $originalListExists = TaskList::where('id', $task->original_list_id)
+                        ->where('project_id', $project->id)
+                        ->exists();
+
+                    if ($originalListExists) {
+                        // Calculate new position at end of original list
+                        $maxPosition = Task::where('list_id', $task->original_list_id)->max('position') ?? -1;
+                        $updateData['list_id'] = $task->original_list_id;
+                        $updateData['position'] = $maxPosition + 1;
+                    }
+
+                    $updateData['original_list_id'] = null;
+                }
+
+                $task->update($updateData);
+            } else {
+                // Mark as completed
+                $updateData = ['completed_at' => now()];
+
+                // Find done list in this project
+                $doneList = TaskList::where('project_id', $project->id)
+                    ->where('is_done_list', true)
+                    ->first();
+
+                // Auto-move to done list if exists and task is not already there
+                if ($doneList && $task->list_id !== $doneList->id) {
+                    // Store original list before moving
+                    $updateData['original_list_id'] = $task->list_id;
+
+                    // Calculate new position at end of done list
+                    $maxPosition = Task::where('list_id', $doneList->id)->max('position') ?? -1;
+                    $updateData['list_id'] = $doneList->id;
+                    $updateData['position'] = $maxPosition + 1;
+                }
+
+                $task->update($updateData);
             }
         });
 
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'completed'))->toOthers();
+
+        return back();
+    }
+
+    /**
+     * Reopen an overdue task with a new deadline.
+     */
+    public function reopen(Request $request, Project $project, Task $task): RedirectResponse
+    {
+        // Verify task belongs to project (prevent URL manipulation)
+        if ($task->project_id !== $project->id) {
+            abort(404);
+        }
+
+        Gate::authorize('update', [$task, $project]);
+
+        // Validate new deadline
+        $validated = $request->validate([
+            'due_date' => ['required', 'date', 'after_or_equal:today'],
+            'due_time' => ['required', 'date_format:H:i'],
+        ]);
+
+        // Use DB transaction with fresh data to prevent race condition
+        DB::transaction(function () use ($task, $project, $validated) {
+            // Refresh to get latest data (optimistic locking)
+            $task->refresh();
+
+            // Only allow reopen if task is completed
+            if (!$task->completed_at) {
+                return;
+            }
+
+            // Prepare update data
+            $updateData = [
+                'completed_at' => null,
+                'due_date' => $validated['due_date'],
+                'due_time' => $validated['due_time'],
+            ];
+
+            // Move back to original list if it exists
+            if ($task->original_list_id) {
+                // Check if original list still exists
+                $originalListExists = TaskList::where('id', $task->original_list_id)
+                    ->where('project_id', $project->id)
+                    ->exists();
+
+                if ($originalListExists) {
+                    // Calculate new position at end of original list
+                    $maxPosition = Task::where('list_id', $task->original_list_id)->max('position') ?? -1;
+                    $updateData['list_id'] = $task->original_list_id;
+                    $updateData['position'] = $maxPosition + 1;
+                }
+
+                $updateData['original_list_id'] = null;
+            }
+
+            $task->update($updateData);
+        });
+
+        // Broadcast real-time update
+        broadcast(new TaskUpdated($task->load('assignee'), 'reopened'))->toOthers();
 
         return back();
     }

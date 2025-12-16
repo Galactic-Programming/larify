@@ -40,8 +40,8 @@ class StoreTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'priority' => ['required', Rule::enum(TaskPriority::class)],
-            'due_date' => ['nullable', 'date'],
-            'due_time' => ['nullable', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'due_date' => ['required', 'date', 'after_or_equal:today'],
+            'due_time' => ['required', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'assigned_to' => [
                 'nullable',
                 'exists:users,id',
@@ -51,7 +51,7 @@ class StoreTaskRequest extends FormRequest
                         $isMember = $project->user_id === $value
                             || $project->projectMembers()->where('user_id', $value)->exists();
 
-                        if (!$isMember) {
+                        if (! $isMember) {
                             $fail('The assigned user must be a member of the project.');
                         }
                     }

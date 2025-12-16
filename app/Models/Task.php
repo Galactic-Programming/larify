@@ -14,6 +14,7 @@ class Task extends Model
     protected $fillable = [
         'project_id',
         'list_id',
+        'original_list_id',
         'assigned_to',
         'title',
         'description',
@@ -21,9 +22,6 @@ class Task extends Model
         'priority',
         'due_date',
         'due_time',
-        'started_at',
-        'paused_at',
-        'total_paused_seconds',
         'completed_at',
     ];
 
@@ -33,9 +31,6 @@ class Task extends Model
             'position' => 'integer',
             'priority' => TaskPriority::class,
             'due_date' => 'date',
-            'started_at' => 'datetime',
-            'paused_at' => 'datetime',
-            'total_paused_seconds' => 'integer',
             'completed_at' => 'datetime',
         ];
     }
@@ -73,22 +68,16 @@ class Task extends Model
     }
 
     /**
-     * Check if the task is in progress.
+     * Check if the task is overdue.
      */
-    public function isInProgress(): bool
+    public function isOverdue(): bool
     {
-        return $this->started_at !== null && $this->completed_at === null;
-    }
-
-    /**
-     * Get the duration in seconds (if started and completed).
-     */
-    public function getDurationInSeconds(): ?int
-    {
-        if ($this->started_at === null || $this->completed_at === null) {
-            return null;
+        if ($this->completed_at !== null) {
+            return false;
         }
 
-        return $this->completed_at->diffInSeconds($this->started_at);
+        $deadline = $this->due_date->format('Y-m-d') . ' ' . $this->due_time;
+
+        return now()->gt($deadline);
     }
 }

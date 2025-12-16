@@ -9,9 +9,8 @@ interface TaskEventData {
         title: string;
         description: string | null;
         priority: string;
-        due_date: string | null;
-        due_time: string | null;
-        started_at: string | null;
+        due_date: string;
+        due_time: string;
         completed_at: string | null;
         assigned_to: number | null;
         assignee: {
@@ -24,13 +23,7 @@ interface TaskEventData {
         created_at: string;
         updated_at: string;
     };
-    action:
-        | 'created'
-        | 'updated'
-        | 'deleted'
-        | 'moved'
-        | 'started'
-        | 'completed';
+    action: 'created' | 'updated' | 'deleted' | 'moved' | 'completed';
 }
 
 interface ListEventData {

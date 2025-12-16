@@ -19,7 +19,8 @@ class TaskUpdated implements ShouldBroadcastNow
     public function __construct(
         public Task $task,
         public string $action = 'updated'
-    ) {}
+    ) {
+    }
 
     /**
      * Get the channels the event should broadcast on.
@@ -29,7 +30,7 @@ class TaskUpdated implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('project.'.$this->task->project_id),
+            new PrivateChannel('project.' . $this->task->project_id),
         ];
     }
 
@@ -49,7 +50,6 @@ class TaskUpdated implements ShouldBroadcastNow
                 'priority' => $this->task->priority,
                 'due_date' => $this->task->due_date?->format('Y-m-d'),
                 'due_time' => $this->task->due_time,
-                'started_at' => $this->task->started_at?->toISOString(),
                 'completed_at' => $this->task->completed_at?->toISOString(),
                 'assigned_to' => $this->task->assigned_to,
                 'assignee' => $this->task->assignee ? [

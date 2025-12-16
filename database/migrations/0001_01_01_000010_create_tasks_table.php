@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,16 +15,14 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->foreignId('list_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('original_list_id')->nullable()->constrained('lists')->nullOnDelete(); // Original list before auto-move to Done
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('position')->default(0); // Thứ tự trong list
             $table->enum('priority', ['none', 'low', 'medium', 'high', 'urgent'])->default('none');
-            $table->date('due_date')->nullable();
-            $table->time('due_time')->nullable(); // Optional: thời gian cụ thể
-            $table->timestamp('started_at')->nullable(); // Bắt đầu tính giờ
-            $table->timestamp('paused_at')->nullable(); // Tạm dừng
-            $table->unsignedInteger('total_paused_seconds')->default(0); // Tổng thời gian đã pause
+            $table->date('due_date'); // Deadline date (required)
+            $table->time('due_time'); // Deadline time (required)
             $table->timestamp('completed_at')->nullable(); // Hoàn thành
             $table->timestamps();
 

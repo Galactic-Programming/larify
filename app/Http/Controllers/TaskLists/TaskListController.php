@@ -24,8 +24,8 @@ class TaskListController extends Controller
         Gate::authorize('view', $project);
 
         $project->load([
-            'lists' => fn ($query) => $query->orderBy('position')->withCount('tasks'),
-            'lists.tasks' => fn ($query) => $query->orderBy('position'),
+            'lists' => fn($query) => $query->orderBy('position')->withCount('tasks'),
+            'lists.tasks' => fn($query) => $query->orderBy('position'),
             'lists.tasks.assignee',
         ]);
 
@@ -75,6 +75,11 @@ class TaskListController extends Controller
     {
         Gate::authorize('delete', [$list, $project]);
 
+        // Prevent deletion of Done list
+        if ($list->is_done_list) {
+            return back()->withErrors(['list' => 'Cannot delete the Done list. Unset it as Done list first.']);
+        }
+
         // Broadcast before delete so we have the list data
         broadcast(new ListUpdated($list, 'deleted'))->toOthers();
 
@@ -99,6 +104,36 @@ class TaskListController extends Controller
         if ($firstList) {
             broadcast(new ListUpdated($firstList, 'reordered'))->toOthers();
         }
+
+        return back();
+    }
+
+    /**
+     * Set or unset a list as the Done list for the project.
+     */
+    public function setDoneList(Project $project, TaskList $list): RedirectResponse
+    {
+        // Verify the list belongs to the project (security check)
+        if ($list->project_id !== $project->id) {
+            abort(404);
+        }
+
+        Gate::authorize('update', [$list, $project]);
+
+        // If this list is already the done list, unset it
+        if ($list->is_done_list) {
+            $list->update(['is_done_list' => false]);
+        } else {
+            // Unset any existing done list in this project
+            TaskList::where('project_id', $project->id)
+                ->where('is_done_list', true)
+                ->update(['is_done_list' => false]);
+
+            // Set this list as done list
+            $list->update(['is_done_list' => true]);
+        }
+
+        broadcast(new ListUpdated($list, 'updated'))->toOthers();
 
         return back();
     }

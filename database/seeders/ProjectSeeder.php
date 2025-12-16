@@ -68,6 +68,7 @@ class ProjectSeeder extends Seeder
                 'project_id' => $project->id,
                 'name' => $name,
                 'position' => $position,
+                'is_done_list' => $name === 'Done', // Set Done list as the done list
             ]);
 
             // Add sample tasks to each list
@@ -90,7 +91,6 @@ class ProjectSeeder extends Seeder
 
         for ($i = 0; $i < $taskCount; $i++) {
             $isCompleted = $listPosition === 3;
-            $isInProgress = $listPosition === 1;
 
             Task::create([
                 'project_id' => $project->id,
@@ -99,9 +99,8 @@ class ProjectSeeder extends Seeder
                 'description' => fake()->optional(0.5)->paragraph(),
                 'position' => $i,
                 'priority' => fake()->randomElement(TaskPriority::cases()),
-                'due_date' => fake()->optional(0.6)->dateTimeBetween('now', '+30 days'),
-                'due_time' => fake()->optional(0.2)->time('H:i:s'),
-                'started_at' => $isInProgress || $isCompleted ? fake()->dateTimeBetween('-7 days', '-1 day') : null,
+                'due_date' => fake()->dateTimeBetween('now', '+30 days'),
+                'due_time' => fake()->time('H:i:s'),
                 'completed_at' => $isCompleted ? fake()->dateTimeBetween('-1 day', 'now') : null,
             ]);
         }

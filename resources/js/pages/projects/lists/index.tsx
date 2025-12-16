@@ -3,7 +3,7 @@ import { index as projectsIndex, show as projectShow } from '@/routes/projects';
 import { index as listsIndex } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { DeleteListDialog } from './components/delete-list-dialog';
 import { EditListDialog } from './components/edit-list-dialog';
@@ -12,7 +12,23 @@ import { ListsHeader } from './components/lists-header';
 import { BoardView } from './components/views/board-view';
 import { ListView } from './components/views/list-view';
 import { TableView } from './components/views/table-view';
-import type { Project, TaskList, ViewMode } from './lib/types';
+import type { Project, Task, TaskFilter, TaskList, ViewMode } from './lib/types';
+
+// Helper to check if task is overdue
+function isTaskOverdue(task: Task): boolean {
+    if (task.completed_at) return false;
+    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    return new Date() > deadline;
+}
+
+// Helper to check if task is due soon (within 24 hours)
+function isTaskDueSoon(task: Task): boolean {
+    if (task.completed_at) return false;
+    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const now = new Date();
+    const hoursUntilDue = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursUntilDue > 0 && hoursUntilDue <= 24;
+}
 
 interface Props {
     project: Project;
@@ -20,6 +36,7 @@ interface Props {
 
 export default function ListsIndex({ project }: Props) {
     const [viewMode, setViewMode] = useState<ViewMode>('board');
+    const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
     const [editingList, setEditingList] = useState<TaskList | null>(null);
     const [deletingList, setDeletingList] = useState<TaskList | null>(null);
 
@@ -32,11 +49,38 @@ export default function ListsIndex({ project }: Props) {
         { title: 'Lists', href: listsIndex(project).url },
     ];
 
-    const totalTasks = project.lists.reduce((sum, list) => sum + list.tasks.length, 0);
-    const completedTasks = project.lists.reduce(
-        (sum, list) => sum + list.tasks.filter((t) => t.completed_at).length,
-        0,
-    );
+    // Calculate task counts for filters
+    const allTasks = project.lists.flatMap((list) => list.tasks);
+    const totalTasks = allTasks.length;
+    const completedTasks = allTasks.filter((t) => t.completed_at).length;
+    const overdueTasks = allTasks.filter(isTaskOverdue).length;
+    const dueSoonTasks = allTasks.filter(isTaskDueSoon).length;
+
+    // Filter project lists based on selected filter
+    const filteredProject = useMemo(() => {
+        if (taskFilter === 'all') return project;
+
+        const filterFn = (task: Task) => {
+            switch (taskFilter) {
+                case 'overdue':
+                    return isTaskOverdue(task);
+                case 'due-soon':
+                    return isTaskDueSoon(task);
+                case 'completed':
+                    return task.completed_at !== null;
+                default:
+                    return true;
+            }
+        };
+
+        return {
+            ...project,
+            lists: project.lists.map((list) => ({
+                ...list,
+                tasks: list.tasks.filter(filterFn),
+            })),
+        };
+    }, [project, taskFilter]);
 
     const handleEditList = (list: TaskList) => setEditingList(list);
     const handleDeleteList = (list: TaskList) => setDeletingList(list);
@@ -50,7 +94,7 @@ export default function ListsIndex({ project }: Props) {
             case 'board':
                 return (
                     <BoardView
-                        project={project}
+                        project={filteredProject}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -58,7 +102,7 @@ export default function ListsIndex({ project }: Props) {
             case 'list':
                 return (
                     <ListView
-                        project={project}
+                        project={filteredProject}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -66,7 +110,7 @@ export default function ListsIndex({ project }: Props) {
             case 'table':
                 return (
                     <TableView
-                        project={project}
+                        project={filteredProject}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -82,8 +126,12 @@ export default function ListsIndex({ project }: Props) {
                     project={project}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
+                    taskFilter={taskFilter}
+                    onTaskFilterChange={setTaskFilter}
                     totalTasks={totalTasks}
                     completedTasks={completedTasks}
+                    overdueTasks={overdueTasks}
+                    dueSoonTasks={dueSoonTasks}
                 />
 
                 {renderView()}
