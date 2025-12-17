@@ -50,7 +50,7 @@ export function UpdateRoleDialog({ project, member, open, onOpenChange }: Update
 
         setIsUpdating(true);
         router.patch(
-            update.url({ project, member: member.id }),
+            update.url({ project, member: member.pivot_id! }),
             { role: selectedRole },
             {
                 preserveScroll: true,

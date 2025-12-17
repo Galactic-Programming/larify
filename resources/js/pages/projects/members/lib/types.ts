@@ -10,6 +10,7 @@ export interface User {
 }
 
 export interface Member extends User {
+    pivot_id?: number; // ProjectMember ID for update/delete operations
     role: ProjectRole;
     joined_at: string;
     is_owner: boolean;
@@ -33,7 +34,10 @@ export interface ProjectWithMembers extends Project {
 }
 
 // Role configuration for UI
-export const ROLE_CONFIG: Record<ProjectRole, { label: string; description: string; color: string }> = {
+export const ROLE_CONFIG: Record<
+    ProjectRole,
+    { label: string; description: string; color: string }
+> = {
     owner: {
         label: 'Owner',
         description: 'Full access, can manage members and delete project',

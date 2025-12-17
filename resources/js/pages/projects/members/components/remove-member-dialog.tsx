@@ -29,7 +29,7 @@ export function RemoveMemberDialog({ project, member, open, onOpenChange }: Remo
 
     const handleRemove = () => {
         setIsRemoving(true);
-        router.delete(destroy.url({ project, member: member.id }), {
+        router.delete(destroy.url({ project, member: member.pivot_id! }), {
             preserveScroll: true,
             onSuccess: () => {
                 onOpenChange(false);

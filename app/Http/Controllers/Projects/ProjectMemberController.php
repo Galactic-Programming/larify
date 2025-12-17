@@ -26,12 +26,13 @@ class ProjectMemberController extends Controller
         // Load project with owner and members
         $project->load([
             'user:id,name,email,avatar',
-            'members' => fn ($query) => $query->withPivot(['role', 'joined_at']),
+            'members' => fn ($query) => $query->withPivot(['id', 'role', 'joined_at']),
         ]);
 
         // Get members with their pivot data
         $members = $project->members->map(fn ($user) => [
             'id' => $user->id,
+            'pivot_id' => $user->pivot->id,
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => $user->avatar,
