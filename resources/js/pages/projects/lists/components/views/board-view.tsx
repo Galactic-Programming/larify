@@ -23,7 +23,7 @@ import { router } from '@inertiajs/react';
 import { Circle, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useCallback, useMemo } from 'react';
-import type { Project, Task, TaskList } from '../../lib/types';
+import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { SortableTaskCard } from '../../tasks/components/sortable-task-card';
 import { TaskCard } from '../../tasks/components/task-card';
@@ -34,11 +34,12 @@ import { ListDropdownMenu } from '../list-dropdown-menu';
 
 interface BoardViewProps {
     project: Project;
+    permissions: Permissions;
     onEditList: (list: TaskList) => void;
     onDeleteList: (list: TaskList) => void;
 }
 
-export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps) {
+export function BoardView({ project, permissions, onEditList, onDeleteList }: BoardViewProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [originalListId, setOriginalListId] = useState<number | null>(null); // Track original list when drag starts
@@ -301,6 +302,7 @@ export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps)
                                         <ListDropdownMenu
                                             project={project}
                                             list={list}
+                                            permissions={permissions}
                                             onEdit={onEditList}
                                             onDelete={onDeleteList}
                                         />
@@ -319,6 +321,7 @@ export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps)
                                                                 project={project}
                                                                 index={taskIdx}
                                                                 onClick={setSelectedTask}
+                                                                disabled={!permissions.canEdit}
                                                             />
                                                         ))}
                                                     </div>
@@ -326,23 +329,25 @@ export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps)
                                                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
                                                         <Circle className="mb-2 size-8 text-muted-foreground/50" />
                                                         <p className="text-sm text-muted-foreground">No tasks yet</p>
-                                                        <CreateTaskDialog
-                                                            project={project}
-                                                            list={list}
-                                                            trigger={
-                                                                <Button variant="ghost" size="sm" className="mt-2 gap-1">
-                                                                    <Plus className="size-3" />
-                                                                    Add task
-                                                                </Button>
-                                                            }
-                                                        />
+                                                        {permissions.canEdit && (
+                                                            <CreateTaskDialog
+                                                                project={project}
+                                                                list={list}
+                                                                trigger={
+                                                                    <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                                        <Plus className="size-3" />
+                                                                        Add task
+                                                                    </Button>
+                                                                }
+                                                            />
+                                                        )}
                                                     </div>
                                                 )}
                                             </SortableContext>
                                         </DroppableList>
 
-                                        {/* Add Task Button */}
-                                        {list.tasks.length > 0 && (
+                                        {/* Add Task Button - Only for editors and owners */}
+                                        {list.tasks.length > 0 && permissions.canEdit && (
                                             <CreateTaskDialog
                                                 project={project}
                                                 list={list}
@@ -362,25 +367,27 @@ export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps)
                             </motion.div>
                         ))}
 
-                        {/* Add List Card */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: localLists.length * 0.1 }}
-                            className="w-80 shrink-0"
-                        >
-                            <CreateListDialog
-                                project={project}
-                                trigger={
-                                    <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
-                                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                            <Plus className="size-8" />
-                                            <span className="font-medium">Add new list</span>
-                                        </div>
-                                    </Card>
-                                }
-                            />
-                        </motion.div>
+                        {/* Add List Card - Only for editors and owners */}
+                        {permissions.canEdit && (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: localLists.length * 0.1 }}
+                                className="w-80 shrink-0"
+                            >
+                                <CreateListDialog
+                                    project={project}
+                                    trigger={
+                                        <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
+                                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                                <Plus className="size-8" />
+                                                <span className="font-medium">Add new list</span>
+                                            </div>
+                                        </Card>
+                                    }
+                                />
+                            </motion.div>
+                        )}
                     </div>
                     <ScrollBar orientation="horizontal" />
                 </ScrollArea>
@@ -404,6 +411,7 @@ export function BoardView({ project, onEditList, onDeleteList }: BoardViewProps)
             <TaskDetailSheet
                 task={selectedTask}
                 project={project}
+                permissions={permissions}
                 open={!!selectedTask}
                 onOpenChange={(open) => !open && setSelectedTask(null)}
             />

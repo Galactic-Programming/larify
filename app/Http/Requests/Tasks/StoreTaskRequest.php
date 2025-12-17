@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tasks;
 
 use App\Enums\TaskPriority;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\TaskList;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,7 +23,7 @@ class StoreTaskRequest extends FormRequest
 
         return $project instanceof Project
             && $list instanceof TaskList
-            && Gate::allows('update', $project)
+            && Gate::allows('create', [Task::class, $project])
             && $list->project_id === $project->id;
     }
 

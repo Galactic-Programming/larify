@@ -103,4 +103,55 @@ class Project extends Model
 
         return $role?->canEdit() ?? false;
     }
+
+    /**
+     * Check if a user can delete content (tasks, lists).
+     */
+    public function canDelete(User $user): bool
+    {
+        $role = $this->getMemberRole($user);
+
+        return $role?->canDelete() ?? false;
+    }
+
+    /**
+     * Check if a user can manage project settings.
+     */
+    public function canManageSettings(User $user): bool
+    {
+        $role = $this->getMemberRole($user);
+
+        return $role?->canManageSettings() ?? false;
+    }
+
+    /**
+     * Check if a user can reopen completed tasks.
+     */
+    public function canReopen(User $user): bool
+    {
+        $role = $this->getMemberRole($user);
+
+        return $role?->canReopen() ?? false;
+    }
+
+    /**
+     * Get user permissions for this project.
+     *
+     * @return array<string, bool>
+     */
+    public function getPermissions(User $user): array
+    {
+        $role = $this->getMemberRole($user);
+
+        return [
+            'canView' => $role !== null,
+            'canEdit' => $role?->canEdit() ?? false,
+            'canDelete' => $role?->canDelete() ?? false,
+            'canReopen' => $role?->canReopen() ?? false,
+            'canManageSettings' => $role?->canManageSettings() ?? false,
+            'canManageMembers' => $role?->canManageMembers() ?? false,
+            'isOwner' => $this->user_id === $user->id,
+            'role' => $role?->value,
+        ];
+    }
 }

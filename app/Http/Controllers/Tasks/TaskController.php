@@ -155,6 +155,8 @@ class TaskController extends Controller
 
     /**
      * Toggle task completion status.
+     * Completing: Editor or Owner can mark tasks as complete.
+     * Uncompleting: Only Owner can unmark (reopen) completed tasks.
      */
     public function complete(Project $project, Task $task): RedirectResponse
     {
@@ -163,7 +165,12 @@ class TaskController extends Controller
             abort(404);
         }
 
-        Gate::authorize('update', [$task, $project]);
+        // If task is already completed, we need reopen permission to uncomplete
+        if ($task->completed_at) {
+            Gate::authorize('reopen', [$task, $project]);
+        } else {
+            Gate::authorize('update', [$task, $project]);
+        }
 
         // Use DB transaction with fresh data to prevent race condition
         DB::transaction(function () use ($task, $project) {
@@ -230,6 +237,7 @@ class TaskController extends Controller
 
     /**
      * Reopen an overdue task with a new deadline.
+     * Only project owners can reopen tasks.
      */
     public function reopen(Request $request, Project $project, Task $task): RedirectResponse
     {
@@ -238,7 +246,7 @@ class TaskController extends Controller
             abort(404);
         }
 
-        Gate::authorize('update', [$task, $project]);
+        Gate::authorize('reopen', [$task, $project]);
 
         // Validate new deadline
         $validated = $request->validate([

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\TaskLists;
 
 use App\Models\Project;
+use App\Models\TaskList;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +17,7 @@ class StoreTaskListRequest extends FormRequest
     {
         $project = $this->route('project');
 
-        return $project instanceof Project && Gate::allows('update', $project);
+        return $project instanceof Project && Gate::allows('create', [TaskList::class, $project]);
     }
 
     /**

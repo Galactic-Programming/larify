@@ -28,7 +28,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import type { Project, Task, TaskPriority } from '../../lib/types';
+import type { Permissions, Project, Task, TaskPriority } from '../../lib/types';
 import { isCompletedLate, getTaskDeadline } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
@@ -37,6 +37,7 @@ import { ReopenTaskDialog } from './reopen-task-dialog';
 interface TaskDetailSheetProps {
     task: Task | null;
     project: Project;
+    permissions: Permissions;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -49,7 +50,7 @@ const PRIORITY_CONFIG: Record<TaskPriority, { label: string; icon: typeof Minus;
     urgent: { label: 'Urgent', icon: AlertTriangle, color: 'text-red-600', bgColor: 'bg-red-500/10' },
 };
 
-export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetailSheetProps) {
+export function TaskDetailSheet({ task, project, permissions, open, onOpenChange }: TaskDetailSheetProps) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [reopenOpen, setReopenOpen] = useState(false);
@@ -162,10 +163,18 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
 
     const handleToggleComplete = () => {
         // If trying to reopen an overdue task, show reopen dialog instead
+        // Only owners can reopen tasks (permission check)
         if (isCompleted && wasOverdueWhenCompleted) {
+            if (!permissions.canReopen) return; // Non-owners cannot reopen
             setReopenOpen(true);
             return;
         }
+
+        // If trying to uncomplete (reopen) any completed task, need reopen permission
+        if (isCompleted && !permissions.canReopen) return;
+
+        // Completing a task requires edit permission
+        if (!isCompleted && !permissions.canEdit) return;
 
         setIsProcessing(true);
         router.patch(
@@ -367,7 +376,8 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                 )}
                                             </div>
                                         </div>
-                                        {!isCompleted && (
+                                        {/* Complete button - Only for users with edit permission */}
+                                        {!isCompleted && permissions.canEdit && (
                                             <Button
                                                 size="sm"
                                                 className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
@@ -378,7 +388,8 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                                 Complete
                                             </Button>
                                         )}
-                                        {isCompleted && (
+                                        {/* Reopen button - Only for owners (canReopen) */}
+                                        {isCompleted && permissions.canReopen && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -483,25 +494,29 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                                         )}
                                     </div>
 
-                                    {/* List/Status */}
+                                    {/* List/Status - Editable only for editors */}
                                     <div className="flex items-center justify-between p-3">
                                         <span className="text-sm text-muted-foreground">List</span>
-                                        <Select
-                                            value={task.list_id.toString()}
-                                            onValueChange={handleMoveToList}
-                                            disabled={isProcessing}
-                                        >
-                                            <SelectTrigger className="h-8 w-auto min-w-35 border-0 bg-muted/50 text-sm font-medium">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {project.lists.map((list) => (
-                                                    <SelectItem key={list.id} value={list.id.toString()}>
-                                                        {list.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        {permissions.canEdit ? (
+                                            <Select
+                                                value={task.list_id.toString()}
+                                                onValueChange={handleMoveToList}
+                                                disabled={isProcessing}
+                                            >
+                                                <SelectTrigger className="h-8 w-auto min-w-35 border-0 bg-muted/50 text-sm font-medium">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {project.lists.map((list) => (
+                                                        <SelectItem key={list.id} value={list.id.toString()}>
+                                                            {list.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <span className="text-sm font-medium">{currentList?.name}</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -527,27 +542,31 @@ export function TaskDetailSheet({ task, project, open, onOpenChange }: TaskDetai
                         </div>
                     </ScrollArea>
 
-                    {/* Footer Actions - Bordio style: Simple, clear */}
-                    <div className="border-t bg-muted/30 px-6 py-4">
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                className="flex-1 gap-2"
-                                onClick={() => setEditOpen(true)}
-                            >
-                                <Pencil className="size-4" />
-                                Edit Task
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="text-destructive hover:bg-destructive/10 hover:text-background-foreground"
-                                onClick={() => setDeleteOpen(true)}
-                            >
-                                <Trash2 className="size-4" />
-                            </Button>
+                    {/* Footer Actions - Only show for users with edit permission */}
+                    {permissions.canEdit && (
+                        <div className="border-t bg-muted/30 px-6 py-4">
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 gap-2"
+                                    onClick={() => setEditOpen(true)}
+                                >
+                                    <Pencil className="size-4" />
+                                    Edit Task
+                                </Button>
+                                {permissions.canDelete && (
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="text-destructive hover:bg-destructive/10 hover:text-background-foreground"
+                                        onClick={() => setDeleteOpen(true)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </SheetContent>
             </Sheet>
 

@@ -36,10 +36,11 @@ class TaskListPolicy
 
     /**
      * Determine whether the user can delete the list.
+     * Only Owner can delete lists.
      */
     public function delete(User $user, TaskList $taskList, Project $project): bool
     {
-        return $project->canEdit($user)
+        return $project->canDelete($user)
             && $taskList->project_id === $project->id;
     }
 }

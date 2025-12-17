@@ -31,8 +31,12 @@ class TaskListController extends Controller
             'members:id,name,email',
         ]);
 
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         return Inertia::render('projects/lists/index', [
             'project' => $project,
+            'permissions' => $project->getPermissions($user),
         ]);
     }
 

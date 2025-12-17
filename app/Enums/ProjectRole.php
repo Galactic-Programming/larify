@@ -21,16 +21,46 @@ enum ProjectRole: string
     {
         return match ($this) {
             self::Owner => 'Full access, can manage members and delete project',
-            self::Editor => 'Can create, edit and delete tasks and lists',
+            self::Editor => 'Can create and edit tasks/lists, but cannot delete',
             self::Viewer => 'Can only view project content',
         };
     }
 
+    /**
+     * Check if the role can edit (create, update) content.
+     */
     public function canEdit(): bool
     {
         return in_array($this, [self::Owner, self::Editor]);
     }
 
+    /**
+     * Check if the role can delete content (tasks, lists).
+     */
+    public function canDelete(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    /**
+     * Check if the role can manage project settings (name, description, statuses).
+     */
+    public function canManageSettings(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    /**
+     * Check if the role can reopen completed tasks.
+     */
+    public function canReopen(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    /**
+     * Check if the role can manage members.
+     */
     public function canManageMembers(): bool
     {
         return $this === self::Owner;

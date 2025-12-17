@@ -69,3 +69,13 @@ export type TaskFilter =
     | 'due-soon'
     | 'completed'
     | 'completed-late';
+
+// Permissions object returned from backend
+export interface Permissions {
+    canEdit: boolean;
+    canDelete: boolean;
+    canManageSettings: boolean;
+    canManageMembers: boolean;
+    canReopen: boolean;
+    role: 'owner' | 'editor' | 'viewer';
+}

@@ -19,7 +19,7 @@ import { useTaskRealtime } from '@/hooks/use-task-realtime';
 import { Circle, Clock, MoreHorizontal, Pencil, Plus, Trash2, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useCallback } from 'react';
-import type { Project, Task, TaskList } from '../../lib/types';
+import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { DeleteTaskDialog } from '../../tasks/components/delete-task-dialog';
@@ -30,13 +30,17 @@ import { ListDropdownMenu } from '../list-dropdown-menu';
 
 interface TableViewProps {
     project: Project;
+    permissions: Permissions;
     onEditList: (list: TaskList) => void;
     onDeleteList: (list: TaskList) => void;
 }
 
-function TaskRowActions({ project, task }: { project: Project; task: Task }) {
+function TaskRowActions({ project, task, permissions }: { project: Project; task: Task; permissions: Permissions }) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+
+    // Hide actions menu for viewers
+    if (!permissions.canEdit) return null;
 
     return (
         // Stop propagation to prevent row click from opening task detail sheet
@@ -52,23 +56,29 @@ function TaskRowActions({ project, task }: { project: Project; task: Task }) {
                         <Pencil className="mr-2 size-4" />
                         Edit
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setDeleteOpen(true)}
-                    >
-                        <Trash2 className="mr-2 size-4" />
-                        Delete
-                    </DropdownMenuItem>
+                    {permissions.canDelete && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setDeleteOpen(true)}
+                            >
+                                <Trash2 className="mr-2 size-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} />
-            <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
+            {permissions.canDelete && (
+                <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
+            )}
         </div>
     );
 }
 
-export function TableView({ project, onEditList, onDeleteList }: TableViewProps) {
+export function TableView({ project, permissions, onEditList, onDeleteList }: TableViewProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
@@ -202,7 +212,7 @@ export function TableView({ project, onEditList, onDeleteList }: TableViewProps)
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <TaskRowActions project={project} task={task} />
+                                            <TaskRowActions project={project} task={task} permissions={permissions} />
                                         </TableCell>
                                     </TableRow>
                                 )),
@@ -213,7 +223,7 @@ export function TableView({ project, onEditList, onDeleteList }: TableViewProps)
                                         <div className="flex flex-col items-center gap-2">
                                             <Circle className="size-8 text-muted-foreground/30" />
                                             <p className="text-sm text-muted-foreground">No tasks yet</p>
-                                            {project.lists.length > 0 && (
+                                            {project.lists.length > 0 && permissions.canEdit && (
                                                 <CreateTaskDialog
                                                     project={project}
                                                     list={project.lists[0]}
@@ -251,18 +261,21 @@ export function TableView({ project, onEditList, onDeleteList }: TableViewProps)
                                     {list.name}
                                     <span className="text-muted-foreground">({list.tasks.length})</span>
                                 </Badge>
-                                <CreateTaskDialog
-                                    project={project}
-                                    list={list}
-                                    trigger={
-                                        <Button variant="ghost" size="icon-sm" className="size-5">
-                                            <Plus className="size-3" />
-                                        </Button>
-                                    }
-                                />
+                                {permissions.canEdit && (
+                                    <CreateTaskDialog
+                                        project={project}
+                                        list={list}
+                                        trigger={
+                                            <Button variant="ghost" size="icon-sm" className="size-5">
+                                                <Plus className="size-3" />
+                                            </Button>
+                                        }
+                                    />
+                                )}
                                 <ListDropdownMenu
                                     project={project}
                                     list={list}
+                                    permissions={permissions}
                                     onEdit={onEditList}
                                     onDelete={onDeleteList}
                                     triggerClassName="size-5"
@@ -270,7 +283,7 @@ export function TableView({ project, onEditList, onDeleteList }: TableViewProps)
                             </div>
                         ))}
                     </div>
-                    <CreateListDialog project={project} />
+                    {permissions.canEdit && <CreateListDialog project={project} />}
                 </motion.div>
             </ScrollArea>
 
@@ -278,6 +291,7 @@ export function TableView({ project, onEditList, onDeleteList }: TableViewProps)
             <TaskDetailSheet
                 task={selectedTask}
                 project={project}
+                permissions={permissions}
                 open={!!selectedTask}
                 onOpenChange={(open) => !open && setSelectedTask(null)}
             />

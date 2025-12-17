@@ -8,11 +8,12 @@ import { index as membersIndex } from '@/routes/projects/members';
 import { Link } from '@inertiajs/react';
 import { AlertTriangle, ArrowLeft, CheckCircle2, CircleAlert, Clock, Columns3, FolderKanban, LayoutList, List, Table2, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { Project, TaskFilter, ViewMode } from '../lib/types';
+import type { Permissions, Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
 
 interface ListsHeaderProps {
     project: Project;
+    permissions: Permissions;
     viewMode: ViewMode;
     onViewModeChange: (mode: ViewMode) => void;
     taskFilter: TaskFilter;
@@ -40,6 +41,7 @@ function ProjectIconDisplay({
 
 export function ListsHeader({
     project,
+    permissions,
     viewMode,
     onViewModeChange,
     taskFilter,
@@ -214,7 +216,8 @@ export function ListsHeader({
                     <TooltipContent>Manage Members</TooltipContent>
                 </Tooltip>
 
-                <CreateListDialog project={project} />
+                {/* Create List - Only for editors */}
+                {permissions.canEdit && <CreateListDialog project={project} />}
             </motion.div>
         </motion.div>
     );

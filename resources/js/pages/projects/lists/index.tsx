@@ -12,7 +12,7 @@ import { ListsHeader } from './components/lists-header';
 import { BoardView } from './components/views/board-view';
 import { ListView } from './components/views/list-view';
 import { TableView } from './components/views/table-view';
-import type { Project, Task, TaskFilter, TaskList, ViewMode } from './lib/types';
+import type { Permissions, Project, Task, TaskFilter, TaskList, ViewMode } from './lib/types';
 
 // Helper to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -48,9 +48,10 @@ function isTaskCompletedOnTime(task: Task): boolean {
 
 interface Props {
     project: Project;
+    permissions: Permissions;
 }
 
-export default function ListsIndex({ project }: Props) {
+export default function ListsIndex({ project, permissions }: Props) {
     const [viewMode, setViewMode] = useState<ViewMode>('board');
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
     const [editingList, setEditingList] = useState<TaskList | null>(null);
@@ -106,7 +107,7 @@ export default function ListsIndex({ project }: Props) {
 
     const renderView = () => {
         if (project.lists.length === 0) {
-            return <ListsEmptyState project={project} />;
+            return <ListsEmptyState project={project} permissions={permissions} />;
         }
 
         switch (viewMode) {
@@ -114,6 +115,7 @@ export default function ListsIndex({ project }: Props) {
                 return (
                     <BoardView
                         project={filteredProject}
+                        permissions={permissions}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -122,6 +124,7 @@ export default function ListsIndex({ project }: Props) {
                 return (
                     <ListView
                         project={filteredProject}
+                        permissions={permissions}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -130,6 +133,7 @@ export default function ListsIndex({ project }: Props) {
                 return (
                     <TableView
                         project={filteredProject}
+                        permissions={permissions}
                         onEditList={handleEditList}
                         onDeleteList={handleDeleteList}
                     />
@@ -143,6 +147,7 @@ export default function ListsIndex({ project }: Props) {
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <ListsHeader
                     project={project}
+                    permissions={permissions}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
                     taskFilter={taskFilter}
@@ -157,8 +162,8 @@ export default function ListsIndex({ project }: Props) {
                 {renderView()}
             </div>
 
-            {/* Edit List Dialog */}
-            {editingList && (
+            {/* Edit List Dialog - Only render for users with edit permission */}
+            {editingList && permissions.canEdit && (
                 <EditListDialog
                     project={project}
                     list={editingList}
@@ -167,8 +172,8 @@ export default function ListsIndex({ project }: Props) {
                 />
             )}
 
-            {/* Delete List Dialog */}
-            {deletingList && (
+            {/* Delete List Dialog - Only render for users with delete permission */}
+            {deletingList && permissions.canDelete && (
                 <DeleteListDialog
                     project={project}
                     list={deletingList}

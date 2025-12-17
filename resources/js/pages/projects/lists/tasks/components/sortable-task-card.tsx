@@ -8,9 +8,10 @@ interface SortableTaskCardProps {
     project: Project;
     index: number;
     onClick?: (task: Task) => void;
+    disabled?: boolean;
 }
 
-export function SortableTaskCard({ task, project, index, onClick }: SortableTaskCardProps) {
+export function SortableTaskCard({ task, project, index, onClick, disabled = false }: SortableTaskCardProps) {
     const {
         attributes,
         listeners,
@@ -25,17 +26,18 @@ export function SortableTaskCard({ task, project, index, onClick }: SortableTask
             task,
             listId: task.list_id,
         },
+        disabled,
     });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab',
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
             <TaskCard
                 task={task}
                 project={project}

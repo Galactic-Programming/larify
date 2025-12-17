@@ -32,11 +32,12 @@ class ProjectPolicy
     }
 
     /**
-     * Determine whether the user can update the project.
+     * Determine whether the user can update the project settings.
+     * Only Owner can update project settings (name, description, icon, color, statuses).
      */
     public function update(User $user, Project $project): bool
     {
-        return $project->canEdit($user);
+        return $project->canManageSettings($user);
     }
 
     /**

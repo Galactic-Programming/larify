@@ -10,12 +10,13 @@ import { setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListCo
 import { router } from '@inertiajs/react';
 import { CheckCircle2, Circle, MoreHorizontal, Pencil, Settings2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import type { Project, TaskList } from '../lib/types';
+import type { Permissions, Project, TaskList } from '../lib/types';
 import { EditStatusesDialog } from './edit-statuses-dialog';
 
 interface ListDropdownMenuProps {
     project: Project;
     list: TaskList;
+    permissions: Permissions;
     onEdit: (list: TaskList) => void;
     onDelete: (list: TaskList) => void;
     triggerClassName?: string;
@@ -26,6 +27,7 @@ interface ListDropdownMenuProps {
 export function ListDropdownMenu({
     project,
     list,
+    permissions,
     onEdit,
     onDelete,
     triggerClassName,
@@ -36,6 +38,11 @@ export function ListDropdownMenu({
 
     // Check if another list is already the done list
     const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
+
+    // If user has no edit permission, don't render menu at all
+    if (!permissions.canEdit) {
+        return null;
+    }
 
     return (
         <>
@@ -78,11 +85,15 @@ export function ListDropdownMenu({
                         <Pencil className="mr-2 size-4" />
                         Edit List
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setEditStatusesOpen(true)}>
-                        <Settings2 className="mr-2 size-4" />
-                        Edit Statuses
-                    </DropdownMenuItem>
-                    {!list.is_done_list && (
+                    {/* Edit Statuses - Only for project owners/managers */}
+                    {permissions.canManageSettings && (
+                        <DropdownMenuItem onClick={() => setEditStatusesOpen(true)}>
+                            <Settings2 className="mr-2 size-4" />
+                            Edit Statuses
+                        </DropdownMenuItem>
+                    )}
+                    {/* Delete - Only for owners (canDelete) */}
+                    {!list.is_done_list && permissions.canDelete && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -97,11 +108,13 @@ export function ListDropdownMenu({
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <EditStatusesDialog
-                project={project}
-                open={editStatusesOpen}
-                onOpenChange={setEditStatusesOpen}
-            />
+            {permissions.canManageSettings && (
+                <EditStatusesDialog
+                    project={project}
+                    open={editStatusesOpen}
+                    onOpenChange={setEditStatusesOpen}
+                />
+            )}
         </>
     );
 }
