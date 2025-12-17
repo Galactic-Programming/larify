@@ -95,6 +95,7 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                                         index={taskIdx}
                                                         variant="list"
                                                         onClick={setSelectedTask}
+                                                        permissions={permissions}
                                                     />
                                                 ))}
                                                 {/* Add task button - Only for editors */}

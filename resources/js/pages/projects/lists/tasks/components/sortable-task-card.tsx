@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { Project, Task } from '../../lib/types';
+import type { Permissions, Project, Task } from '../../lib/types';
 import { TaskCard } from './task-card';
 
 interface SortableTaskCardProps {
@@ -9,9 +9,10 @@ interface SortableTaskCardProps {
     index: number;
     onClick?: (task: Task) => void;
     disabled?: boolean;
+    permissions?: Permissions;
 }
 
-export function SortableTaskCard({ task, project, index, onClick, disabled = false }: SortableTaskCardProps) {
+export function SortableTaskCard({ task, project, index, onClick, disabled = false, permissions }: SortableTaskCardProps) {
     const {
         attributes,
         listeners,
@@ -44,6 +45,7 @@ export function SortableTaskCard({ task, project, index, onClick, disabled = fal
                 index={index}
                 variant="board"
                 onClick={onClick}
+                permissions={permissions}
             />
         </div>
     );

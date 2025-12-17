@@ -322,6 +322,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                                                 index={taskIdx}
                                                                 onClick={setSelectedTask}
                                                                 disabled={!permissions.canEdit}
+                                                                permissions={permissions}
                                                             />
                                                         ))}
                                                     </div>
@@ -401,6 +402,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                 project={project}
                                 index={0}
                                 variant="board"
+                                permissions={permissions}
                             />
                         </div>
                     )}

@@ -21,6 +21,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Crown, MoreHorizontal, Pencil, Trash2, Shield, Eye } from 'lucide-react';
+import { motion } from 'motion/react';
 import type { Member, ProjectRole } from '../lib/types';
 
 const ROLE_BADGE_CONFIG: Record<ProjectRole, { label: string; icon: typeof Crown; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -40,7 +41,12 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
     const getInitials = useInitials();
 
     return (
-        <div className="rounded-lg border bg-card">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="rounded-lg border bg-card"
+        >
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -51,12 +57,18 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {members.map((member) => {
+                    {members.map((member, index) => {
                         const roleConfig = ROLE_BADGE_CONFIG[member.role];
                         const RoleIcon = roleConfig.icon;
 
                         return (
-                            <TableRow key={member.id}>
+                            <motion.tr
+                                key={member.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                            >
                                 {/* Member Info */}
                                 <TableCell>
                                     <div className="flex items-center gap-3">
@@ -130,11 +142,11 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                                         )}
                                     </TableCell>
                                 )}
-                            </TableRow>
+                            </motion.tr>
                         );
                     })}
                 </TableBody>
             </Table>
-        </div>
+        </motion.div>
     );
 }

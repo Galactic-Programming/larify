@@ -15,7 +15,7 @@ import { router } from '@inertiajs/react';
 import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import type { Project, Task } from '../../lib/types';
+import type { Permissions, Project, Task } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon, isCompletedLate, isTaskOverdue } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
@@ -27,6 +27,7 @@ interface TaskCardProps {
     index?: number;
     variant?: 'board' | 'list';
     onClick?: (task: Task) => void;
+    permissions?: Permissions;
 }
 
 function getInitials(name: string): string {
@@ -38,7 +39,7 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function TaskCard({ task, project, index = 0, variant = 'board', onClick }: TaskCardProps) {
+export function TaskCard({ task, project, index = 0, variant = 'board', onClick, permissions }: TaskCardProps) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [reopenOpen, setReopenOpen] = useState(false);
@@ -76,7 +77,8 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
         );
     };
 
-    const taskActions = (
+    // Hide dropdown menu for viewers (read-only access)
+    const taskActions = permissions?.canEdit ? (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
@@ -106,17 +108,21 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick 
                         </>
                     )}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={() => setDeleteOpen(true)}
-                >
-                    <Trash2 className="mr-2 size-4" />
-                    Delete
-                </DropdownMenuItem>
+                {permissions?.canDelete && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setDeleteOpen(true)}
+                        >
+                            <Trash2 className="mr-2 size-4" />
+                            Delete
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
-    );
+    ) : null;
 
     const dialogs = (
         <>
