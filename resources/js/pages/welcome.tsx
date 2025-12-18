@@ -388,7 +388,7 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
     ];
 
     return (
-        <BackgroundBeamsWithCollision className="min-h-[calc(100dvh-12rem)] bg-background">
+        <BackgroundBeamsWithCollision className="min-h-[calc(50dvh-12rem)] bg-background">
             <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
