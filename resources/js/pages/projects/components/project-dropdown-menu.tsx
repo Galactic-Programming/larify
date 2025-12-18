@@ -30,7 +30,6 @@ export function ProjectDropdownMenu({
     triggerClassName,
 }: ProjectDropdownMenuProps) {
     const isOwner = project.is_owner;
-    const canEdit = isOwner || project.my_role === 'editor';
 
     return (
         <DropdownMenu>
@@ -61,7 +60,7 @@ export function ProjectDropdownMenu({
                         Members
                     </Link>
                 </DropdownMenuItem>
-                {canEdit && (
+                {isOwner && (
                     <DropdownMenuItem onClick={() => onEdit(project)}>
                         <Pencil className="mr-2 size-4" />
                         Edit
