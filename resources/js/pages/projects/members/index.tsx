@@ -11,14 +11,13 @@ import { MembersEmptyState } from './components/members-empty-state';
 import { AddMemberDialog } from './components/add-member-dialog';
 import { UpdateRoleDialog } from './components/update-role-dialog';
 import { RemoveMemberDialog } from './components/remove-member-dialog';
-import type { Member, ProjectWithMembers, User } from './lib/types';
+import type { Member, ProjectWithMembers } from './lib/types';
 
 interface Props {
     project: ProjectWithMembers;
-    availableUsers: User[];
 }
 
-export default function MembersIndex({ project, availableUsers }: Props) {
+export default function MembersIndex({ project }: Props) {
     const { auth } = usePage<{ auth: { user: AuthUser } }>().props;
     const [addMemberOpen, setAddMemberOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<Member | null>(null);
@@ -87,7 +86,6 @@ export default function MembersIndex({ project, availableUsers }: Props) {
             {/* Add Member Dialog */}
             <AddMemberDialog
                 project={project}
-                availableUsers={availableUsers}
                 open={addMemberOpen}
                 onOpenChange={setAddMemberOpen}
             />

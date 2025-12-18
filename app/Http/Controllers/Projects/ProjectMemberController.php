@@ -8,7 +8,6 @@ use App\Http\Requests\Projects\AddMemberRequest;
 use App\Http\Requests\Projects\UpdateMemberRequest;
 use App\Models\Project;
 use App\Models\ProjectMember;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -41,14 +40,6 @@ class ProjectMemberController extends Controller
             'is_owner' => false,
         ]);
 
-        // Get available users (not already members and not the owner)
-        $existingMemberIds = $project->members->pluck('id')->push($project->user_id)->toArray();
-        $availableUsers = User::whereNotIn('id', $existingMemberIds)
-            ->select(['id', 'name', 'email', 'avatar'])
-            ->orderBy('name')
-            ->limit(100)
-            ->get();
-
         return Inertia::render('projects/members/index', [
             'project' => [
                 'id' => $project->id,
@@ -63,7 +54,6 @@ class ProjectMemberController extends Controller
                 'user' => $project->user,
                 'members' => $members,
             ],
-            'availableUsers' => $availableUsers,
         ]);
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\UserSearchController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
@@ -36,6 +37,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.members.update');
     Route::delete('projects/{project}/members/{member}', [ProjectMemberController::class, 'destroy'])
         ->name('projects.members.destroy');
+
+    // API: Search users for adding to project
+    Route::get('api/projects/{project}/users/search', [UserSearchController::class, 'search'])
+        ->name('api.projects.users.search');
 
     // Task Lists (nested under projects)
     Route::get('projects/{project}/lists', [TaskListController::class, 'index'])
