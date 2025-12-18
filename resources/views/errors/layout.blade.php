@@ -78,10 +78,11 @@
                 position: absolute;
                 width: 2px;
                 height: 80px;
-                background: linear-gradient(to bottom, var(--accent-secondary), transparent);
+                background: linear-gradient(to top, var(--accent-secondary), transparent);
                 border-radius: 50%;
                 animation: meteor 3s linear infinite;
                 opacity: 0;
+                transform: rotate(45deg);
             }
 
             .meteor::before {
@@ -91,7 +92,7 @@
                 height: 6px;
                 background: var(--text-primary);
                 border-radius: 50%;
-                top: 0;
+                bottom: 0;
                 left: -2px;
                 box-shadow: 0 0 10px var(--accent-secondary);
             }
@@ -204,6 +205,8 @@
             .error-code .portal {
                 display: inline-block;
                 animation: portal-spin 8s linear infinite;
+                -webkit-text-fill-color: var(--accent-secondary);
+                color: var(--accent-secondary);
             }
 
             @keyframes portal-spin {
