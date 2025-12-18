@@ -17,7 +17,8 @@ class TaskDueSoon extends Notification implements ShouldQueue
      */
     public function __construct(
         public Task $task,
-        public string $timeUntilDue = '24 hours'
+        public string $timeUntilDue = '24 hours',
+        public int $reminderHours = 24
     ) {}
 
     /**
@@ -27,7 +28,7 @@ class TaskDueSoon extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -67,6 +68,7 @@ class TaskDueSoon extends Notification implements ShouldQueue
             'due_date' => $this->task->due_date->toDateString(),
             'due_time' => $this->task->due_time,
             'time_until_due' => $this->timeUntilDue,
+            'reminder_hours' => $this->reminderHours,
             'message' => "\"{$this->task->title}\" is due in {$this->timeUntilDue}",
         ];
     }

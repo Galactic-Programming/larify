@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Tasks;
 
+use App\Enums\ActivityType;
 use App\Events\TaskUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tasks\MoveTaskRequest;
 use App\Http\Requests\Tasks\ReorderTaskRequest;
 use App\Http\Requests\Tasks\StoreTaskRequest;
 use App\Http\Requests\Tasks\UpdateTaskRequest;
+use App\Models\Activity;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
+use App\Notifications\TaskAssigned;
+use App\Notifications\TaskCompleted;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +35,18 @@ class TaskController extends Controller
             'position' => $maxPosition + 1,
         ]);
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::TaskCreated,
+            subject: $task,
+            project: $project,
+        );
+
+        // Notify assignee if task is assigned to someone else
+        if ($task->assigned_to && $task->assigned_to !== auth()->id()) {
+            $task->assignee->notify(new TaskAssigned($task, auth()->user()));
+        }
+
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'created'))->toOthers();
 
@@ -47,7 +63,33 @@ class TaskController extends Controller
             abort(404);
         }
 
+        // Check if assignee changed
+        $oldAssigneeId = $task->assigned_to;
+        $newAssigneeId = $request->validated('assigned_to');
+        $assigneeChanged = $newAssigneeId && $oldAssigneeId !== $newAssigneeId;
+
         $task->update($request->validated());
+
+        // Log activity
+        Activity::log(
+            type: ActivityType::TaskUpdated,
+            subject: $task,
+            project: $project,
+        );
+
+        // Notify new assignee if task assignment changed
+        if ($assigneeChanged && $newAssigneeId !== auth()->id()) {
+            $task->load('assignee');
+            $task->assignee->notify(new TaskAssigned($task, auth()->user()));
+
+            // Log assignment activity separately
+            Activity::log(
+                type: ActivityType::TaskAssigned,
+                subject: $task,
+                project: $project,
+                properties: ['assigned_to_name' => $task->assignee->name],
+            );
+        }
 
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'updated'))->toOthers();
@@ -67,8 +109,16 @@ class TaskController extends Controller
 
         Gate::authorize('delete', [$task, $project]);
 
-        // Store task data before deletion for broadcast
-        $taskData = $task->toArray();
+        // Store task data before deletion for activity log
+        $taskTitle = $task->title;
+
+        // Log activity before deletion
+        Activity::log(
+            type: ActivityType::TaskDeleted,
+            subject: null,
+            project: $project,
+            properties: ['task_title' => $taskTitle],
+        );
 
         $task->delete();
 
@@ -129,6 +179,17 @@ class TaskController extends Controller
         }
 
         $task->update($updateData);
+
+        // Log activity
+        Activity::log(
+            type: ActivityType::TaskMoved,
+            subject: $task,
+            project: $project,
+            properties: [
+                'from_list' => $task->list->name ?? 'Unknown',
+                'to_list' => $targetList->name,
+            ],
+        );
 
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'moved'))->toOthers();
@@ -229,6 +290,27 @@ class TaskController extends Controller
             }
         });
 
+        // Log activity and notify based on what happened
+        $task->refresh();
+        if ($task->completed_at) {
+            // Task was completed
+            Activity::log(
+                type: ActivityType::TaskCompleted,
+                subject: $task,
+                project: $project,
+            );
+
+            // Notify project owner and members about task completion
+            $this->notifyTaskCompleted($task, $project);
+        } else {
+            // Task was reopened (uncompleted)
+            Activity::log(
+                type: ActivityType::TaskReopened,
+                subject: $task,
+                project: $project,
+            );
+        }
+
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'completed'))->toOthers();
 
@@ -291,9 +373,38 @@ class TaskController extends Controller
             $task->update($updateData);
         });
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::TaskReopened,
+            subject: $task,
+            project: $project,
+            properties: [
+                'new_due_date' => $validated['due_date'],
+                'new_due_time' => $validated['due_time'],
+            ],
+        );
+
         // Broadcast real-time update
         broadcast(new TaskUpdated($task->load('assignee'), 'reopened'))->toOthers();
 
         return back();
+    }
+
+    /**
+     * Notify relevant users when a task is completed.
+     */
+    protected function notifyTaskCompleted(Task $task, Project $project): void
+    {
+        $completedBy = auth()->user();
+
+        // Notify project owner if they didn't complete the task
+        if ($project->user_id !== $completedBy->id) {
+            $project->user->notify(new TaskCompleted($task, $completedBy));
+        }
+
+        // Notify task assignee if they didn't complete it themselves
+        if ($task->assigned_to && $task->assigned_to !== $completedBy->id) {
+            $task->assignee->notify(new TaskCompleted($task, $completedBy));
+        }
     }
 }

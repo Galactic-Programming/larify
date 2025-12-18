@@ -2,14 +2,14 @@
 
 namespace App\Notifications;
 
-use App\Models\Task;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TaskCompleted extends Notification implements ShouldQueue
+class RemovedFromProject extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -17,8 +17,8 @@ class TaskCompleted extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public function __construct(
-        public Task $task,
-        public User $completedBy
+        public Project $project,
+        public User $removedBy
     ) {}
 
     /**
@@ -36,7 +36,7 @@ class TaskCompleted extends Notification implements ShouldQueue
      */
     public function databaseType(object $notifiable): string
     {
-        return 'task.completed';
+        return 'project.removed';
     }
 
     /**
@@ -45,11 +45,11 @@ class TaskCompleted extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Task completed: {$this->task->title}")
+            ->subject("You've been removed from project: {$this->project->name}")
             ->greeting("Hello {$notifiable->name}!")
-            ->line("{$this->completedBy->name} completed the task \"{$this->task->title}\" in project \"{$this->task->project->name}\".")
-            ->action('View Project', url("/projects/{$this->task->project_id}"))
-            ->line('Thank you for using Larify!');
+            ->line("You have been removed from the project \"{$this->project->name}\" by {$this->removedBy->name}.")
+            ->line('If you believe this was a mistake, please contact the project owner.')
+            ->line('Thank you for your contributions!');
     }
 
     /**
@@ -60,14 +60,10 @@ class TaskCompleted extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'task_id' => $this->task->id,
-            'task_title' => $this->task->title,
-            'project_id' => $this->task->project_id,
-            'project_name' => $this->task->project->name,
-            'completed_by_id' => $this->completedBy->id,
-            'completed_by_name' => $this->completedBy->name,
-            'completed_by_avatar' => $this->completedBy->avatar,
-            'message' => "{$this->completedBy->name} completed \"{$this->task->title}\"",
+            'project_id' => $this->project->id,
+            'project_name' => $this->project->name,
+            'removed_by_id' => $this->removedBy->id,
+            'removed_by_name' => $this->removedBy->name,
         ];
     }
 }

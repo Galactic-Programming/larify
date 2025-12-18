@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Projects;
 
+use App\Enums\ActivityType;
 use App\Events\ProjectUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
+use App\Models\Activity;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,6 +66,13 @@ class ProjectController extends Controller
             ]);
         }
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::ProjectCreated,
+            subject: $project,
+            project: $project,
+        );
+
         // Broadcast project created event
         broadcast(new ProjectUpdated($project, 'created'))->toOthers();
 
@@ -108,6 +117,13 @@ class ProjectController extends Controller
 
         $project->update($request->validated());
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::ProjectUpdated,
+            subject: $project,
+            project: $project,
+        );
+
         // Broadcast project updated event
         broadcast(new ProjectUpdated($project, 'updated'))->toOthers();
 
@@ -136,9 +152,18 @@ class ProjectController extends Controller
     {
         Gate::authorize('archive', $project);
 
+        $wasArchived = $project->is_archived;
+
         $project->update([
             'is_archived' => ! $project->is_archived,
         ]);
+
+        // Log activity
+        Activity::log(
+            type: $wasArchived ? ActivityType::ProjectRestored : ActivityType::ProjectArchived,
+            subject: $project,
+            project: $project,
+        );
 
         // Broadcast project archived/unarchived event
         broadcast(new ProjectUpdated($project, 'archived'))->toOthers();

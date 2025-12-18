@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\TaskLists;
 
+use App\Enums\ActivityType;
 use App\Events\ListUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskLists\ReorderTaskListRequest;
 use App\Http\Requests\TaskLists\StoreTaskListRequest;
 use App\Http\Requests\TaskLists\UpdateTaskListRequest;
+use App\Models\Activity;
 use App\Models\Project;
 use App\Models\TaskList;
 use Illuminate\Http\RedirectResponse;
@@ -52,6 +54,13 @@ class TaskListController extends Controller
             'position' => $maxPosition + 1,
         ]);
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::ListCreated,
+            subject: $list,
+            project: $project,
+        );
+
         broadcast(new ListUpdated($list, 'created'))->toOthers();
 
         return back();
@@ -69,6 +78,13 @@ class TaskListController extends Controller
 
         $list->update($request->validated());
 
+        // Log activity
+        Activity::log(
+            type: ActivityType::ListUpdated,
+            subject: $list,
+            project: $project,
+        );
+
         broadcast(new ListUpdated($list, 'updated'))->toOthers();
 
         return back();
@@ -85,6 +101,17 @@ class TaskListController extends Controller
         if ($list->is_done_list) {
             return back()->withErrors(['list' => 'Cannot delete the Done list. Unset it as Done list first.']);
         }
+
+        // Store list name before deletion for activity log
+        $listName = $list->name;
+
+        // Log activity before deletion
+        Activity::log(
+            type: ActivityType::ListDeleted,
+            subject: null,
+            project: $project,
+            properties: ['list_name' => $listName],
+        );
 
         // Broadcast before delete so we have the list data
         broadcast(new ListUpdated($list, 'deleted'))->toOthers();
@@ -104,6 +131,13 @@ class TaskListController extends Controller
                 ->where('project_id', $project->id)
                 ->update(['position' => $item['position']]);
         }
+
+        // Log activity
+        Activity::log(
+            type: ActivityType::ListReordered,
+            subject: null,
+            project: $project,
+        );
 
         // Broadcast a generic list update for reordering
         $firstList = $project->lists()->first();

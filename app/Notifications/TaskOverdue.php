@@ -3,13 +3,12 @@
 namespace App\Notifications;
 
 use App\Models\Task;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TaskCompleted extends Notification implements ShouldQueue
+class TaskOverdue extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -18,7 +17,8 @@ class TaskCompleted extends Notification implements ShouldQueue
      */
     public function __construct(
         public Task $task,
-        public User $completedBy
+        public string $overdueBy = '1 day',
+        public int $overdueHours = 1
     ) {}
 
     /**
@@ -36,7 +36,7 @@ class TaskCompleted extends Notification implements ShouldQueue
      */
     public function databaseType(object $notifiable): string
     {
-        return 'task.completed';
+        return 'task.overdue';
     }
 
     /**
@@ -45,11 +45,12 @@ class TaskCompleted extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Task completed: {$this->task->title}")
+            ->subject("⚠️ Task overdue: {$this->task->title}")
             ->greeting("Hello {$notifiable->name}!")
-            ->line("{$this->completedBy->name} completed the task \"{$this->task->title}\" in project \"{$this->task->project->name}\".")
-            ->action('View Project', url("/projects/{$this->task->project_id}"))
-            ->line('Thank you for using Larify!');
+            ->line("Your task \"{$this->task->title}\" is overdue by {$this->overdueBy}.")
+            ->line("Project: {$this->task->project->name}")
+            ->action('View Task', url("/projects/{$this->task->project_id}"))
+            ->line('Please complete this task as soon as possible.');
     }
 
     /**
@@ -64,10 +65,10 @@ class TaskCompleted extends Notification implements ShouldQueue
             'task_title' => $this->task->title,
             'project_id' => $this->task->project_id,
             'project_name' => $this->task->project->name,
-            'completed_by_id' => $this->completedBy->id,
-            'completed_by_name' => $this->completedBy->name,
-            'completed_by_avatar' => $this->completedBy->avatar,
-            'message' => "{$this->completedBy->name} completed \"{$this->task->title}\"",
+            'due_date' => $this->task->due_date?->toISOString(),
+            'overdue_by' => $this->overdueBy,
+            'overdue_hours' => $this->overdueHours,
+            'message' => "\"{$this->task->title}\" is overdue by {$this->overdueBy}",
         ];
     }
 }
