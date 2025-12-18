@@ -225,8 +225,8 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                                 </Tooltip>
                                             ) : (
                                                 <Select
-                                                    value={assigneeId?.toString() ?? ''}
-                                                    onValueChange={(v) => setAssigneeId(v ? parseInt(v, 10) : null)}
+                                                    value={assigneeId?.toString() ?? 'unassigned'}
+                                                    onValueChange={(v) => setAssigneeId(v === 'unassigned' ? null : parseInt(v, 10))}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select assignee">
@@ -249,7 +249,7 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                                         </SelectValue>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">
+                                                        <SelectItem value="unassigned">
                                                             <div className="flex items-center gap-2">
                                                                 <UserCircle className="size-5 text-muted-foreground" />
                                                                 <span>Unassigned</span>

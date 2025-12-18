@@ -231,8 +231,8 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                             </Tooltip>
                                         ) : (
                                             <Select
-                                                value={assigneeId?.toString() ?? ''}
-                                                onValueChange={(v) => setAssigneeId(v ? parseInt(v, 10) : null)}
+                                                value={assigneeId?.toString() ?? 'unassigned'}
+                                                onValueChange={(v) => setAssigneeId(v === 'unassigned' ? null : parseInt(v, 10))}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select assignee">
@@ -255,7 +255,7 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                                     </SelectValue>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">
+                                                    <SelectItem value="unassigned">
                                                         <div className="flex items-center gap-2">
                                                             <UserCircle className="size-5 text-muted-foreground" />
                                                             <span>Unassigned</span>
