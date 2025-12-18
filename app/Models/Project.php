@@ -154,4 +154,12 @@ class Project extends Model
             'role' => $role?->value,
         ];
     }
+
+    /**
+     * Get the activities for this project.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class)->latest();
+    }
 }

@@ -108,4 +108,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return Project::where('user_id', $this->id)
             ->orWhereHas('members', fn ($q) => $q->where('user_id', $this->id));
     }
+
+    /**
+     * Get the activities performed by the user.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
 }
