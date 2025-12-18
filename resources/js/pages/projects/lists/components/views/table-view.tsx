@@ -125,15 +125,15 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                                         onClick={() => setSelectedTask(task)}
                                     >
                                         <TableCell className="pr-0">{getTaskStatusIcon(task)}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="max-w-md">
                                             <div className="flex flex-col">
                                                 <span
-                                                    className={`font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
+                                                    className={`truncate font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
                                                 >
                                                     {task.title}
                                                 </span>
                                                 {task.description && (
-                                                    <span className="line-clamp-1 text-xs text-muted-foreground">
+                                                    <span className="truncate text-xs text-muted-foreground">
                                                         {task.description}
                                                     </span>
                                                 )}
