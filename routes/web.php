@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Activities\ActivityController;
 use App\Http\Controllers\Api\UserSearchController;
 use App\Http\Controllers\Auth\SocialController;
+use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
 use App\Http\Controllers\TaskLists\TaskListController;
@@ -71,6 +73,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.tasks.complete');
     Route::patch('projects/{project}/tasks/{task}/reopen', [TaskController::class, 'reopen'])
         ->name('projects.tasks.reopen');
+
+    // Notifications
+    Route::get('notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('api/notifications', [NotificationController::class, 'list'])
+        ->name('api.notifications.list');
+    Route::get('api/notifications/unread-count', [NotificationController::class, 'unreadCount'])
+        ->name('api.notifications.unread-count');
+    Route::patch('api/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+        ->name('api.notifications.mark-read');
+    Route::patch('api/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+        ->name('api.notifications.mark-all-read');
+    Route::delete('api/notifications/{notification}', [NotificationController::class, 'destroy'])
+        ->name('api.notifications.destroy');
+    Route::delete('api/notifications/read', [NotificationController::class, 'destroyRead'])
+        ->name('api.notifications.destroy-read');
+
+    // Activities
+    Route::get('api/activities', [ActivityController::class, 'list'])
+        ->name('api.activities.list');
+    Route::get('api/projects/{project}/activities', [ActivityController::class, 'forProject'])
+        ->name('api.projects.activities');
 });
 
 // Terms & Privacy
@@ -91,4 +115,4 @@ Route::get('auth/{provider}/callback', [SocialController::class, 'callback'])
     ->whereIn('provider', ['google', 'github'])
     ->name('social.callback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
