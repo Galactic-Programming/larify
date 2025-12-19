@@ -154,7 +154,7 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                     <div>
                                         <DialogTitle>Create New Task</DialogTitle>
                                         <DialogDescription>
-                                            Add a new task to <span className="font-medium">{list.name}</span>
+                                            Add a new task to <span className="max-w-[16ch] inline-block truncate align-bottom font-medium" title={list.name}>{list.name}</span>
                                         </DialogDescription>
                                     </div>
                                 </div>

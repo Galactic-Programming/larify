@@ -63,7 +63,7 @@ export function DeleteListDialog({ project, list, open, onOpenChange }: DeleteLi
                         <div>
                             <AlertDialogTitle>Delete List</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Are you sure you want to delete "{list.name}"?
+                                Are you sure you want to delete "<span className="max-w-[16ch] inline-block truncate align-bottom" title={list.name}>{list.name}</span>"?
                             </AlertDialogDescription>
                         </div>
                     </div>

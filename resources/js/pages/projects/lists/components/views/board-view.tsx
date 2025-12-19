@@ -294,7 +294,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                                 className="size-3 rounded-full"
                                                 style={{ backgroundColor: project.color }}
                                             />
-                                            <CardTitle className="text-base font-semibold">{list.name}</CardTitle>
+                                            <CardTitle className="max-w-[16ch] truncate text-base font-semibold" title={list.name}>{list.name}</CardTitle>
                                             <Badge variant="secondary" className="ml-1">
                                                 {list.tasks.length}
                                             </Badge>

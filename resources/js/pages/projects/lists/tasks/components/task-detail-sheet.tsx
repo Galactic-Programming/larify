@@ -292,12 +292,12 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     {task.title}
                                 </SheetTitle>
                                 <SheetDescription className="flex items-center gap-2 text-sm">
-                                    <Badge variant="outline" className="gap-1 font-normal">
+                                    <Badge variant="outline" className="max-w-[18ch] gap-1 font-normal" title={currentList?.name}>
                                         <div
-                                            className="size-2 rounded-full"
+                                            className="size-2 shrink-0 rounded-full"
                                             style={{ backgroundColor: project.color }}
                                         />
-                                        {currentList?.name}
+                                        <span className="truncate">{currentList?.name}</span>
                                     </Badge>
                                     {isCompleted && !completedLate && (
                                         <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
@@ -508,14 +508,14 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {project.lists.map((list) => (
-                                                        <SelectItem key={list.id} value={list.id.toString()}>
-                                                            {list.name}
+                                                        <SelectItem key={list.id} value={list.id.toString()} title={list.name}>
+                                                            <span className="max-w-[14ch] truncate">{list.name}</span>
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         ) : (
-                                            <span className="text-sm font-medium">{currentList?.name}</span>
+                                            <span className="max-w-[16ch] truncate text-sm font-medium" title={currentList?.name}>{currentList?.name}</span>
                                         )}
                                     </div>
                                 </div>

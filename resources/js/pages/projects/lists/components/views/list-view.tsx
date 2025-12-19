@@ -65,7 +65,7 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                                     className="size-3 rounded-full"
                                                     style={{ backgroundColor: project.color }}
                                                 />
-                                                <span className="text-base font-semibold">{list.name}</span>
+                                                <span className="max-w-[16ch] truncate text-base font-semibold" title={list.name}>{list.name}</span>
                                                 <Badge variant="secondary">{list.tasks.length}</Badge>
                                             </div>
                                             <div className="flex items-center gap-2">

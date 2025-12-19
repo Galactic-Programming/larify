@@ -140,12 +140,12 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="outline" className="gap-1.5 font-normal">
+                                            <Badge variant="outline" className="max-w-[18ch] gap-1.5 font-normal" title={list.name}>
                                                 <div
-                                                    className="size-2 rounded-full"
+                                                    className="size-2 rounded-full shrink-0"
                                                     style={{ backgroundColor: project.color }}
                                                 />
-                                                {list.name}
+                                                <span className="truncate">{list.name}</span>
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
@@ -254,13 +254,13 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                     <div className="flex flex-wrap gap-2">
                         {project.lists.map((list) => (
                             <div key={list.id} className="flex items-center gap-2">
-                                <Badge variant="outline" className="gap-1.5">
+                                <Badge variant="outline" className="max-w-[20ch] gap-1.5" title={list.name}>
                                     <div
-                                        className="size-2 rounded-full"
+                                        className="size-2 rounded-full shrink-0"
                                         style={{ backgroundColor: project.color }}
                                     />
-                                    {list.name}
-                                    <span className="text-muted-foreground">({list.tasks.length})</span>
+                                    <span className="truncate">{list.name}</span>
+                                    <span className="shrink-0 text-muted-foreground">({list.tasks.length})</span>
                                 </Badge>
                                 {permissions.canEdit && (
                                     <CreateTaskDialog
