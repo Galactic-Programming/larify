@@ -288,7 +288,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                             >
                                 <Card className="flex h-fit max-h-[calc(100vh-280px)] flex-col bg-muted/30">
                                     {/* List Header */}
-                                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                                         <div className="flex items-center gap-2">
                                             <div
                                                 className="size-3 rounded-full"
