@@ -19,10 +19,24 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Crown, MoreHorizontal, Pencil, Trash2, Shield, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { Member, ProjectRole } from '../lib/types';
+
+/**
+ * Parse a date string as UTC to avoid timezone issues.
+ * Laravel returns dates in format "2024-12-19T21:45:00.000000Z" or "2024-12-19 21:45:00"
+ * This ensures consistent parsing regardless of format.
+ */
+function parseUTCDate(dateString: string): Date {
+    // If the string doesn't have timezone info, treat it as UTC
+    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+        // Replace space with T and append Z for UTC
+        return parseISO(dateString.replace(' ', 'T') + 'Z');
+    }
+    return parseISO(dateString);
+}
 
 const ROLE_BADGE_CONFIG: Record<ProjectRole, { label: string; icon: typeof Crown; variant: 'default' | 'secondary' | 'outline' }> = {
     owner: { label: 'Owner', icon: Crown, variant: 'default' },
@@ -112,7 +126,17 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
 
                                 {/* Joined Date */}
                                 <TableCell className="hidden text-muted-foreground md:table-cell">
-                                    {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            {formatDistanceToNow(parseUTCDate(member.joined_at), { addSuffix: true })}
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            {parseUTCDate(member.joined_at).toLocaleString(undefined, {
+                                                dateStyle: 'medium',
+                                                timeStyle: 'short',
+                                            })}
+                                        </TooltipContent>
+                                    </Tooltip>
                                 </TableCell>
 
                                 {/* Actions */}
