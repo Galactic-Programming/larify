@@ -424,8 +424,8 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         Description
                                     </h4>
-                                    <div className="rounded-lg bg-muted/30 p-4">
-                                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
+                                    <div className="rounded-lg bg-muted/30 p-4 overflow-hidden">
+                                        <p className="whitespace-pre-wrap break-all text-sm leading-relaxed text-foreground/80">
                                             {task.description}
                                         </p>
                                     </div>
