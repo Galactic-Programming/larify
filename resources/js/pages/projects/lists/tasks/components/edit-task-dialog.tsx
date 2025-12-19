@@ -47,6 +47,7 @@ interface EditTaskDialogProps {
     trigger?: ReactNode;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    canAssignTask?: boolean;
 }
 
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string; icon: typeof Minus; color: string }[] = [
@@ -66,7 +67,7 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function EditTaskDialog({ project, task, trigger, open: controlledOpen, onOpenChange }: EditTaskDialogProps) {
+export function EditTaskDialog({ project, task, trigger, open: controlledOpen, onOpenChange, canAssignTask = false }: EditTaskDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [priority, setPriority] = useState<TaskPriority>(task.priority);
     const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? parseISO(task.due_date) : undefined);
@@ -96,11 +97,19 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
     // Check if there's only one member (owner only)
     const isSoloProject = allMembers.length <= 1;
 
-    // For solo project, keep existing assignment or use owner
-    const effectiveAssigneeId = isSoloProject ? (task.assigned_to ?? project.user_id) : assigneeId;
+    // For editing:
+    // - Solo project: keep existing assignment or use owner
+    // - Editor (cannot assign): keep existing assignment (read-only)
+    // - Owner (can assign): use selected assignee from dropdown
+    const effectiveAssigneeId = isSoloProject
+        ? (task.assigned_to ?? project.user_id)
+        : (!canAssignTask ? task.assigned_to : assigneeId);
 
-    // Get the selected assignee
+    // Get the selected/current assignee for display
     const selectedAssignee = allMembers.find((m) => m.id === effectiveAssigneeId);
+
+    // Get current task assignee info for read-only display
+    const currentAssignee = task.assignee ?? allMembers.find((m) => m.id === task.assigned_to);
 
     const handleOpenChange = (isOpen: boolean) => {
         if (isControlled) {
@@ -206,24 +215,41 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                         {/* Assignee */}
                                         <div className="grid gap-2">
                                             <Label>Assignee</Label>
-                                            {isSoloProject ? (
+                                            {/* Solo project or Editor: show read-only current assignee */}
+                                            {(isSoloProject || !canAssignTask) ? (
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <div className="flex h-9 items-center gap-2 rounded-md border px-3">
-                                                            <Avatar className="size-5">
-                                                                <AvatarImage src={selectedAssignee?.avatar ?? undefined} />
-                                                                <AvatarFallback className="text-[10px]">
-                                                                    {selectedAssignee ? getInitials(selectedAssignee.name) : '?'}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <span className="truncate text-sm">
-                                                                {selectedAssignee?.name ?? 'Owner'}
-                                                            </span>
+                                                        <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
+                                                            {currentAssignee ? (
+                                                                <>
+                                                                    <Avatar className="size-5">
+                                                                        <AvatarImage src={currentAssignee.avatar ?? undefined} />
+                                                                        <AvatarFallback className="text-[10px]">
+                                                                            {getInitials(currentAssignee.name)}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                    <span className="truncate text-sm">
+                                                                        {currentAssignee.name}
+                                                                    </span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <UserCircle className="size-5 text-muted-foreground" />
+                                                                    <span className="truncate text-sm text-muted-foreground">
+                                                                        Unassigned
+                                                                    </span>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </TooltipTrigger>
-                                                    <TooltipContent>Auto-assigned to owner</TooltipContent>
+                                                    <TooltipContent>
+                                                        {isSoloProject
+                                                            ? 'Auto-assigned to owner'
+                                                            : 'Only the project owner can change assignee'}
+                                                    </TooltipContent>
                                                 </Tooltip>
                                             ) : (
+                                                /* Owner: show dropdown to select assignee */
                                                 <Select
                                                     value={assigneeId?.toString() ?? 'unassigned'}
                                                     onValueChange={(v) => setAssigneeId(v === 'unassigned' ? null : parseInt(v, 10))}
@@ -274,7 +300,10 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                                     </SelectContent>
                                                 </Select>
                                             )}
-                                            <input type="hidden" name="assigned_to" value={effectiveAssigneeId ?? ''} />
+                                            {/* Only send assigned_to if owner can change it, otherwise don't include in form */}
+                                            {canAssignTask && !isSoloProject && (
+                                                <input type="hidden" name="assigned_to" value={effectiveAssigneeId ?? ''} />
+                                            )}
                                             <InputError message={errors.assigned_to} />
                                         </div>
                                     </div>

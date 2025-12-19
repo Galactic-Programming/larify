@@ -53,6 +53,13 @@ class UpdateTaskRequest extends FormRequest
 
                         if (! $isMember) {
                             $fail('The assigned user must be a member of the project.');
+
+                            return;
+                        }
+
+                        // Only owner can change assignee (editors can't reassign)
+                        if (! $project->canAssignTask(auth()->user())) {
+                            $fail('You do not have permission to assign tasks.');
                         }
                     }
                 },

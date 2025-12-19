@@ -103,6 +103,7 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                                     <CreateTaskDialog
                                                         project={project}
                                                         list={list}
+                                                        canAssignTask={permissions.canAssignTask}
                                                         trigger={
                                                             <Button
                                                                 variant="ghost"
@@ -123,6 +124,7 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                                     <CreateTaskDialog
                                                         project={project}
                                                         list={list}
+                                                        canAssignTask={permissions.canAssignTask}
                                                         trigger={
                                                             <Button variant="ghost" size="sm" className="mt-2 gap-1">
                                                                 <Plus className="size-3" />

@@ -576,6 +576,7 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                 task={task}
                 open={editOpen}
                 onOpenChange={setEditOpen}
+                canAssignTask={permissions.canAssignTask}
             />
 
             {/* Delete Dialog */}

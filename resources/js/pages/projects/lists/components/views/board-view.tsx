@@ -334,6 +334,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                                             <CreateTaskDialog
                                                                 project={project}
                                                                 list={list}
+                                                                canAssignTask={permissions.canAssignTask}
                                                                 trigger={
                                                                     <Button variant="ghost" size="sm" className="mt-2 gap-1">
                                                                         <Plus className="size-3" />
@@ -352,6 +353,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                             <CreateTaskDialog
                                                 project={project}
                                                 list={list}
+                                                canAssignTask={permissions.canAssignTask}
                                                 trigger={
                                                     <Button
                                                         variant="ghost"

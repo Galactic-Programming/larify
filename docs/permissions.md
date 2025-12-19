@@ -25,7 +25,7 @@ Larify uses a three-tier role system for project access control:
 | Complete tasks         |  ✅   |   ✅   |   ❌   |
 | Reopen completed tasks |  ✅   |   ❌   |   ❌   |
 | Drag/reorder tasks     |  ✅   |   ✅   |   ❌   |
-| Assign tasks           |  ✅   |   ✅   |   ❌   |
+| Assign tasks           |  ✅   |   ❌   |   ❌   |
 
 ### List Operations
 

@@ -135,6 +135,16 @@ class Project extends Model
     }
 
     /**
+     * Check if a user can assign tasks to other members.
+     */
+    public function canAssignTask(User $user): bool
+    {
+        $role = $this->getMemberRole($user);
+
+        return $role?->canAssignTask() ?? false;
+    }
+
+    /**
      * Get user permissions for this project.
      *
      * @return array<string, bool>
@@ -150,6 +160,7 @@ class Project extends Model
             'canReopen' => $role?->canReopen() ?? false,
             'canManageSettings' => $role?->canManageSettings() ?? false,
             'canManageMembers' => $role?->canManageMembers() ?? false,
+            'canAssignTask' => $role?->canAssignTask() ?? false,
             'isOwner' => $this->user_id === $user->id,
             'role' => $role?->value,
         ];

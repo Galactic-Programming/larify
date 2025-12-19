@@ -126,7 +126,7 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
 
     const dialogs = (
         <>
-            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} />
+            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions?.canAssignTask} />
             <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
             <ReopenTaskDialog project={project} task={task} open={reopenOpen} onOpenChange={setReopenOpen} />
         </>

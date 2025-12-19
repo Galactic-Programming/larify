@@ -70,7 +70,7 @@ function TaskRowActions({ project, task, permissions }: { project: Project; task
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>
-            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} />
+            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions.canAssignTask} />
             {permissions.canDelete && (
                 <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
             )}
@@ -227,6 +227,7 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                                                 <CreateTaskDialog
                                                     project={project}
                                                     list={project.lists[0]}
+                                                    canAssignTask={permissions.canAssignTask}
                                                     trigger={
                                                         <Button variant="outline" size="sm" className="mt-2 gap-1">
                                                             <Plus className="size-3" />
@@ -265,6 +266,7 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                                     <CreateTaskDialog
                                         project={project}
                                         list={list}
+                                        canAssignTask={permissions.canAssignTask}
                                         trigger={
                                             <Button variant="ghost" size="icon-sm" className="size-5">
                                                 <Plus className="size-3" />

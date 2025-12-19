@@ -21,7 +21,7 @@ enum ProjectRole: string
     {
         return match ($this) {
             self::Owner => 'Full access, can manage members and delete project',
-            self::Editor => 'Can create and edit tasks/lists, but cannot delete',
+            self::Editor => 'Can create and edit tasks/lists, but cannot delete or assign tasks',
             self::Viewer => 'Can only view project content',
         };
     }
@@ -62,6 +62,14 @@ enum ProjectRole: string
      * Check if the role can manage members.
      */
     public function canManageMembers(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    /**
+     * Check if the role can assign tasks to other members.
+     */
+    public function canAssignTask(): bool
     {
         return $this === self::Owner;
     }

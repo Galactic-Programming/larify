@@ -55,6 +55,16 @@ class StoreTaskRequest extends FormRequest
 
                         if (! $isMember) {
                             $fail('The assigned user must be a member of the project.');
+
+                            return;
+                        }
+
+                        // Allow users to assign to themselves, but only owner can assign to others
+                        $currentUserId = auth()->id();
+                        $isAssigningToSelf = $value == $currentUserId;
+
+                        if (! $isAssigningToSelf && ! $project->canAssignTask(auth()->user())) {
+                            $fail('You do not have permission to assign tasks to others.');
                         }
                     }
                 },

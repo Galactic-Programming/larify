@@ -239,6 +239,7 @@ test('getPermissions returns correct permissions for owner', function () {
         'canDelete' => true,
         'canManageSettings' => true,
         'canManageMembers' => true,
+        'canAssignTask' => true,
         'canReopen' => true,
         'role' => 'owner',
     ]);
@@ -252,6 +253,7 @@ test('getPermissions returns correct permissions for editor', function () {
         'canDelete' => false,
         'canManageSettings' => false,
         'canManageMembers' => false,
+        'canAssignTask' => false,
         'canReopen' => false,
         'role' => 'editor',
     ]);
@@ -265,7 +267,64 @@ test('getPermissions returns correct permissions for viewer', function () {
         'canDelete' => false,
         'canManageSettings' => false,
         'canManageMembers' => false,
+        'canAssignTask' => false,
         'canReopen' => false,
         'role' => 'viewer',
     ]);
+});
+
+// === TASK ASSIGNMENT TESTS ===
+
+test('owner can assign tasks to members', function () {
+    $this->actingAs($this->owner)
+        ->patch(route('projects.tasks.update', ['project' => $this->project, 'task' => $this->task]), [
+            'title' => $this->task->title,
+            'due_date' => $this->task->due_date,
+            'due_time' => $this->task->due_time,
+            'assigned_to' => $this->editor->id,
+        ])
+        ->assertRedirect();
+
+    $this->task->refresh();
+    expect($this->task->assigned_to)->toBe($this->editor->id);
+});
+
+test('editor cannot assign tasks to others', function () {
+    $this->actingAs($this->editor)
+        ->patch(route('projects.tasks.update', ['project' => $this->project, 'task' => $this->task]), [
+            'title' => $this->task->title,
+            'due_date' => $this->task->due_date,
+            'due_time' => $this->task->due_time,
+            'assigned_to' => $this->viewer->id,
+        ])
+        ->assertSessionHasErrors('assigned_to');
+});
+
+test('editor can create tasks assigned to themselves', function () {
+    $this->actingAs($this->editor)
+        ->post(route('projects.tasks.store', ['project' => $this->project, 'list' => $this->list]), [
+            'title' => 'Task assigned to self',
+            'priority' => 'medium',
+            'due_date' => now()->addDays(1)->format('Y-m-d'),
+            'due_time' => '12:00',
+            'assigned_to' => $this->editor->id,
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('tasks', [
+        'title' => 'Task assigned to self',
+        'assigned_to' => $this->editor->id,
+    ]);
+});
+
+test('editor cannot assign tasks to others when creating', function () {
+    $this->actingAs($this->editor)
+        ->post(route('projects.tasks.store', ['project' => $this->project, 'list' => $this->list]), [
+            'title' => 'Task with assignment',
+            'priority' => 'medium',
+            'due_date' => now()->addDays(1)->format('Y-m-d'),
+            'due_time' => '12:00',
+            'assigned_to' => $this->owner->id,
+        ])
+        ->assertSessionHasErrors('assigned_to');
 });

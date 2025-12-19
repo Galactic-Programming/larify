@@ -76,6 +76,7 @@ export interface Permissions {
     canDelete: boolean;
     canManageSettings: boolean;
     canManageMembers: boolean;
+    canAssignTask: boolean;
     canReopen: boolean;
     role: 'owner' | 'editor' | 'viewer';
 }

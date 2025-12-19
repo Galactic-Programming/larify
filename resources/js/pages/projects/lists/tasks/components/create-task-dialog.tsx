@@ -47,6 +47,7 @@ interface CreateTaskDialogProps {
     project: Project;
     list: TaskList;
     trigger?: ReactNode;
+    canAssignTask?: boolean;
 }
 
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string; icon: typeof Minus; color: string }[] = [
@@ -66,7 +67,7 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ project, list, trigger, canAssignTask = false }: CreateTaskDialogProps) {
     const { auth } = usePage<SharedData>().props;
     const [open, setOpen] = useState(false);
     const [priority, setPriority] = useState<TaskPriority>('none');
@@ -94,11 +95,17 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
     // Check if there's only one member (owner only)
     const isSoloProject = allMembers.length <= 1;
 
-    // Auto-assign to current user for solo project
-    const effectiveAssigneeId = isSoloProject ? auth.user.id : assigneeId;
+    // Auto-assign logic:
+    // - Solo project: assign to current user
+    // - Editor (cannot assign): assign to current user (themselves)
+    // - Owner (can assign): use selected assignee from dropdown
+    const effectiveAssigneeId = isSoloProject || !canAssignTask ? auth.user.id : assigneeId;
 
-    // Get the selected assignee
+    // Get the selected assignee for display
     const selectedAssignee = allMembers.find((m) => m.id === effectiveAssigneeId);
+
+    // For editors, get their info for read-only display
+    const currentUserInfo = allMembers.find((m) => m.id === auth.user.id) ?? auth.user;
 
     const resetForm = () => {
         setPriority('none');
@@ -212,24 +219,28 @@ export function CreateTaskDialog({ project, list, trigger }: CreateTaskDialogPro
                                     {/* Assignee */}
                                     <div className="grid gap-2">
                                         <Label>Assignee</Label>
-                                        {isSoloProject ? (
+                                        {/* Solo project or Editor: show read-only current user */}
+                                        {(isSoloProject || !canAssignTask) ? (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <div className="flex h-9 items-center gap-2 rounded-md border px-3">
+                                                    <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
                                                         <Avatar className="size-5">
-                                                            <AvatarImage src={selectedAssignee?.avatar ?? undefined} />
+                                                            <AvatarImage src={currentUserInfo?.avatar ?? undefined} />
                                                             <AvatarFallback className="text-[10px]">
-                                                                {selectedAssignee ? getInitials(selectedAssignee.name) : '?'}
+                                                                {currentUserInfo ? getInitials(currentUserInfo.name) : '?'}
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <span className="truncate text-sm">
-                                                            {selectedAssignee?.name ?? 'You'}
+                                                            {currentUserInfo?.name ?? 'You'}
                                                         </span>
                                                     </div>
                                                 </TooltipTrigger>
-                                                <TooltipContent>Auto-assigned to you</TooltipContent>
+                                                <TooltipContent>
+                                                    {isSoloProject ? 'Auto-assigned to you' : 'Tasks you create are assigned to you'}
+                                                </TooltipContent>
                                             </Tooltip>
                                         ) : (
+                                            /* Owner: show dropdown to select assignee */
                                             <Select
                                                 value={assigneeId?.toString() ?? 'unassigned'}
                                                 onValueChange={(v) => setAssigneeId(v === 'unassigned' ? null : parseInt(v, 10))}
