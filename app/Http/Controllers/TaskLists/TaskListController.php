@@ -158,7 +158,10 @@ class TaskListController extends Controller
             abort(404);
         }
 
-        Gate::authorize('update', [$list, $project]);
+        // Only owner can set/unset done list
+        if (! $project->canSetDoneList(auth()->user())) {
+            abort(403, 'Only the project owner can set or unset the done list.');
+        }
 
         // If this list is already the done list, unset it
         if ($list->is_done_list) {

@@ -145,6 +145,16 @@ class Project extends Model
     }
 
     /**
+     * Check if a user can set/unset done list.
+     */
+    public function canSetDoneList(User $user): bool
+    {
+        $role = $this->getMemberRole($user);
+
+        return $role?->canSetDoneList() ?? false;
+    }
+
+    /**
      * Get user permissions for this project.
      *
      * @return array<string, bool>
@@ -161,6 +171,7 @@ class Project extends Model
             'canManageSettings' => $role?->canManageSettings() ?? false,
             'canManageMembers' => $role?->canManageMembers() ?? false,
             'canAssignTask' => $role?->canAssignTask() ?? false,
+            'canSetDoneList' => $role?->canSetDoneList() ?? false,
             'isOwner' => $this->user_id === $user->id,
             'role' => $role?->value,
         ];

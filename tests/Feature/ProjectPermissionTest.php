@@ -104,6 +104,26 @@ test('owner can reopen completed tasks', function () {
     expect($this->task->completed_at)->toBeNull();
 });
 
+test('owner can set done list', function () {
+    $this->actingAs($this->owner)
+        ->patch(route('projects.lists.done', ['project' => $this->project, 'list' => $this->list]))
+        ->assertRedirect();
+
+    $this->list->refresh();
+    expect($this->list->is_done_list)->toBeTrue();
+});
+
+test('owner can unset done list', function () {
+    $this->list->update(['is_done_list' => true]);
+
+    $this->actingAs($this->owner)
+        ->patch(route('projects.lists.done', ['project' => $this->project, 'list' => $this->list]))
+        ->assertRedirect();
+
+    $this->list->refresh();
+    expect($this->list->is_done_list)->toBeFalse();
+});
+
 // === EDITOR PERMISSIONS ===
 
 test('editor can create tasks', function () {
@@ -153,6 +173,26 @@ test('editor cannot delete lists', function () {
     $this->actingAs($this->editor)
         ->delete(route('projects.lists.destroy', ['project' => $this->project, 'list' => $newList]))
         ->assertForbidden();
+});
+
+test('editor cannot set done list', function () {
+    $this->actingAs($this->editor)
+        ->patch(route('projects.lists.done', ['project' => $this->project, 'list' => $this->list]))
+        ->assertForbidden();
+
+    $this->list->refresh();
+    expect($this->list->is_done_list)->toBeFalse();
+});
+
+test('editor cannot unset done list', function () {
+    $this->list->update(['is_done_list' => true]);
+
+    $this->actingAs($this->editor)
+        ->patch(route('projects.lists.done', ['project' => $this->project, 'list' => $this->list]))
+        ->assertForbidden();
+
+    $this->list->refresh();
+    expect($this->list->is_done_list)->toBeTrue();
 });
 
 test('editor can complete tasks', function () {

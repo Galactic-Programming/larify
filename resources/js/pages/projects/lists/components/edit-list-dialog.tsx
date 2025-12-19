@@ -35,9 +35,10 @@ interface EditListDialogProps {
     list: TaskList;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    canSetDoneList?: boolean;
 }
 
-export function EditListDialog({ project, list, open, onOpenChange }: EditListDialogProps) {
+export function EditListDialog({ project, list, open, onOpenChange, canSetDoneList = false }: EditListDialogProps) {
     // Check if another list is already the done list
     const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
 
@@ -85,24 +86,36 @@ export function EditListDialog({ project, list, open, onOpenChange }: EditListDi
                                     <InputError message={errors.name} />
                                 </div>
 
-                                <div className="flex items-center justify-between rounded-lg border p-4">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="is_done_list" className="text-base">Done List</Label>
-                                        <p className="text-muted-foreground text-sm">
-                                            {hasDoneListElsewhere && !list.is_done_list
-                                                ? 'Another list is already set as Done List. Unset it first to change.'
-                                                : 'Completed tasks will automatically move to this list.'}
-                                        </p>
+                                {/* Done List toggle - Only for owners */}
+                                {canSetDoneList && (
+                                    <div className="flex items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                            <Label htmlFor="is_done_list" className="text-base">Done List</Label>
+                                            <p className="text-muted-foreground text-sm">
+                                                {hasDoneListElsewhere && !list.is_done_list
+                                                    ? 'Another list is already set as Done List. Unset it first to change.'
+                                                    : 'Completed tasks will automatically move to this list.'}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            id="is_done_list"
+                                            checked={list.is_done_list}
+                                            disabled={hasDoneListElsewhere && !list.is_done_list}
+                                            onCheckedChange={() => {
+                                                const isCurrentlyDone = list.is_done_list;
+                                                router.patch(setDoneList.url({ project: project.id, list: list.id }), {}, {
+                                                    onSuccess: () => {
+                                                        softToastSuccess(
+                                                            isCurrentlyDone
+                                                                ? 'Done list unset successfully'
+                                                                : 'Done list set successfully'
+                                                        );
+                                                    },
+                                                });
+                                            }}
+                                        />
                                     </div>
-                                    <Switch
-                                        id="is_done_list"
-                                        checked={list.is_done_list}
-                                        disabled={hasDoneListElsewhere && !list.is_done_list}
-                                        onCheckedChange={() => {
-                                            router.patch(setDoneList.url({ project: project.id, list: list.id }));
-                                        }}
-                                    />
-                                </div>
+                                )}
                             </div>
 
                             <DialogFooter>

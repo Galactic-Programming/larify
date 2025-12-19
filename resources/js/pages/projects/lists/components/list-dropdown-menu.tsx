@@ -6,6 +6,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { router } from '@inertiajs/react';
 import { CheckCircle2, Circle, MoreHorizontal, Pencil, Settings2, Trash2 } from 'lucide-react';
@@ -58,12 +59,21 @@ export function ListDropdownMenu({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    {/* Show done list option only if: this list is already done list OR no other list is done list */}
-                    {(list.is_done_list || !hasDoneListElsewhere) && (
+                    {/* Show done list option only for owners */}
+                    {permissions.canSetDoneList && (list.is_done_list || !hasDoneListElsewhere) && (
                         <>
                             <DropdownMenuItem
                                 onClick={() => {
-                                    router.patch(setDoneList.url({ project: project.id, list: list.id }));
+                                    const isCurrentlyDone = list.is_done_list;
+                                    router.patch(setDoneList.url({ project: project.id, list: list.id }), {}, {
+                                        onSuccess: () => {
+                                            softToastSuccess(
+                                                isCurrentlyDone
+                                                    ? 'Done list unset successfully'
+                                                    : 'Done list set successfully'
+                                            );
+                                        },
+                                    });
                                 }}
                             >
                                 {list.is_done_list ? (

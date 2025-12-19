@@ -77,6 +77,7 @@ export interface Permissions {
     canManageSettings: boolean;
     canManageMembers: boolean;
     canAssignTask: boolean;
+    canSetDoneList: boolean;
     canReopen: boolean;
     role: 'owner' | 'editor' | 'viewer';
 }

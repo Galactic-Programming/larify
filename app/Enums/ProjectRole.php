@@ -73,4 +73,12 @@ enum ProjectRole: string
     {
         return $this === self::Owner;
     }
+
+    /**
+     * Check if the role can set/unset done list.
+     */
+    public function canSetDoneList(): bool
+    {
+        return $this === self::Owner;
+    }
 }

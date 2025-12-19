@@ -169,6 +169,7 @@ export default function ListsIndex({ project, permissions }: Props) {
                     list={editingList}
                     open={!!editingList}
                     onOpenChange={(open: boolean) => !open && setEditingList(null)}
+                    canSetDoneList={permissions.canSetDoneList}
                 />
             )}
 
