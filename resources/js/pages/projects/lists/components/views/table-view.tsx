@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -23,7 +24,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
-import { ChevronLeft, ChevronRight, Circle, Clock, MoreHorizontal, Pencil, Plus, Trash2, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Circle, Clock, MoreHorizontal, Pencil, Plus, Search, Trash2, User, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useCallback, useMemo } from 'react';
 import type { Permissions, Project, Task, TaskList } from '../../lib/types';
@@ -89,6 +90,10 @@ export function TableView({ project, permissions }: TableViewProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState<number>(20);
 
+    // Search and filter state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [listFilter, setListFilter] = useState<string>('all');
+
     // Flatten all tasks from all lists
     const allTasks = useMemo(() => {
         return project.lists.flatMap((list) =>
@@ -96,16 +101,60 @@ export function TableView({ project, permissions }: TableViewProps) {
         );
     }, [project.lists]);
 
-    // Pagination calculations
-    const totalTasks = allTasks.length;
-    const totalPages = Math.ceil(totalTasks / rowsPerPage);
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, totalTasks);
-    const paginatedTasks = allTasks.slice(startIndex, endIndex);
+    // Filter tasks based on search query and list filter
+    const filteredTasks = useMemo(() => {
+        return allTasks.filter(({ task, list }) => {
+            // Filter by list
+            if (listFilter !== 'all' && list.id !== Number(listFilter)) {
+                return false;
+            }
 
-    // Reset to first page when rowsPerPage changes or when tasks change significantly
+            // Filter by search query (title or description)
+            if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase().trim();
+                const matchesTitle = task.title.toLowerCase().includes(query);
+                const matchesDescription = task.description?.toLowerCase().includes(query) ?? false;
+                if (!matchesTitle && !matchesDescription) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [allTasks, searchQuery, listFilter]);
+
+    // Check if any filter is active
+    const hasActiveFilters = searchQuery.trim() !== '' || listFilter !== 'all';
+
+    // Clear all filters
+    const clearFilters = () => {
+        setSearchQuery('');
+        setListFilter('all');
+        setCurrentPage(1);
+    };
+
+    // Pagination calculations - use filtered tasks
+    const totalAllTasks = allTasks.length;
+    const totalFilteredTasks = filteredTasks.length;
+    const totalPages = Math.ceil(totalFilteredTasks / rowsPerPage);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalFilteredTasks);
+    const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
+
+    // Reset to first page when rowsPerPage changes, filters change, or tasks change significantly
     const handleRowsPerPageChange = (value: string) => {
         setRowsPerPage(Number(value));
+        setCurrentPage(1);
+    };
+
+    // Reset page when filters change
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+    };
+
+    const handleListFilterChange = (value: string) => {
+        setListFilter(value);
         setCurrentPage(1);
     };
 
@@ -126,6 +175,88 @@ export function TableView({ project, permissions }: TableViewProps) {
     return (
         <>
             <ScrollArea className="flex-1">
+                {/* Search and Filter Bar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="mb-4 rounded-lg border bg-card p-3 sm:p-4"
+                >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                        {/* Search Input */}
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Search tasks..."
+                                value={searchQuery}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                className="pl-9 pr-9"
+                            />
+                            {searchQuery && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    onClick={() => handleSearchChange('')}
+                                >
+                                    <X className="size-4" />
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* List Filter */}
+                        <Select value={listFilter} onValueChange={handleListFilterChange}>
+                            <SelectTrigger className="w-full sm:w-44">
+                                <SelectValue placeholder="All lists" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All lists</SelectItem>
+                                {project.lists.map((list) => (
+                                    <SelectItem key={list.id} value={String(list.id)}>
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className="size-2 shrink-0 rounded-full"
+                                                style={{ backgroundColor: project.color }}
+                                            />
+                                            <span className="truncate">{list.name}</span>
+                                            <span className="text-muted-foreground">({list.tasks.length})</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Clear Filters */}
+                        {hasActiveFilters && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={clearFilters}
+                                        className="shrink-0 gap-1.5 text-muted-foreground hover:text-foreground"
+                                    >
+                                        <X className="size-4" />
+                                        <span className="hidden sm:inline">Clear</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Clear all filters</TooltipContent>
+                            </Tooltip>
+                        )}
+                    </div>
+
+                    {/* Results Count */}
+                    {hasActiveFilters && (
+                        <div className="mt-2 text-sm text-muted-foreground">
+                            Showing {totalFilteredTasks} of {totalAllTasks} tasks
+                            {searchQuery && (
+                                <span> matching "<span className="font-medium text-foreground">{searchQuery}</span>"</span>
+                            )}
+                        </div>
+                    )}
+                </motion.div>
+
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -243,7 +374,8 @@ export function TableView({ project, permissions }: TableViewProps) {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {project.lists.every((list) => list.tasks.length === 0) && (
+                            {/* No tasks at all */}
+                            {totalAllTasks === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={7} className="h-32 text-center">
                                         <div className="flex flex-col items-center gap-2">
@@ -266,14 +398,30 @@ export function TableView({ project, permissions }: TableViewProps) {
                                     </TableCell>
                                 </TableRow>
                             )}
+                            {/* No results from filter */}
+                            {totalAllTasks > 0 && totalFilteredTasks === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-32 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Search className="size-8 text-muted-foreground/30" />
+                                            <p className="text-sm text-muted-foreground">No tasks match your filters</p>
+                                            <Button variant="outline" size="sm" onClick={clearFilters} className="mt-2 gap-1">
+                                                <X className="size-3" />
+                                                Clear filters
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
 
                     {/* Pagination */}
-                    {totalTasks > 0 && (
+                    {totalFilteredTasks > 0 && (
                         <div className="flex flex-col items-center gap-3 border-t px-4 py-3 sm:flex-row sm:justify-between">
                             <div className="text-sm text-muted-foreground">
-                                Showing {startIndex + 1}-{endIndex} of {totalTasks} tasks
+                                Showing {startIndex + 1}-{endIndex} of {totalFilteredTasks} tasks
+                                {hasActiveFilters && <span className="text-muted-foreground/70"> (filtered)</span>}
                             </div>
                             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                                 <div className="flex items-center gap-2">
