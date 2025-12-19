@@ -7,6 +7,7 @@ use App\Models\TaskList;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class StoreTaskListRequest extends FormRequest
 {
@@ -27,8 +28,28 @@ class StoreTaskListRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Project $project */
+        $project = $this->route('project');
+
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('lists', 'name')->where('project_id', $project->id),
+            ],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'A list with this name already exists in this project.',
         ];
     }
 }
