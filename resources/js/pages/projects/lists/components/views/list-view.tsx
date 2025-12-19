@@ -41,11 +41,11 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
     return (
         <>
             <ScrollArea className="flex-1">
-                <div className="mx-auto max-w-4xl space-y-4">
+                <div className="mx-auto max-w-4xl space-y-3 px-1 sm:space-y-4 sm:px-0">
                     <Accordion
                         type="multiple"
                         defaultValue={project.lists.map((list) => `list-${list.id}`)}
-                        className="space-y-4"
+                        className="space-y-3 sm:space-y-4"
                     >
                         {project.lists.map((list, listIdx) => (
                             <motion.div
@@ -58,18 +58,18 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                     value={`list-${list.id}`}
                                     className="rounded-lg border bg-card px-0"
                                 >
-                                    <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]>div>.chevron]:rotate-180">
-                                        <div className="flex flex-1 items-center justify-between pr-2">
-                                            <div className="flex items-center gap-3">
+                                    <AccordionTrigger className="px-3 py-2.5 hover:no-underline sm:px-4 sm:py-3 [&[data-state=open]>div>.chevron]:rotate-180">
+                                        <div className="flex flex-1 items-center justify-between gap-2 pr-2">
+                                            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                                                 <div
-                                                    className="size-3 rounded-full"
+                                                    className="size-2.5 shrink-0 rounded-full sm:size-3"
                                                     style={{ backgroundColor: project.color }}
                                                 />
-                                                <span className="max-w-[16ch] truncate text-base font-semibold" title={list.name}>{list.name}</span>
-                                                <Badge variant="secondary">{list.tasks.length}</Badge>
+                                                <span className="max-w-[12ch] truncate text-sm font-semibold sm:max-w-[16ch] sm:text-base" title={list.name}>{list.name}</span>
+                                                <Badge variant="secondary" className="text-xs">{list.tasks.length}</Badge>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className="text-xs">
+                                            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                                                <Badge variant="outline" className="hidden text-xs sm:flex">
                                                     {list.tasks.filter((t) => t.completed_at).length}/
                                                     {list.tasks.length} done
                                                 </Badge>
@@ -84,7 +84,7 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                             </div>
                                         </div>
                                     </AccordionTrigger>
-                                    <AccordionContent className="px-4 pb-4 pt-0">
+                                    <AccordionContent className="px-3 pb-3 pt-0 sm:px-4 sm:pb-4">
                                         {list.tasks.length > 0 ? (
                                             <div className="space-y-2">
                                                 {list.tasks.map((task, taskIdx) => (

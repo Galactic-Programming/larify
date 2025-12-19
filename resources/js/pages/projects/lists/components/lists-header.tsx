@@ -59,8 +59,8 @@ export function ListsHeader({
             transition={{ duration: 0.5 }}
             className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild>
+            <div className="flex items-center gap-3 sm:gap-4">
+                <Button variant="ghost" size="icon" asChild className="shrink-0">
                     <Link href={projectsIndex().url}>
                         <ArrowLeft className="size-4" />
                     </Link>
@@ -69,17 +69,17 @@ export function ListsHeader({
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
-                    className="flex size-14 items-center justify-center rounded-xl shadow-lg"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-lg sm:size-14 sm:rounded-xl"
                     style={{ backgroundColor: `${project.color}20` }}
                 >
-                    <ProjectIconDisplay iconName={project.icon} color={project.color} className="size-7" />
+                    <ProjectIconDisplay iconName={project.icon} color={project.color} className="size-5 sm:size-7" />
                 </motion.div>
-                <div>
+                <div className="min-w-0">
                     <motion.h1
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="text-2xl font-bold tracking-tight md:text-3xl"
+                        className="truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl"
                     >
                         {project.name}
                     </motion.h1>
@@ -87,14 +87,15 @@ export function ListsHeader({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex items-center gap-3 text-muted-foreground"
+                        className="flex items-center gap-2 text-sm text-muted-foreground sm:gap-3"
                     >
                         <span className="flex items-center gap-1">
-                            <LayoutList className="size-4" />
-                            {project.lists.length} lists
+                            <LayoutList className="size-3.5 sm:size-4" />
+                            <span className="hidden xs:inline">{project.lists.length} lists</span>
+                            <span className="xs:hidden">{project.lists.length}</span>
                         </span>
-                        <span>•</span>
-                        <span>
+                        <span className="hidden sm:inline">•</span>
+                        <span className="hidden sm:inline">
                             {completedTasks}/{totalTasks} tasks completed
                         </span>
                     </motion.div>
@@ -111,11 +112,11 @@ export function ListsHeader({
                     type="single"
                     value={taskFilter}
                     onValueChange={(value) => value && onTaskFilterChange(value as TaskFilter)}
-                    className="bg-muted rounded-lg p-1"
+                    className="bg-muted rounded-lg p-0.5 sm:p-1"
                 >
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="all" aria-label="All tasks" className="px-3">
+                            <ToggleGroupItem value="all" aria-label="All tasks" className="px-2 text-xs sm:px-3 sm:text-sm">
                                 All
                             </ToggleGroupItem>
                         </TooltipTrigger>
@@ -123,8 +124,8 @@ export function ListsHeader({
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="overdue" aria-label="Overdue tasks" className="gap-1.5 px-3">
-                                <AlertTriangle className="size-3.5" />
+                            <ToggleGroupItem value="overdue" aria-label="Overdue tasks" className="gap-1 px-2 sm:gap-1.5 sm:px-3">
+                                <AlertTriangle className="size-3 sm:size-3.5" />
                                 {overdueTasks > 0 && (
                                     <Badge variant="destructive" className="h-5 min-w-5 px-1.5">
                                         {overdueTasks}
@@ -136,8 +137,8 @@ export function ListsHeader({
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="due-soon" aria-label="Due soon" className="gap-1.5 px-3">
-                                <Clock className="size-3.5" />
+                            <ToggleGroupItem value="due-soon" aria-label="Due soon" className="gap-1 px-2 sm:gap-1.5 sm:px-3">
+                                <Clock className="size-3 sm:size-3.5" />
                                 {dueSoonTasks > 0 && (
                                     <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 h-5 min-w-5 px-1.5">
                                         {dueSoonTasks}
@@ -149,16 +150,16 @@ export function ListsHeader({
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="completed" aria-label="Completed tasks" className="gap-1.5 px-3">
-                                <CheckCircle2 className="size-3.5" />
+                            <ToggleGroupItem value="completed" aria-label="Completed tasks" className="gap-1 px-2 sm:gap-1.5 sm:px-3">
+                                <CheckCircle2 className="size-3 sm:size-3.5" />
                             </ToggleGroupItem>
                         </TooltipTrigger>
                         <TooltipContent>Completed On Time</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="completed-late" aria-label="Completed late tasks" className="gap-1.5 px-3">
-                                <CircleAlert className="size-3.5" />
+                            <ToggleGroupItem value="completed-late" aria-label="Completed late tasks" className="gap-1 px-2 sm:gap-1.5 sm:px-3">
+                                <CircleAlert className="size-3 sm:size-3.5" />
                                 {completedLateTasks > 0 && (
                                     <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 h-5 min-w-5 px-1.5">
                                         {completedLateTasks}
@@ -175,28 +176,28 @@ export function ListsHeader({
                     type="single"
                     value={viewMode}
                     onValueChange={(value) => value && onViewModeChange(value as ViewMode)}
-                    className="bg-muted rounded-lg p-1"
+                    className="bg-muted rounded-lg p-0.5 sm:p-1"
                 >
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="board" aria-label="Board view" className="px-3">
-                                <Columns3 className="size-4" />
+                            <ToggleGroupItem value="board" aria-label="Board view" className="px-2 sm:px-3">
+                                <Columns3 className="size-3.5 sm:size-4" />
                             </ToggleGroupItem>
                         </TooltipTrigger>
                         <TooltipContent>Board View</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="list" aria-label="List view" className="px-3">
-                                <List className="size-4" />
+                            <ToggleGroupItem value="list" aria-label="List view" className="px-2 sm:px-3">
+                                <List className="size-3.5 sm:size-4" />
                             </ToggleGroupItem>
                         </TooltipTrigger>
                         <TooltipContent>List View</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem value="table" aria-label="Table view" className="px-3">
-                                <Table2 className="size-4" />
+                            <ToggleGroupItem value="table" aria-label="Table view" className="px-2 sm:px-3">
+                                <Table2 className="size-3.5 sm:size-4" />
                             </ToggleGroupItem>
                         </TooltipTrigger>
                         <TooltipContent>Table View</TooltipContent>
@@ -206,9 +207,9 @@ export function ListsHeader({
                 {/* Members Button */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" asChild className="gap-2">
+                        <Button variant="outline" size="sm" asChild className="gap-1.5 px-2 sm:gap-2 sm:px-3">
                             <Link href={membersIndex(project).url}>
-                                <Users className="size-4" />
+                                <Users className="size-3.5 sm:size-4" />
                                 <span className="hidden sm:inline">Members</span>
                             </Link>
                         </Button>

@@ -282,16 +282,16 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
             <Sheet open={open} onOpenChange={onOpenChange}>
                 <SheetContent className="flex w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
                     {/* Header - Clean, minimal */}
-                    <SheetHeader className="border-b bg-linear-to-b from-muted/50 to-background px-6 py-5">
+                    <SheetHeader className="border-b bg-linear-to-b from-muted/50 to-background px-4 py-4 sm:px-6 sm:py-5">
                         <div className="flex items-start gap-4">
                             <div className="min-w-0 flex-1 space-y-1">
                                 <SheetTitle
-                                    className={`text-xl font-semibold leading-tight ${isCompleted ? 'text-muted-foreground line-through' : ''
+                                    className={`text-lg font-semibold leading-tight sm:text-xl ${isCompleted ? 'text-muted-foreground line-through' : ''
                                         }`}
                                 >
                                     {task.title}
                                 </SheetTitle>
-                                <SheetDescription className="flex items-center gap-2 text-sm">
+                                <SheetDescription className="flex flex-wrap items-center gap-1.5 text-sm sm:gap-2">
                                     <Badge variant="outline" className="max-w-[18ch] gap-1 font-normal" title={currentList?.name}>
                                         <div
                                             className="size-2 shrink-0 rounded-full"
@@ -323,11 +323,11 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                     </SheetHeader>
 
                     <ScrollArea className="flex-1">
-                        <div className="space-y-5 p-6">
+                        <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
                             {/* Countdown Section */}
                             <div className={`overflow-hidden rounded-xl ${countdownStyles.bg}`}>
-                                <div className="p-4">
-                                    <div className="flex items-center justify-between">
+                                <div className="p-3 sm:p-4">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="relative">
                                                 {!isCompleted && urgencyLevel === 'urgent' && (
@@ -403,7 +403,7 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     </div>
 
                                     {/* Deadline info */}
-                                    <div className="mt-3 flex gap-4 border-t border-current/10 pt-3 text-xs text-muted-foreground">
+                                    <div className="mt-3 flex flex-col gap-1 border-t border-current/10 pt-3 text-xs text-muted-foreground sm:flex-row sm:gap-4">
                                         <div>
                                             <span className="font-medium">Deadline:</span>{' '}
                                             {deadlineDisplay.date} at {deadlineDisplay.time}
@@ -424,7 +424,7 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         Description
                                     </h4>
-                                    <div className="rounded-lg bg-muted/30 p-4 overflow-hidden">
+                                    <div className="rounded-lg bg-muted/30 p-3 overflow-hidden sm:p-4">
                                         <p className="whitespace-pre-wrap break-all text-sm leading-relaxed text-foreground/80">
                                             {task.description}
                                         </p>
@@ -544,7 +544,7 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
 
                     {/* Footer Actions - Only show for users with edit permission */}
                     {permissions.canEdit && (
-                        <div className="border-t bg-muted/30 px-6 py-4">
+                        <div className="border-t bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
                             <div className="flex gap-2">
                                 <Button
                                     variant="outline"
@@ -552,7 +552,8 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     onClick={() => setEditOpen(true)}
                                 >
                                     <Pencil className="size-4" />
-                                    Edit Task
+                                    <span className="hidden sm:inline">Edit Task</span>
+                                    <span className="sm:hidden">Edit</span>
                                 </Button>
                                 {permissions.canDelete && (
                                     <Button

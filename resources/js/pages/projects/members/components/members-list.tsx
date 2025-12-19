@@ -50,10 +50,10 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-75">Member</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        {isOwner && <TableHead className="w-17.5">Actions</TableHead>}
+                        <TableHead>Member</TableHead>
+                        <TableHead className="hidden sm:table-cell">Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Joined</TableHead>
+                        {isOwner && <TableHead className="w-12 sm:w-17.5">Actions</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -71,22 +71,33 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                             >
                                 {/* Member Info */}
                                 <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="size-10">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <Avatar className="size-8 sm:size-10">
                                             <AvatarImage src={member.avatar ?? undefined} alt={member.name} />
-                                            <AvatarFallback className="bg-primary/10 text-primary">
+                                            <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
                                                 {getInitials(member.name)}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{member.name}</span>
-                                            <span className="text-sm text-muted-foreground">{member.email}</span>
+                                        <div className="flex min-w-0 flex-col">
+                                            <span className="truncate text-sm font-medium sm:text-base">{member.name}</span>
+                                            <span className="truncate text-xs text-muted-foreground sm:text-sm">{member.email}</span>
+                                            {/* Show role badge on mobile */}
+                                            <Badge
+                                                variant={roleConfig.variant}
+                                                className={cn(
+                                                    'mt-1 gap-1 w-fit text-xs sm:hidden',
+                                                    member.is_owner && 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400'
+                                                )}
+                                            >
+                                                <RoleIcon className="size-2.5" />
+                                                {roleConfig.label}
+                                            </Badge>
                                         </div>
                                     </div>
                                 </TableCell>
 
-                                {/* Role Badge */}
-                                <TableCell>
+                                {/* Role Badge - Hidden on mobile, shown in member cell */}
+                                <TableCell className="hidden sm:table-cell">
                                     <Badge
                                         variant={roleConfig.variant}
                                         className={cn(
@@ -100,7 +111,7 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                                 </TableCell>
 
                                 {/* Joined Date */}
-                                <TableCell className="text-muted-foreground">
+                                <TableCell className="hidden text-muted-foreground md:table-cell">
                                     {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
                                 </TableCell>
 

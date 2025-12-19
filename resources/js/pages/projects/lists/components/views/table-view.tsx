@@ -9,6 +9,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
     Tooltip,
@@ -16,9 +23,9 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
-import { Circle, Clock, MoreHorizontal, Pencil, Plus, Trash2, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Circle, Clock, MoreHorizontal, Pencil, Plus, Trash2, User } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
@@ -26,13 +33,12 @@ import { DeleteTaskDialog } from '../../tasks/components/delete-task-dialog';
 import { EditTaskDialog } from '../../tasks/components/edit-task-dialog';
 import { TaskDetailSheet } from '../../tasks/components/task-detail-sheet';
 import { CreateListDialog } from '../create-list-dialog';
-import { ListDropdownMenu } from '../list-dropdown-menu';
+
+const ROWS_PER_PAGE_OPTIONS = [10, 20, 50, 100] as const;
 
 interface TableViewProps {
     project: Project;
     permissions: Permissions;
-    onEditList: (list: TaskList) => void;
-    onDeleteList: (list: TaskList) => void;
 }
 
 function TaskRowActions({ project, task, permissions }: { project: Project; task: Task; permissions: Permissions }) {
@@ -78,8 +84,30 @@ function TaskRowActions({ project, task, permissions }: { project: Project; task
     );
 }
 
-export function TableView({ project, permissions, onEditList, onDeleteList }: TableViewProps) {
+export function TableView({ project, permissions }: TableViewProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState<number>(20);
+
+    // Flatten all tasks from all lists
+    const allTasks = useMemo(() => {
+        return project.lists.flatMap((list) =>
+            list.tasks.map((task) => ({ task, list }))
+        );
+    }, [project.lists]);
+
+    // Pagination calculations
+    const totalTasks = allTasks.length;
+    const totalPages = Math.ceil(totalTasks / rowsPerPage);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalTasks);
+    const paginatedTasks = allTasks.slice(startIndex, endIndex);
+
+    // Reset to first page when rowsPerPage changes or when tasks change significantly
+    const handleRowsPerPageChange = (value: string) => {
+        setRowsPerPage(Number(value));
+        setCurrentPage(1);
+    };
 
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
     const handleTaskDeleted = useCallback((taskId: number) => {
@@ -109,114 +137,112 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                             <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-10"></TableHead>
                                 <TableHead>Task</TableHead>
-                                <TableHead className="w-32">Status</TableHead>
-                                <TableHead className="w-24">Priority</TableHead>
-                                <TableHead className="w-36">Due Date</TableHead>
-                                <TableHead className="w-32">Assignee</TableHead>
+                                <TableHead className="hidden w-32 sm:table-cell">Status</TableHead>
+                                <TableHead className="hidden w-24 md:table-cell">Priority</TableHead>
+                                <TableHead className="hidden w-36 lg:table-cell">Due Date</TableHead>
+                                <TableHead className="hidden w-32 lg:table-cell">Assignee</TableHead>
                                 <TableHead className="w-10"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {project.lists.flatMap((list) =>
-                                list.tasks.map((task) => (
-                                    <TableRow
-                                        key={task.id}
-                                        className="group cursor-pointer"
-                                        onClick={() => setSelectedTask(task)}
-                                    >
-                                        <TableCell className="pr-0">{getTaskStatusIcon(task)}</TableCell>
-                                        <TableCell className="max-w-md">
-                                            <div className="flex flex-col">
-                                                <span
-                                                    className={`truncate font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
-                                                >
-                                                    {task.title}
+                            {paginatedTasks.map(({ task, list }) => (
+                                <TableRow
+                                    key={task.id}
+                                    className="group cursor-pointer"
+                                    onClick={() => setSelectedTask(task)}
+                                >
+                                    <TableCell className="pr-0">{getTaskStatusIcon(task)}</TableCell>
+                                    <TableCell className="max-w-md">
+                                        <div className="flex flex-col">
+                                            <span
+                                                className={`truncate font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
+                                            >
+                                                {task.title}
+                                            </span>
+                                            {task.description && (
+                                                <span className="truncate text-xs text-muted-foreground">
+                                                    {task.description}
                                                 </span>
-                                                {task.description && (
-                                                    <span className="truncate text-xs text-muted-foreground">
-                                                        {task.description}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className="max-w-[18ch] gap-1.5 font-normal" title={list.name}>
-                                                <div
-                                                    className="size-2 rounded-full shrink-0"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                                <span className="truncate">{list.name}</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <Badge variant="outline" className="max-w-[18ch] gap-1.5 font-normal" title={list.name}>
+                                            <div
+                                                className="size-2 rounded-full shrink-0"
+                                                style={{ backgroundColor: project.color }}
+                                            />
+                                            <span className="truncate">{list.name}</span>
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        {task.priority !== 'none' ? (
+                                            <Badge
+                                                variant="secondary"
+                                                className={`text-xs ${getPriorityColor(task.priority)}`}
+                                            >
+                                                {task.priority}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {task.priority !== 'none' ? (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className={`text-xs ${getPriorityColor(task.priority)}`}
-                                                >
-                                                    {task.priority}
-                                                </Badge>
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground/50">—</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {task.due_date ? (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                                            <span>{new Date(task.due_date).toLocaleDateString()}</span>
-                                                            {task.due_time && (
-                                                                <span className="flex items-center gap-0.5 text-xs">
-                                                                    <Clock className="size-3" />
-                                                                    {task.due_time.slice(0, 5)}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {new Date(task.due_date).toLocaleDateString('en-US', {
-                                                            weekday: 'long',
-                                                            year: 'numeric',
-                                                            month: 'long',
-                                                            day: 'numeric',
-                                                        })}
-                                                        {task.due_time && ` at ${task.due_time.slice(0, 5)}`}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground/50">—</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {task.assignee ? (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-2">
-                                                            <Avatar className="size-6">
-                                                                <AvatarImage src={task.assignee.avatar ?? undefined} />
-                                                                <AvatarFallback className="text-xs">
-                                                                    {task.assignee.name.charAt(0).toUpperCase()}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <span className="truncate text-sm">{task.assignee.name}</span>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>{task.assignee.email}</TooltipContent>
-                                                </Tooltip>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-muted-foreground/50">
-                                                    <User className="size-4" />
-                                                    <span className="text-sm">Unassigned</span>
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <TaskRowActions project={project} task={task} permissions={permissions} />
-                                        </TableCell>
-                                    </TableRow>
-                                )),
-                            )}
+                                        ) : (
+                                            <span className="text-sm text-muted-foreground/50">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="hidden lg:table-cell">
+                                        {task.due_date ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                                        <span>{new Date(task.due_date).toLocaleDateString()}</span>
+                                                        {task.due_time && (
+                                                            <span className="flex items-center gap-0.5 text-xs">
+                                                                <Clock className="size-3" />
+                                                                {task.due_time.slice(0, 5)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    {new Date(task.due_date).toLocaleDateString('en-US', {
+                                                        weekday: 'long',
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                    })}
+                                                    {task.due_time && ` at ${task.due_time.slice(0, 5)}`}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <span className="text-sm text-muted-foreground/50">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="hidden lg:table-cell">
+                                        {task.assignee ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="size-6">
+                                                            <AvatarImage src={task.assignee.avatar ?? undefined} />
+                                                            <AvatarFallback className="text-xs">
+                                                                {task.assignee.name.charAt(0).toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="truncate text-sm">{task.assignee.name}</span>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>{task.assignee.email}</TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-muted-foreground/50">
+                                                <User className="size-4" />
+                                                <span className="text-sm">Unassigned</span>
+                                            </div>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <TaskRowActions project={project} task={task} permissions={permissions} />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                             {project.lists.every((list) => list.tasks.length === 0) && (
                                 <TableRow>
                                     <TableCell colSpan={7} className="h-32 text-center">
@@ -242,6 +268,75 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                             )}
                         </TableBody>
                     </Table>
+
+                    {/* Pagination */}
+                    {totalTasks > 0 && (
+                        <div className="flex flex-col items-center gap-3 border-t px-4 py-3 sm:flex-row sm:justify-between">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {startIndex + 1}-{endIndex} of {totalTasks} tasks
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Rows per page:</span>
+                                    <Select value={String(rowsPerPage)} onValueChange={handleRowsPerPageChange}>
+                                        <SelectTrigger className="h-8 w-17.5">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ROWS_PER_PAGE_OPTIONS.map((option) => (
+                                                <SelectItem key={option} value={String(option)}>
+                                                    {option}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="outline"
+                                        size="icon-sm"
+                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <ChevronLeft className="size-4" />
+                                    </Button>
+                                    <div className="flex items-center gap-1 px-2">
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNum: number;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+                                            return (
+                                                <Button
+                                                    key={pageNum}
+                                                    variant={currentPage === pageNum ? 'default' : 'ghost'}
+                                                    size="icon-sm"
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className="size-8"
+                                                >
+                                                    {pageNum}
+                                                </Button>
+                                            );
+                                        })}
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="icon-sm"
+                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        <ChevronRight className="size-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Lists summary and add button */}
@@ -249,43 +344,45 @@ export function TableView({ project, permissions, onEditList, onDeleteList }: Ta
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
-                    className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-4"
+                    className="mt-4 rounded-lg border bg-muted/30 p-3 sm:p-4"
                 >
-                    <div className="flex flex-wrap gap-2">
-                        {project.lists.map((list) => (
-                            <div key={list.id} className="flex items-center gap-2">
-                                <Badge variant="outline" className="max-w-[20ch] gap-1.5" title={list.name}>
-                                    <div
-                                        className="size-2 rounded-full shrink-0"
-                                        style={{ backgroundColor: project.color }}
-                                    />
-                                    <span className="truncate">{list.name}</span>
-                                    <span className="shrink-0 text-muted-foreground">({list.tasks.length})</span>
-                                </Badge>
-                                {permissions.canEdit && (
-                                    <CreateTaskDialog
-                                        project={project}
-                                        list={list}
-                                        canAssignTask={permissions.canAssignTask}
-                                        trigger={
-                                            <Button variant="ghost" size="icon-sm" className="size-5">
-                                                <Plus className="size-3" />
-                                            </Button>
-                                        }
-                                    />
-                                )}
-                                <ListDropdownMenu
-                                    project={project}
-                                    list={list}
-                                    permissions={permissions}
-                                    onEdit={onEditList}
-                                    onDelete={onDeleteList}
-                                    triggerClassName="size-5"
-                                />
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                        <div className="flex-1">
+                            <h4 className="mb-2 text-sm font-medium text-muted-foreground sm:mb-3">Lists</h4>
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                {project.lists.map((list) => (
+                                    <div key={list.id} className="flex items-center">
+                                        <Badge variant="outline" className="max-w-[16ch] gap-1 pr-1 text-xs sm:max-w-[20ch] sm:gap-1.5 sm:text-sm" title={list.name}>
+                                            <div
+                                                className="size-2 rounded-full shrink-0"
+                                                style={{ backgroundColor: project.color }}
+                                            />
+                                            <span className="truncate">{list.name}</span>
+                                            <span className="shrink-0 text-muted-foreground">({list.tasks.length})</span>
+                                            {permissions.canEdit && !list.is_done_list && (
+                                                <CreateTaskDialog
+                                                    project={project}
+                                                    list={list}
+                                                    canAssignTask={permissions.canAssignTask}
+                                                    trigger={
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button variant="ghost" size="icon-sm" className="ml-0.5 size-5 rounded-full hover:bg-primary/10">
+                                                                    <Plus className="size-3" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Add task to {list.name}</TooltipContent>
+                                                        </Tooltip>
+                                                    }
+                                                />
+                                            )}
+                                        </Badge>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
+                        {permissions.canEdit && <CreateListDialog project={project} />}
                     </div>
-                    {permissions.canEdit && <CreateListDialog project={project} />}
                 </motion.div>
             </ScrollArea>
 

@@ -41,22 +41,22 @@ function ConnectionItem({
     unlinkAction,
 }: ConnectionItemProps) {
     return (
-        <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="flex items-center gap-4">
-                <div className="flex size-12 items-center justify-center rounded-lg bg-muted">
+        <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted sm:size-12">
                     {icon}
                 </div>
-                <div>
-                    <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <h4 className="font-medium">{name}</h4>
-                        <Badge variant={isConnected ? 'default' : 'secondary'}>
+                        <Badge variant={isConnected ? 'default' : 'secondary'} className="text-xs">
                             {isConnected ? 'Connected' : 'Not connected'}
                         </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{description}</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">{description}</p>
                 </div>
             </div>
-            <div>
+            <div className="shrink-0">
                 {isConnected ? (
                     <Form
                         action={unlinkAction}
@@ -68,6 +68,7 @@ function ConnectionItem({
                                 variant="outline"
                                 size="sm"
                                 disabled={processing}
+                                className="w-full sm:w-auto"
                             >
                                 <Link2Off className="mr-2 size-4" />
                                 Disconnect
@@ -75,7 +76,7 @@ function ConnectionItem({
                         )}
                     </Form>
                 ) : (
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                         <a href={linkUrl}>
                             <Link2 className="mr-2 size-4" />
                             Connect

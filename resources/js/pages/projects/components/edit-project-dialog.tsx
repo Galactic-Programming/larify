@@ -155,7 +155,7 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                 {/* Icon Picker */}
                                 <div className="grid gap-2">
                                     <Label>Icon</Label>
-                                    <div className="grid grid-cols-10 gap-1.5">
+                                    <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-10">
                                         {PROJECT_ICONS.map((icon) => {
                                             const IconComponent = icon.icon;
                                             const isSelected = selectedIcon === icon.name;

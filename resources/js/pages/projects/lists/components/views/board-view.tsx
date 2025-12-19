@@ -284,9 +284,9 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.3, delay: listIdx * 0.1 }}
-                                className="w-80 shrink-0"
+                                className="w-72 shrink-0 sm:w-80"
                             >
-                                <Card className="flex h-fit max-h-[calc(100vh-280px)] flex-col bg-muted/30">
+                                <Card className="flex h-fit max-h-[calc(100vh-320px)] flex-col bg-muted/30 sm:max-h-[calc(100vh-280px)]">
                                     {/* List Header */}
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                                         <div className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.3, delay: localLists.length * 0.1 }}
-                                className="w-80 shrink-0"
+                                className="w-72 shrink-0 sm:w-80"
                             >
                                 <CreateListDialog
                                     project={project}

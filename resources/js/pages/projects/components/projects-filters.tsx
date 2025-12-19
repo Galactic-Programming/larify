@@ -40,18 +40,18 @@ export function ProjectsFilters({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="flex flex-wrap items-end justify-between gap-4"
+            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4"
         >
             {/* Status Filter */}
-            <div className="flex gap-1 rounded-lg border bg-muted/30 p-1">
+            <div className="flex w-full gap-1 rounded-lg border bg-muted/30 p-1 sm:w-auto">
                 <Button
                     variant={filter === 'active' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('active')}
-                    className="gap-1.5"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     Active
-                    <Badge variant={filter === 'active' ? 'secondary' : 'outline'} className="ml-1">
+                    <Badge variant={filter === 'active' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
                         {activeCount}
                     </Badge>
                 </Button>
@@ -59,10 +59,10 @@ export function ProjectsFilters({
                     variant={filter === 'archived' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('archived')}
-                    className="gap-1.5"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     Archived
-                    <Badge variant={filter === 'archived' ? 'secondary' : 'outline'} className="ml-1">
+                    <Badge variant={filter === 'archived' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
                         {archivedCount}
                     </Badge>
                 </Button>
@@ -70,19 +70,19 @@ export function ProjectsFilters({
                     variant={filter === 'all' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('all')}
-                    className="gap-1.5"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     All
-                    <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-1">
+                    <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
                         {totalCount}
                     </Badge>
                 </Button>
             </div>
 
             {/* Sort & Search */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Select value={sortBy} onValueChange={(v) => onSortChange(v as SortType)}>
-                    <SelectTrigger className="h-9 w-44">
+                    <SelectTrigger className="h-9 w-full sm:w-44">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -99,7 +99,7 @@ export function ProjectsFilters({
                         placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="h-9 w-50 pl-9 transition-all duration-200 focus:w-65"
+                        className="h-9 w-full pl-9 transition-all duration-200 sm:w-50 sm:focus:w-65"
                     />
                 </div>
             </div>

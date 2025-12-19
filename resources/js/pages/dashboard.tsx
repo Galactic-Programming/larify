@@ -90,7 +90,7 @@ export default function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.9, duration: 0.5, ease: 'easeOut' }}
                     whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
-                    className="bg-card relative min-h-screen flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg md:min-h-min dark:border-sidebar-border"
+                    className="bg-card relative min-h-[50vh] flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg sm:min-h-[60vh] md:min-h-min dark:border-sidebar-border"
                 >
                     <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </motion.div>

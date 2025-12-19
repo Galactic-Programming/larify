@@ -134,8 +134,6 @@ export default function ListsIndex({ project, permissions }: Props) {
                     <TableView
                         project={filteredProject}
                         permissions={permissions}
-                        onEditList={handleEditList}
-                        onDeleteList={handleDeleteList}
                     />
                 );
         }

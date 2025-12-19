@@ -38,8 +38,8 @@ export function MembersHeader({ project, membersCount, isOwner, onAddMember }: M
             className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
             {/* Project Info */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild>
+            <div className="flex items-center gap-3 sm:gap-4">
+                <Button variant="ghost" size="icon" asChild className="shrink-0">
                     <Link href={listsIndex(project).url}>
                         <ArrowLeft className="size-4" />
                     </Link>
@@ -48,17 +48,17 @@ export function MembersHeader({ project, membersCount, isOwner, onAddMember }: M
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
-                    className="flex size-14 items-center justify-center rounded-xl shadow-lg"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-lg sm:size-14 sm:rounded-xl"
                     style={{ backgroundColor: `${project.color}20` }}
                 >
-                    <ProjectIconDisplay iconName={project.icon} className="size-7" style={{ color: project.color }} />
+                    <ProjectIconDisplay iconName={project.icon} className="size-5 sm:size-7" style={{ color: project.color }} />
                 </motion.div>
-                <div>
+                <div className="min-w-0">
                     <motion.h1
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="text-2xl font-bold tracking-tight md:text-3xl"
+                        className="truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl"
                     >
                         Team Members
                     </motion.h1>
@@ -66,11 +66,11 @@ export function MembersHeader({ project, membersCount, isOwner, onAddMember }: M
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex items-center gap-2 text-muted-foreground"
+                        className="flex items-center gap-2 text-sm text-muted-foreground sm:text-base"
                     >
-                        <Users className="size-4" />
-                        <span>
-                            {membersCount} {membersCount === 1 ? 'member' : 'members'} in {project.name}
+                        <Users className="size-3.5 shrink-0 sm:size-4" />
+                        <span className="truncate">
+                            {membersCount} {membersCount === 1 ? 'member' : 'members'} in <span className="hidden sm:inline">{project.name}</span><span className="sm:hidden">project</span>
                         </span>
                     </motion.div>
                 </div>
