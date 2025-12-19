@@ -330,6 +330,7 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                                         mode="single"
                                                         selected={dueDate}
                                                         captionLayout="dropdown"
+                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                                         onSelect={(date) => {
                                                             setDueDate(date);
                                                             setDatePickerOpen(false);
