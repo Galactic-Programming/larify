@@ -1,9 +1,9 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { TrashFilter, TrashSortBy } from '@/types/trash.d';
-import { ArrowDownWideNarrow, Clock, FolderKanban, LayoutList, ListTodo, Search } from 'lucide-react';
+import { ArrowDownWideNarrow, CheckSquare, Clock, FolderKanban, LayoutList, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface TrashFiltersProps {
@@ -37,13 +37,72 @@ export function TrashFilters({
             transition={{ delay: 0.2 }}
             className="flex flex-col gap-4"
         >
+            {/* Filter Buttons */}
+            <div className="grid grid-cols-4 gap-1 rounded-lg border bg-muted/30 p-1">
+                <Button
+                    variant={filter === 'all' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onFilterChange('all')}
+                    className="gap-1.5 text-xs sm:text-sm"
+                >
+                    All
+                    {counts.all > 0 && (
+                        <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5">
+                            {counts.all}
+                        </Badge>
+                    )}
+                </Button>
+                <Button
+                    variant={filter === 'projects' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onFilterChange('projects')}
+                    className="gap-1.5 text-xs sm:text-sm"
+                >
+                    <FolderKanban className="size-4" />
+                    <span className="hidden xs:inline">Projects</span>
+                    {counts.projects > 0 && (
+                        <Badge variant={filter === 'projects' ? 'secondary' : 'outline'} className="ml-0.5">
+                            {counts.projects}
+                        </Badge>
+                    )}
+                </Button>
+                <Button
+                    variant={filter === 'lists' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onFilterChange('lists')}
+                    className="gap-1.5 text-xs sm:text-sm"
+                >
+                    <LayoutList className="size-4" />
+                    <span className="hidden xs:inline">Lists</span>
+                    {counts.lists > 0 && (
+                        <Badge variant={filter === 'lists' ? 'secondary' : 'outline'} className="ml-0.5">
+                            {counts.lists}
+                        </Badge>
+                    )}
+                </Button>
+                <Button
+                    variant={filter === 'tasks' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onFilterChange('tasks')}
+                    className="gap-1.5 text-xs sm:text-sm"
+                >
+                    <CheckSquare className="size-4" />
+                    <span className="hidden xs:inline">Tasks</span>
+                    {counts.tasks > 0 && (
+                        <Badge variant={filter === 'tasks' ? 'secondary' : 'outline'} className="ml-0.5">
+                            {counts.tasks}
+                        </Badge>
+                    )}
+                </Button>
+            </div>
+
             {/* Search and Sort Row */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative flex-1 sm:max-w-xs">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder="Search trash..."
+                        placeholder="Search deleted items..."
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -51,7 +110,7 @@ export function TrashFilters({
                 </div>
 
                 <Select value={sortBy} onValueChange={(value) => onSortChange(value as TrashSortBy)}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectTrigger className="w-full sm:w-64">
                         <ArrowDownWideNarrow className="mr-2 size-4" />
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
@@ -77,39 +136,6 @@ export function TrashFilters({
                     </SelectContent>
                 </Select>
             </div>
-
-            {/* Filter Tabs */}
-            <Tabs value={filter} onValueChange={(value) => onFilterChange(value as TrashFilter)}>
-                <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:grid-cols-none">
-                    <TabsTrigger value="all" className="gap-2">
-                        All
-                        <Badge variant="secondary" className="ml-1 hidden sm:inline-flex">
-                            {counts.all}
-                        </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="projects" className="gap-2">
-                        <FolderKanban className="size-4 sm:hidden" />
-                        <span className="hidden sm:inline">Projects</span>
-                        <Badge variant="secondary" className="ml-1 hidden sm:inline-flex">
-                            {counts.projects}
-                        </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="lists" className="gap-2">
-                        <LayoutList className="size-4 sm:hidden" />
-                        <span className="hidden sm:inline">Lists</span>
-                        <Badge variant="secondary" className="ml-1 hidden sm:inline-flex">
-                            {counts.lists}
-                        </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="tasks" className="gap-2">
-                        <ListTodo className="size-4 sm:hidden" />
-                        <span className="hidden sm:inline">Tasks</span>
-                        <Badge variant="secondary" className="ml-1 hidden sm:inline-flex">
-                            {counts.tasks}
-                        </Badge>
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
         </motion.div>
     );
 }
