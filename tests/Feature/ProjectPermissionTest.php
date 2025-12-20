@@ -61,7 +61,7 @@ test('owner can delete tasks', function () {
         ->delete(route('projects.tasks.destroy', ['project' => $this->project, 'task' => $this->task]))
         ->assertRedirect();
 
-    $this->assertDatabaseMissing('tasks', ['id' => $taskId]);
+    $this->assertSoftDeleted('tasks', ['id' => $taskId]);
 });
 
 test('owner can create lists', function () {
@@ -81,7 +81,7 @@ test('owner can delete lists', function () {
         ->delete(route('projects.lists.destroy', ['project' => $this->project, 'list' => $newList]))
         ->assertRedirect();
 
-    $this->assertDatabaseMissing('lists', ['id' => $newList->id]);
+    $this->assertSoftDeleted('lists', ['id' => $newList->id]);
 });
 
 test('owner can complete tasks', function () {
