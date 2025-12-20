@@ -25,3 +25,6 @@ Schedule::command('notifications:task-due-soon')->hourly();
 
 // Send task overdue notifications every hour
 Schedule::command('notifications:task-overdue')->hourly();
+
+// Clean up trash items daily at midnight
+Schedule::command('trash:cleanup')->daily();
