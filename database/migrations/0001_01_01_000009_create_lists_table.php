@@ -17,9 +17,11 @@ return new class extends Migration {
             $table->integer('position')->default(0); // Thứ tự hiển thị cột
             $table->boolean('is_done_list')->default(false); // Mark as Done list for auto-move
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['project_id', 'position']);
             $table->index(['project_id', 'is_done_list']);
+            $table->index('deleted_at');
         });
     }
 

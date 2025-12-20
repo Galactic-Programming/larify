@@ -6,10 +6,11 @@ use App\Enums\TaskPriority;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -32,6 +33,7 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'due_date' => 'date',
             'completed_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -44,11 +46,27 @@ class Task extends Model
     }
 
     /**
+     * Get the project including trashed.
+     */
+    public function projectWithTrashed(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id')->withTrashed();
+    }
+
+    /**
      * Get the list that owns the task.
      */
     public function list(): BelongsTo
     {
         return $this->belongsTo(TaskList::class, 'list_id');
+    }
+
+    /**
+     * Get the list including trashed.
+     */
+    public function listWithTrashed(): BelongsTo
+    {
+        return $this->belongsTo(TaskList::class, 'list_id')->withTrashed();
     }
 
     /**

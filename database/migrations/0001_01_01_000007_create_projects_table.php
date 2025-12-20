@@ -19,8 +19,10 @@ return new class extends Migration {
             $table->string('icon', 50)->default('folder-kanban'); // Lucide icon name
             $table->boolean('is_archived')->default(false);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['user_id', 'is_archived']);
+            $table->index('deleted_at');
         });
     }
 

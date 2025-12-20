@@ -8,9 +8,11 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import AuthLayout from '@/layouts/auth-layout';
+import { staggerContainer, fadeInUp } from '@/lib/motion';
 import { store } from '@/routes/two-factor/login';
 import { Form, Head } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
+import { motion, AnimatePresence } from 'motion/react';
 import { useMemo, useState } from 'react';
 
 export default function TwoFactorChallenge() {
@@ -52,7 +54,12 @@ export default function TwoFactorChallenge() {
         >
             <Head title="Two-Factor Authentication" />
 
-            <div className="space-y-6">
+            <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                className="space-y-6"
+            >
                 <Form
                     {...store.form()}
                     className="space-y-4"
@@ -61,55 +68,75 @@ export default function TwoFactorChallenge() {
                 >
                     {({ errors, processing, clearErrors }) => (
                         <>
-                            {showRecoveryInput ? (
-                                <>
-                                    <Input
-                                        name="recovery_code"
-                                        type="text"
-                                        placeholder="Enter recovery code"
-                                        autoFocus={showRecoveryInput}
-                                    />
-                                    <InputError
-                                        message={errors.recovery_code}
-                                    />
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                                    <div className="flex w-full items-center justify-center">
-                                        <InputOTP
-                                            name="code"
-                                            maxLength={OTP_MAX_LENGTH}
-                                            value={code}
-                                            onChange={(value) => setCode(value)}
-                                            disabled={processing}
-                                            pattern={REGEXP_ONLY_DIGITS}
-                                        >
-                                            <InputOTPGroup>
-                                                {Array.from(
-                                                    { length: OTP_MAX_LENGTH },
-                                                    (_, index) => (
-                                                        <InputOTPSlot
-                                                            key={index}
-                                                            index={index}
-                                                        />
-                                                    ),
-                                                )}
-                                            </InputOTPGroup>
-                                        </InputOTP>
-                                    </div>
-                                    <InputError message={errors.code} />
-                                </div>
-                            )}
+                            <AnimatePresence mode="wait">
+                                {showRecoveryInput ? (
+                                    <motion.div
+                                        key="recovery"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <Input
+                                            name="recovery_code"
+                                            type="text"
+                                            placeholder="Enter recovery code"
+                                            autoFocus={showRecoveryInput}
+                                        />
+                                        <InputError
+                                            message={errors.recovery_code}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="otp"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex flex-col items-center justify-center space-y-3 text-center"
+                                    >
+                                        <div className="flex w-full items-center justify-center">
+                                            <InputOTP
+                                                name="code"
+                                                maxLength={OTP_MAX_LENGTH}
+                                                value={code}
+                                                onChange={(value) => setCode(value)}
+                                                disabled={processing}
+                                                pattern={REGEXP_ONLY_DIGITS}
+                                            >
+                                                <InputOTPGroup>
+                                                    {Array.from(
+                                                        { length: OTP_MAX_LENGTH },
+                                                        (_, index) => (
+                                                            <InputOTPSlot
+                                                                key={index}
+                                                                index={index}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </InputOTPGroup>
+                                            </InputOTP>
+                                        </div>
+                                        <InputError message={errors.code} />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={processing}
+                            <motion.div variants={fadeInUp}>
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={processing}
+                                >
+                                    Continue
+                                </Button>
+                            </motion.div>
+
+                            <motion.div
+                                variants={fadeInUp}
+                                className="text-center text-sm text-muted-foreground"
                             >
-                                Continue
-                            </Button>
-
-                            <div className="text-center text-sm text-muted-foreground">
                                 <span>or you can </span>
                                 <button
                                     type="button"
@@ -120,11 +147,11 @@ export default function TwoFactorChallenge() {
                                 >
                                     {authConfigContent.toggleText}
                                 </button>
-                            </div>
+                            </motion.div>
                         </>
                     )}
                 </Form>
-            </div>
+            </motion.div>
         </AuthLayout>
     );
 }

@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -26,7 +27,54 @@ class Project extends Model
     {
         return [
             'is_archived' => 'boolean',
+            'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        // Cascade soft delete to lists and tasks
+        static::deleting(function (Project $project) {
+            if (! $project->isForceDeleting()) {
+                $deletedAt = now();
+
+                // Soft delete all lists
+                $project->lists()->withTrashed()->whereNull('deleted_at')->update(['deleted_at' => $deletedAt]);
+
+                // Soft delete all tasks
+                $project->tasks()->withTrashed()->whereNull('deleted_at')->update(['deleted_at' => $deletedAt]);
+            }
+        });
+
+        // Cascade restore lists and tasks that were deleted at the same time
+        static::restoring(function (Project $project) {
+            $deletedAt = $project->deleted_at;
+
+            // Restore lists deleted at the same time (within 1 second tolerance)
+            $project->lists()
+                ->withTrashed()
+                ->where('deleted_at', '>=', $deletedAt->subSecond())
+                ->where('deleted_at', '<=', $deletedAt->addSecond())
+                ->update(['deleted_at' => null]);
+
+            // Restore tasks deleted at the same time
+            $project->tasks()
+                ->withTrashed()
+                ->where('deleted_at', '>=', $deletedAt->subSecond())
+                ->where('deleted_at', '<=', $deletedAt->addSecond())
+                ->update(['deleted_at' => null]);
+        });
+
+        // Cascade force delete
+        static::forceDeleting(function (Project $project) {
+            // Force delete all lists (will cascade to tasks via DB constraint)
+            $project->lists()->withTrashed()->forceDelete();
+            // Force delete all tasks
+            $project->tasks()->withTrashed()->forceDelete();
+        });
     }
 
     /**

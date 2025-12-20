@@ -25,10 +25,12 @@ return new class extends Migration
             $table->time('due_time'); // Deadline time (required)
             $table->timestamp('completed_at')->nullable(); // Hoàn thành
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('assigned_to');
             $table->index(['list_id', 'position']);
             $table->index(['project_id', 'completed_at']);
+            $table->index('deleted_at');
         });
     }
 
