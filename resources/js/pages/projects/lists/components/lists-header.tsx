@@ -10,6 +10,7 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, CircleAlert, Clock, Columns3, F
 import { motion } from 'motion/react';
 import type { Permissions, Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
+import { ProjectTrashSheet } from './project-trash-sheet';
 
 interface ListsHeaderProps {
     project: Project;
@@ -216,6 +217,9 @@ export function ListsHeader({
                     </TooltipTrigger>
                     <TooltipContent>Manage Members</TooltipContent>
                 </Tooltip>
+
+                {/* Project Trash - Only for editors */}
+                {permissions.canEdit && <ProjectTrashSheet projectId={project.id} />}
 
                 {/* Create List - Only for editors */}
                 {permissions.canEdit && <CreateListDialog project={project} />}

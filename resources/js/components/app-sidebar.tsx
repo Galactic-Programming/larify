@@ -13,9 +13,10 @@ import {
 import { dashboard } from '@/routes';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { index as projectsIndex } from '@/routes/projects';
+import { index as trashIndex } from '@/actions/App/Http/Controllers/Trash/TrashController';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Bell, FolderKanban, LayoutGrid } from 'lucide-react';
+import { Bell, FolderKanban, LayoutGrid, Trash2 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -34,10 +35,15 @@ const mainNavItems: NavItem[] = [
         href: notificationsIndex(),
         icon: Bell,
     },
+    {
+        title: 'Trash',
+        href: trashIndex(),
+        icon: Trash2,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
-    
+
 ];
 
 export function AppSidebar() {

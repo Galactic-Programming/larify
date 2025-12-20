@@ -7,8 +7,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import type { Notification, NOTIFICATION_TYPES } from '@/types/notifications.d';
-import { Link, router } from '@inertiajs/react';
+import type { Notification } from '@/types/notifications.d';
+import { router } from '@inertiajs/react';
 import {
     Bell,
     Check,
