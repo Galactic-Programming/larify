@@ -49,6 +49,24 @@ class ProjectPolicy
     }
 
     /**
+     * Determine whether the user can restore the project.
+     * Only Owner can restore trashed projects.
+     */
+    public function restore(User $user, Project $project): bool
+    {
+        return $user->id === $project->user_id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the project.
+     * Only Owner can force delete projects.
+     */
+    public function forceDelete(User $user, Project $project): bool
+    {
+        return $user->id === $project->user_id;
+    }
+
+    /**
      * Determine whether the user can archive the project.
      */
     public function archive(User $user, Project $project): bool

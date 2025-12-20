@@ -43,4 +43,24 @@ class TaskListPolicy
         return $project->canDelete($user)
             && $taskList->project_id === $project->id;
     }
+
+    /**
+     * Determine whether the user can restore the list.
+     * Only Owner or Admin can restore trashed lists.
+     */
+    public function restore(User $user, TaskList $taskList, Project $project): bool
+    {
+        return $project->canDelete($user)
+            && $taskList->project_id === $project->id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the list.
+     * Only Owner can force delete lists.
+     */
+    public function forceDelete(User $user, TaskList $taskList, Project $project): bool
+    {
+        return $user->id === $project->user_id
+            && $taskList->project_id === $project->id;
+    }
 }
