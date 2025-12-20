@@ -19,9 +19,11 @@ import {
     UserMinus,
     UserPlus,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface ActivityItemProps {
     activity: Activity;
+    index?: number;
 }
 
 // Map activity type icons
@@ -55,20 +57,35 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function ActivityItem({ activity }: ActivityItemProps) {
+export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
     const icon = ACTIVITY_ICONS[activity.type] || <PlusCircle className="size-4 text-muted-foreground" />;
 
     return (
         <div className="flex items-start gap-3 py-3">
-            {/* Timeline indicator */}
+            {/* Timeline indicator with animation */}
             <div className="relative flex flex-col items-center">
-                <div className="flex size-8 items-center justify-center rounded-full bg-muted">
+                <motion.div
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{
+                        type: 'spring',
+                        stiffness: 200,
+                        damping: 15,
+                        delay: 0.1 + index * 0.05,
+                    }}
+                    className="flex size-8 items-center justify-center rounded-full bg-muted"
+                >
                     {icon}
-                </div>
+                </motion.div>
             </div>
 
-            {/* Content */}
-            <div className="min-w-0 flex-1 pb-4">
+            {/* Content with fade animation */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
+                className="min-w-0 flex-1 pb-4"
+            >
                 <div className="flex items-center gap-2">
                     {activity.user && (
                         <Avatar className="size-6">
@@ -98,7 +115,7 @@ export function ActivityItem({ activity }: ActivityItemProps) {
                     {activity.project && (
                         <Link
                             href={`/projects/${activity.project.id}/lists`}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 hover:bg-accent"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 transition-colors hover:bg-accent"
                         >
                             <span
                                 className="size-2 rounded-full"
@@ -109,7 +126,7 @@ export function ActivityItem({ activity }: ActivityItemProps) {
                     )}
                     <span>{activity.created_at_human}</span>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

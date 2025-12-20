@@ -85,10 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('api.notifications.mark-read');
     Route::patch('api/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
         ->name('api.notifications.mark-all-read');
-    Route::delete('api/notifications/{notification}', [NotificationController::class, 'destroy'])
-        ->name('api.notifications.destroy');
+    // Note: destroyRead must come BEFORE destroy to avoid {notification} capturing "read"
     Route::delete('api/notifications/read', [NotificationController::class, 'destroyRead'])
         ->name('api.notifications.destroy-read');
+    Route::delete('api/notifications/{notification}', [NotificationController::class, 'destroy'])
+        ->name('api.notifications.destroy');
 
     // Activities
     Route::get('api/activities', [ActivityController::class, 'list'])

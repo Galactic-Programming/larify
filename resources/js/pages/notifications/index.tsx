@@ -13,6 +13,7 @@ import type { BreadcrumbItem } from '@/types';
 import type { Activity, Notification, NotificationFilter, PaginationMeta } from '@/types/notifications.d';
 import { Head, router } from '@inertiajs/react';
 import { Activity as ActivityIcon, Bell, Check, CheckCheck, Filter, MoreHorizontal, Trash2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -168,8 +169,13 @@ export default function NotificationsIndex({
             });
 
             if (response.ok) {
+                // Keep only unread notifications (remove read ones)
                 setNotifications((prev) => prev.filter((n) => !n.is_read));
+                // Update unread count - it stays the same since we only deleted read ones
                 toast.success('Read notifications deleted');
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                toast.error(errorData.message || 'Failed to delete read notifications');
             }
         } catch {
             toast.error('Failed to delete read notifications');
@@ -207,114 +213,143 @@ export default function NotificationsIndex({
             <Head title="Notifications" />
             <div className="mx-auto flex h-full w-full max-w-4xl flex-1 flex-col gap-6 p-4 md:p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex items-center justify-between"
+                >
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-                        <p className="text-sm text-muted-foreground">
+                        <motion.h1
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="text-2xl font-bold tracking-tight"
+                        >
+                            Notifications
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="text-sm text-muted-foreground"
+                        >
                             Stay updated with your projects and tasks
-                        </p>
+                        </motion.p>
                     </div>
 
                     {activeTab === 'notifications' && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                    <MoreHorizontal className="mr-2 size-4" />
-                                    Actions
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    onClick={handleMarkAllAsRead}
-                                    disabled={unreadFilteredCount === 0}
-                                >
-                                    <CheckCheck className="mr-2 size-4" />
-                                    Mark all as read
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={handleDeleteRead}
-                                    className="text-destructive"
-                                    disabled={notifications.every((n) => !n.is_read)}
-                                >
-                                    <Trash2 className="mr-2 size-4" />
-                                    Delete read notifications
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3, delay: 0.3 }}
+                        >
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        <MoreHorizontal className="mr-2 size-4" />
+                                        Actions
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                        onClick={handleMarkAllAsRead}
+                                        disabled={unreadFilteredCount === 0}
+                                    >
+                                        <CheckCheck className="mr-2 size-4" />
+                                        Mark all as read
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={handleDeleteRead}
+                                        className="text-destructive"
+                                        disabled={notifications.every((n) => !n.is_read)}
+                                    >
+                                        <Trash2 className="mr-2 size-4" />
+                                        Delete read notifications
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </motion.div>
                     )}
-                </div>
+                </motion.div>
 
                 {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <TabsList>
-                            <TabsTrigger value="notifications" className="gap-2">
-                                <Bell className="size-4" />
-                                Notifications
-                                {unreadCount > 0 && (
-                                    <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
-                                        {unreadCount}
-                                    </span>
-                                )}
-                            </TabsTrigger>
-                            <TabsTrigger value="activities" className="gap-2">
-                                <ActivityIcon className="size-4" />
-                                Activity Feed
-                            </TabsTrigger>
-                        </TabsList>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <TabsList>
+                                <TabsTrigger value="notifications" className="gap-2">
+                                    <Bell className="size-4" />
+                                    Notifications
+                                    {unreadCount > 0 && (
+                                        <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="activities" className="gap-2">
+                                    <ActivityIcon className="size-4" />
+                                    Activity Feed
+                                </TabsTrigger>
+                            </TabsList>
 
-                        {/* Filter (only for notifications) */}
-                        {activeTab === 'notifications' && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Filter:</span>
-                                <div className="flex gap-1">
-                                    {(['all', 'unread', 'read'] as const).map((f) => (
-                                        <Button
-                                            key={f}
-                                            variant={filter === f ? 'secondary' : 'ghost'}
-                                            size="sm"
-                                            onClick={() => setFilter(f)}
-                                            className="capitalize"
-                                        >
-                                            {f}
-                                            {f === 'unread' && unreadFilteredCount > 0 && (
-                                                <span className="ml-1 text-xs">({unreadFilteredCount})</span>
-                                            )}
-                                        </Button>
-                                    ))}
+                            {/* Filter (only for notifications) */}
+                            {activeTab === 'notifications' && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Filter:</span>
+                                    <div className="flex gap-1">
+                                        {(['all', 'unread', 'read'] as const).map((f) => (
+                                            <Button
+                                                key={f}
+                                                variant={filter === f ? 'secondary' : 'ghost'}
+                                                size="sm"
+                                                onClick={() => setFilter(f)}
+                                                className="capitalize"
+                                            >
+                                                {f}
+                                                {f === 'unread' && unreadFilteredCount > 0 && (
+                                                    <span className="ml-1 text-xs">({unreadFilteredCount})</span>
+                                                )}
+                                            </Button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
 
-                    {/* Notifications Tab */}
-                    <TabsContent value="notifications" className="mt-6">
-                        {filteredNotifications.length === 0 ? (
-                            <NotificationEmpty filter={filter} />
-                        ) : (
-                            <NotificationList
-                                notifications={filteredNotifications}
-                                onMarkAsRead={handleMarkAsRead}
-                                onDelete={handleDelete}
-                            />
-                        )}
-                    </TabsContent>
+                        {/* Notifications Tab */}
+                        <TabsContent value="notifications" className="mt-6">
+                            {filteredNotifications.length === 0 ? (
+                                <NotificationEmpty filter={filter} />
+                            ) : (
+                                <NotificationList
+                                    notifications={filteredNotifications}
+                                    onMarkAsRead={handleMarkAsRead}
+                                    onDelete={handleDelete}
+                                />
+                            )}
+                        </TabsContent>
 
-                    {/* Activities Tab */}
-                    <TabsContent value="activities" className="mt-6">
-                        {activities.length === 0 ? (
-                            <ActivityEmpty />
-                        ) : (
-                            <ActivityList
-                                activities={activities}
-                                isLoading={isLoading}
-                                hasMore={(initialActivities?.meta?.current_page || 1) < (initialActivities?.meta?.last_page || 1)}
-                                onLoadMore={handleLoadMoreActivities}
-                            />
-                        )}
-                    </TabsContent>
-                </Tabs>
+                        {/* Activities Tab */}
+                        <TabsContent value="activities" className="mt-6">
+                            {activities.length === 0 ? (
+                                <ActivityEmpty />
+                            ) : (
+                                <ActivityList
+                                    activities={activities}
+                                    isLoading={isLoading}
+                                    hasMore={(initialActivities?.meta?.current_page || 1) < (initialActivities?.meta?.last_page || 1)}
+                                    onLoadMore={handleLoadMoreActivities}
+                                />
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                </motion.div>
             </div>
         </AppLayout>
     );

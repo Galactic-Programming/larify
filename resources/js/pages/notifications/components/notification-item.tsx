@@ -22,6 +22,7 @@ import {
     UserPlus,
     AlertTriangle,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface NotificationItemProps {
     notification: Notification;
@@ -122,7 +123,8 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
     };
 
     const content = (
-        <div
+        <motion.div
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
             className={cn(
                 'group flex items-start gap-3 rounded-lg border p-4 transition-colors',
                 notification.is_read
@@ -162,9 +164,9 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
                         )}
                     </div>
 
-                    {/* Unread indicator */}
+                    {/* Unread indicator with pulse */}
                     {!notification.is_read && (
-                        <div className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+                        <div className="mt-1 size-2 shrink-0 animate-pulse rounded-full bg-primary" />
                     )}
                 </div>
 
@@ -200,7 +202,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-        </div>
+        </motion.div>
     );
 
     return content;

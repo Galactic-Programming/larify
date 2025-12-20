@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Activity } from '@/types/notifications.d';
+import { motion, type Variants } from 'motion/react';
 import { ActivityItem } from './activity-item';
 
 interface ActivityListProps {
@@ -9,6 +10,42 @@ interface ActivityListProps {
     hasMore?: boolean;
     onLoadMore?: () => void;
 }
+
+// Animation variants
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.2,
+        },
+    },
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, x: -15 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 15,
+        },
+    },
+};
+
+const timelineVariants: Variants = {
+    hidden: { scaleY: 0 },
+    visible: {
+        scaleY: 1,
+        transition: {
+            duration: 0.6,
+            ease: 'easeOut',
+        },
+    },
+};
 
 function ActivitySkeleton() {
     return (
@@ -46,29 +83,47 @@ export function ActivityList({
     }
 
     return (
-        <div className="relative overflow-visible">
-            {/* Timeline line */}
-            <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
+        <motion.div
+            className="relative overflow-visible"
+            initial="hidden"
+            animate="visible"
+        >
+            {/* Animated Timeline line - grows from top to bottom */}
+            <motion.div
+                className="absolute left-4 top-0 bottom-0 w-px origin-top bg-border"
+                variants={timelineVariants}
+            />
 
-            <div className="space-y-1">
+            <motion.div className="space-y-1" variants={containerVariants}>
                 {activities.map((activity, index) => (
-                    <div key={activity.id} className="relative">
-                        <ActivityItem activity={activity} />
+                    <motion.div
+                        key={activity.id}
+                        className="relative"
+                        variants={itemVariants}
+                    >
+                        <ActivityItem activity={activity} index={index} />
                         {/* Hide line for last item */}
                         {index === activities.length - 1 && (
                             <div className="absolute left-4 top-8 bottom-0 w-px bg-background" />
                         )}
-                    </div>
+                    </motion.div>
                 ))}
-            </div>
+            </motion.div>
 
             {hasMore && (
-                <div className="flex justify-center pt-4">
-                    <Button variant="outline" onClick={onLoadMore} disabled={isLoading}>
-                        {isLoading ? 'Loading...' : 'Load more'}
-                    </Button>
-                </div>
+                <motion.div
+                    className="flex justify-center pt-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                >
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button variant="outline" onClick={onLoadMore} disabled={isLoading}>
+                            {isLoading ? 'Loading...' : 'Load more'}
+                        </Button>
+                    </motion.div>
+                </motion.div>
             )}
-        </div>
+        </motion.div>
     );
 }
