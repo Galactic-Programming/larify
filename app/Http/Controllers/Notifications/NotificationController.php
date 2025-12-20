@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Notifications;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ActivityResource;
 use App\Http\Resources\NotificationResource;
+use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -23,8 +25,16 @@ class NotificationController extends Controller
             ->latest()
             ->paginate(20);
 
+        // Get activities from user's projects
+        $projectIds = $user->allProjects()->pluck('id');
+        $activities = Activity::whereIn('project_id', $projectIds)
+            ->with(['user:id,name,avatar', 'project:id,name,color,icon'])
+            ->latest()
+            ->paginate(30);
+
         return Inertia::render('notifications/index', [
             'notifications' => NotificationResource::collection($notifications),
+            'activities' => ActivityResource::collection($activities),
             'unreadCount' => $user->unreadNotifications()->count(),
         ]);
     }

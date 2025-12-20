@@ -11,10 +11,11 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as notificationsIndex } from '@/routes/notifications';
 import { index as projectsIndex } from '@/routes/projects';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { FolderKanban, LayoutGrid } from 'lucide-react';
+import { Bell, FolderKanban, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -28,10 +29,15 @@ const mainNavItems: NavItem[] = [
         href: projectsIndex(),
         icon: FolderKanban,
     },
+    {
+        title: 'Notifications',
+        href: notificationsIndex(),
+        icon: Bell,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
-
+    
 ];
 
 export function AppSidebar() {
