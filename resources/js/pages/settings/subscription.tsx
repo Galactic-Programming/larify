@@ -67,7 +67,8 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
 
     const handleUpgrade = (planId: string) => {
         setLoadingAction(`upgrade-${planId}`);
-        router.visit(`/billing/checkout/${planId}`);
+        // Use window.location for Stripe Checkout redirect (external URL requires full page redirect)
+        window.location.href = `/billing/checkout/${planId}`;
     };
 
     const handleSwap = (planId: string) => {

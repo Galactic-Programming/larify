@@ -52,7 +52,21 @@ class CheckoutController extends Controller
      */
     public function portal(Request $request)
     {
-        return $request->user()->redirectToBillingPortal(
+        $user = $request->user();
+
+        // User must have a Stripe customer ID to access the billing portal
+        if (! $user->hasStripeId()) {
+            // Create as Stripe customer if they have a subscription history
+            // Otherwise redirect back with a message
+            if (! $user->subscribed('default')) {
+                return redirect()->route('billing.index')
+                    ->with('error', 'You need an active subscription to manage payment methods.');
+            }
+
+            $user->createAsStripeCustomer();
+        }
+
+        return $user->redirectToBillingPortal(
             route('billing.index')
         );
     }
