@@ -229,11 +229,13 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                                     Resume Subscription
                                 </Button>
                             )}
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href="/billing/portal">
-                                    <CreditCardIcon className="mr-2 size-4" />
-                                    Payment Method
-                                </Link>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => (window.location.href = '/billing/portal')}
+                            >
+                                <CreditCardIcon className="mr-2 size-4" />
+                                Payment Method
                             </Button>
                         </CardFooter>
                     </Card>
