@@ -139,7 +139,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
             'ends_at' => $subscription->ends_at?->toISOString(),
             'on_trial' => $subscription->onTrial(),
-            'cancelled' => $subscription->cancelled(),
+            'canceled' => $subscription->canceled(),
             'on_grace_period' => $subscription->onGracePeriod(),
             'active' => $subscription->active(),
             'plan' => $plan ? [

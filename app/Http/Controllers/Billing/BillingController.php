@@ -93,13 +93,15 @@ class BillingController extends Controller
         $user = $request->user();
 
         $invoices = $user->invoices()->map(function ($invoice) {
+            $stripeInvoice = $invoice->asStripeInvoice();
+
             return [
                 'id' => $invoice->id,
                 'date' => $invoice->date()->toISOString(),
                 'total' => $invoice->total(),
-                'status' => $invoice->status,
-                'invoice_pdf' => $invoice->invoicePdf(),
-                'hosted_invoice_url' => $invoice->hostedInvoiceUrl(),
+                'status' => $stripeInvoice->status,
+                'invoice_pdf' => $stripeInvoice->invoice_pdf,
+                'hosted_invoice_url' => $stripeInvoice->hosted_invoice_url,
             ];
         });
 
