@@ -9,13 +9,17 @@ return new class extends Migration {
     {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
-            $table->string('chargebee_id')->unique();
-            $table->string('display_name');
-            $table->integer('price');
-            $table->string('chargebee_product');
-            $table->string('frequency');
-            $table->string('currency');
-            $table->integer('quantity')->default(1);
+            $table->string('stripe_id')->unique();
+            $table->string('stripe_product');
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->integer('price'); // in cents
+            $table->string('currency')->default('usd');
+            $table->string('interval'); // month, year
+            $table->integer('interval_count')->default(1);
+            $table->json('features')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }

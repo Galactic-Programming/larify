@@ -116,4 +116,64 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Activity::class);
     }
+
+    /**
+     * Get subscription with plan details.
+     */
+    public function subscriptionWithPlan(?string $type = 'default'): ?array
+    {
+        $subscription = $this->subscription($type);
+
+        if (!$subscription) {
+            return null;
+        }
+
+        $plan = \App\Models\Plan::findByStripeId($subscription->stripe_price);
+
+        return [
+            'id' => $subscription->id,
+            'stripe_id' => $subscription->stripe_id,
+            'stripe_status' => $subscription->stripe_status,
+            'stripe_price' => $subscription->stripe_price,
+            'quantity' => $subscription->quantity,
+            'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
+            'ends_at' => $subscription->ends_at?->toISOString(),
+            'on_trial' => $subscription->onTrial(),
+            'cancelled' => $subscription->cancelled(),
+            'on_grace_period' => $subscription->onGracePeriod(),
+            'active' => $subscription->active(),
+            'plan' => $plan ? [
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'description' => $plan->description,
+                'price' => $plan->price,
+                'display_price' => $plan->displayPrice(),
+                'interval' => $plan->interval,
+                'interval_label' => $plan->intervalLabel(),
+                'features' => $plan->features,
+            ] : null,
+        ];
+    }
+
+    /**
+     * Check if user has premium subscription.
+     */
+    public function isPremium(): bool
+    {
+        return $this->subscribed('default') && !$this->subscription('default')->cancelled();
+    }
+
+    /**
+     * Get the user's current plan name.
+     */
+    public function currentPlanName(): string
+    {
+        if (!$this->subscribed('default')) {
+            return 'Free';
+        }
+
+        $plan = \App\Models\Plan::findByStripeId($this->subscription('default')->stripe_price);
+
+        return $plan?->name ?? 'Premium';
+    }
 }

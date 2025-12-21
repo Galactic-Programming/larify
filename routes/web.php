@@ -151,3 +151,4 @@ Route::get('auth/{provider}/callback', [SocialController::class, 'callback'])
     ->name('social.callback');
 
 require __DIR__.'/settings.php';
+require __DIR__.'/billing.php';
