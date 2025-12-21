@@ -58,9 +58,9 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Create a checkout session for updating payment method.
+     * Redirect to Stripe Customer Portal.
      */
-    public function updatePaymentMethod(Request $request)
+    public function portal(Request $request)
     {
         return $request->user()->redirectToBillingPortal(
             route('billing.index')

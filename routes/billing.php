@@ -43,9 +43,9 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
     Route::get('/cancel', [CheckoutController::class, 'cancel'])
         ->name('cancel');
 
-    // Payment method
-    Route::get('/payment-method', [CheckoutController::class, 'updatePaymentMethod'])
-        ->name('payment-method');
+    // Stripe Customer Portal (payment method, billing info)
+    Route::get('/portal', [CheckoutController::class, 'portal'])
+        ->name('portal');
 
     // Subscription management
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
@@ -57,7 +57,7 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])
         ->name('subscription.resume');
 
-    Route::post('/subscription/swap', [SubscriptionController::class, 'swap'])
+    Route::post('/subscription/swap/{plan}', [SubscriptionController::class, 'swap'])
         ->name('subscription.swap');
 
     Route::post('/subscription/quantity', [SubscriptionController::class, 'updateQuantity'])

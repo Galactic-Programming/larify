@@ -36,10 +36,15 @@ class SubscriptionController extends Controller
             return back()->with('error', 'No active subscription found.');
         }
 
-        $subscription->cancelNow();
+        try {
+            $subscription->cancelNow();
 
-        return redirect()->route('billing.index')
-            ->with('success', 'Your subscription has been cancelled immediately.');
+            return redirect()->route('billing.index')
+                ->with('success', 'Your subscription has been cancelled immediately.');
+        } catch (\Exception $e) {
+            return redirect()->route('error.general')
+                ->with('error', 'Failed to cancel subscription: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -65,13 +70,8 @@ class SubscriptionController extends Controller
     /**
      * Swap to a different plan.
      */
-    public function swap(Request $request)
+    public function swap(Request $request, string $planId)
     {
-        $request->validate([
-            'plan_id' => 'required|string',
-        ]);
-
-        $planId = $request->input('plan_id');
         $plan = Plan::findByStripeId($planId);
 
         if (!$plan) {
@@ -86,10 +86,15 @@ class SubscriptionController extends Controller
             return redirect()->route('billing.checkout', $planId);
         }
 
-        // Swap the subscription
-        $subscription->swap($planId);
+        try {
+            // Swap the subscription
+            $subscription->swap($planId);
 
-        return back()->with('success', 'Your subscription has been updated to ' . $plan->name . '.');
+            return back()->with('success', 'Your subscription has been updated to ' . $plan->name . '.');
+        } catch (\Exception $e) {
+            return redirect()->route('error.general')
+                ->with('error', 'Failed to update subscription: ' . $e->getMessage());
+        }
     }
 
     /**

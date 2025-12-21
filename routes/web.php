@@ -141,6 +141,13 @@ Route::get('/privacy', function () {
     return Inertia::render('auth/condition', ['type' => 'privacy']);
 })->name('privacy');
 
+// Error Pages
+Route::get('/something-went-wrong', function () {
+    return Inertia::render('errors/something-went-wrong', [
+        'flash' => session()->only(['error', 'success']),
+    ]);
+})->name('error.general');
+
 // Social Authentication
 Route::get('auth/{provider}/redirect', [SocialController::class, 'redirect'])
     ->whereIn('provider', ['google', 'github'])
