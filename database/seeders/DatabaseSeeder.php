@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserPlan;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -13,23 +14,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Create Free plan test user
         User::firstOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'free@example.com'],
             [
-                'name' => 'Test User',
+                'name' => 'Test Free',
                 'password' => 'password',
                 'email_verified_at' => now(),
+                'plan' => UserPlan::Free,
+            ]
+        );
+
+        // Create Pro plan test user
+        User::firstOrCreate(
+            ['email' => 'pro@example.com'],
+            [
+                'name' => 'Test Pro',
+                'password' => 'password',
+                'email_verified_at' => now(),
+                'plan' => UserPlan::Pro,
             ]
         );
 
         $this->call([
-            ProjectSeeder::class,
-        ]);
-
-        $this->call([
             PlanSeeder::class,
+            ProjectSeeder::class,
         ]);
     }
 }

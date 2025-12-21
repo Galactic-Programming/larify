@@ -16,18 +16,15 @@ class ProjectSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ]
-        );
+        // Get Pro user for projects (Pro can invite members)
+        $proUser = User::where('email', 'pro@example.com')->first();
 
-        // Project 1: Website Redesign
+        // Get Free user
+        $freeUser = User::where('email', 'free@example.com')->first();
+
+        // Project 1: Website Redesign (owned by Pro user)
         $project1 = Project::create([
-            'user_id' => $user->id,
+            'user_id' => $proUser->id,
             'name' => 'Website Redesign',
             'description' => 'Redesign company website with modern UI/UX',
             'color' => '#6366f1',
@@ -35,9 +32,9 @@ class ProjectSeeder extends Seeder
 
         $this->createDefaultLists($project1);
 
-        // Project 2: Mobile App
+        // Project 2: Mobile App (owned by Pro user)
         $project2 = Project::create([
-            'user_id' => $user->id,
+            'user_id' => $proUser->id,
             'name' => 'Mobile App Development',
             'description' => 'Build iOS and Android app',
             'color' => '#22c55e',
@@ -45,15 +42,25 @@ class ProjectSeeder extends Seeder
 
         $this->createDefaultLists($project2);
 
-        // Project 3: Marketing Campaign
+        // Project 3: Marketing Campaign (owned by Pro user)
         $project3 = Project::create([
-            'user_id' => $user->id,
+            'user_id' => $proUser->id,
             'name' => 'Q1 Marketing Campaign',
             'description' => null,
             'color' => '#f97316',
         ]);
 
         $this->createDefaultLists($project3);
+
+        // Project 4: Personal Tasks (owned by Free user - to test Free plan limitations)
+        $project4 = Project::create([
+            'user_id' => $freeUser->id,
+            'name' => 'Personal Tasks',
+            'description' => 'My personal task list',
+            'color' => '#8b5cf6',
+        ]);
+
+        $this->createDefaultLists($project4);
     }
 
     /**
