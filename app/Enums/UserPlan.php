@@ -5,21 +5,37 @@ namespace App\Enums;
 enum UserPlan: string
 {
     case Free = 'free';
-    case Premium = 'premium';
+    case Pro = 'pro';
 
     public function label(): string
     {
         return match ($this) {
             self::Free => 'Free',
-            self::Premium => 'Premium',
+            self::Pro => 'Pro',
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::Free => 'Basic features with limited access',
-            self::Premium => 'Full access to all features',
+            self::Free => 'Personal use with full features',
+            self::Pro => 'Team collaboration + premium features',
         };
+    }
+
+    /**
+     * Check if this plan allows team collaboration.
+     */
+    public function canInviteMembers(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
+     * Check if this plan has access to premium features.
+     */
+    public function isPremium(): bool
+    {
+        return $this === self::Pro;
     }
 }

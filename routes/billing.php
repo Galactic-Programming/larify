@@ -3,6 +3,7 @@
 use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Billing\CheckoutController;
 use App\Http\Controllers\Billing\SubscriptionController;
+use App\Http\Controllers\Billing\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 | Routes for handling Stripe billing, subscriptions, and invoices.
 |
 */
+
+// Stripe Webhook (must be outside auth middleware)
+Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook'])
+    ->name('cashier.webhook');
 
 // Public pricing page
 Route::get('pricing', [BillingController::class, 'pricing'])

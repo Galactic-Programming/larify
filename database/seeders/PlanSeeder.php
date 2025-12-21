@@ -15,105 +15,70 @@ class PlanSeeder extends Seeder
     public function run(): void
     {
         $plans = [
-            // Free plan (no Stripe integration needed)
+            // Free plan - Solo user, no team collaboration
             [
                 'stripe_id' => 'price_free',
                 'stripe_product' => 'prod_free',
                 'name' => 'Free',
-                'description' => 'Perfect for getting started',
+                'description' => 'Perfect for personal use',
                 'price' => 0,
                 'currency' => 'usd',
                 'interval' => 'month',
                 'interval_count' => 1,
                 'features' => [
-                    'Up to 3 projects',
-                    'Basic task management',
-                    'Email support',
+                    'Unlimited projects',
+                    'Unlimited tasks',
+                    'Task priorities & due dates',
+                    'Activity history',
+                    'Email notifications',
+                    'Personal use only',
                 ],
                 'is_active' => true,
                 'sort_order' => 0,
             ],
-            // Pro Monthly
+            // Pro Monthly - Team collaboration + Premium features
             [
-                'stripe_id' => 'price_pro_monthly', // Replace with actual Stripe Price ID
-                'stripe_product' => 'prod_pro', // Replace with actual Stripe Product ID
+                'stripe_id' => env('STRIPE_PRICE_PRO_MONTHLY', 'price_pro_monthly'),
+                'stripe_product' => env('STRIPE_PRODUCT_PRO', 'prod_pro'),
                 'name' => 'Pro',
-                'description' => 'For professionals and small teams',
+                'description' => 'For teams and professionals',
                 'price' => 999, // $9.99 in cents
                 'currency' => 'usd',
                 'interval' => 'month',
                 'interval_count' => 1,
                 'features' => [
-                    'Unlimited projects',
-                    'Advanced task management',
+                    'Everything in Free',
                     'Team collaboration',
+                    'Invite unlimited members',
+                    'Real-time updates',
+                    'In-app chat (coming soon)',
+                    'AI assistant (coming soon)',
                     'Priority support',
-                    'Custom integrations',
                 ],
                 'is_active' => true,
                 'sort_order' => 1,
             ],
-            // Pro Yearly
+            // Pro Yearly - Same features, better price
             [
-                'stripe_id' => 'price_pro_yearly', // Replace with actual Stripe Price ID
-                'stripe_product' => 'prod_pro', // Replace with actual Stripe Product ID
+                'stripe_id' => env('STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
+                'stripe_product' => env('STRIPE_PRODUCT_PRO', 'prod_pro'),
                 'name' => 'Pro',
-                'description' => 'For professionals and small teams',
+                'description' => 'For teams and professionals',
                 'price' => 9990, // $99.90 in cents (save ~17%)
                 'currency' => 'usd',
                 'interval' => 'year',
                 'interval_count' => 1,
                 'features' => [
-                    'Unlimited projects',
-                    'Advanced task management',
+                    'Everything in Free',
                     'Team collaboration',
+                    'Invite unlimited members',
+                    'Real-time updates',
+                    'In-app chat (coming soon)',
+                    'AI assistant (coming soon)',
                     'Priority support',
-                    'Custom integrations',
                 ],
                 'is_active' => true,
                 'sort_order' => 1,
-            ],
-            // Enterprise Monthly
-            [
-                'stripe_id' => 'price_enterprise_monthly', // Replace with actual Stripe Price ID
-                'stripe_product' => 'prod_enterprise', // Replace with actual Stripe Product ID
-                'name' => 'Enterprise',
-                'description' => 'For large organizations',
-                'price' => 2999, // $29.99 in cents
-                'currency' => 'usd',
-                'interval' => 'month',
-                'interval_count' => 1,
-                'features' => [
-                    'Everything in Pro',
-                    'Unlimited team members',
-                    'Advanced analytics',
-                    'SSO integration',
-                    'Dedicated support',
-                    'Custom contracts',
-                ],
-                'is_active' => true,
-                'sort_order' => 2,
-            ],
-            // Enterprise Yearly
-            [
-                'stripe_id' => 'price_enterprise_yearly', // Replace with actual Stripe Price ID
-                'stripe_product' => 'prod_enterprise', // Replace with actual Stripe Product ID
-                'name' => 'Enterprise',
-                'description' => 'For large organizations',
-                'price' => 29990, // $299.90 in cents (save ~17%)
-                'currency' => 'usd',
-                'interval' => 'year',
-                'interval_count' => 1,
-                'features' => [
-                    'Everything in Pro',
-                    'Unlimited team members',
-                    'Advanced analytics',
-                    'SSO integration',
-                    'Dedicated support',
-                    'Custom contracts',
-                ],
-                'is_active' => true,
-                'sort_order' => 2,
             ],
         ];
 
