@@ -29,8 +29,11 @@ export default function MembersIndex({ project }: Props) {
         { title: 'Members', href: membersIndex(project).url },
     ];
 
-    // Check if current user is the owner (can manage members)
+    // Check if current user is the project owner
     const isOwner = auth.user.id === project.user_id;
+
+    // Check if user can manage members (requires: owner + Pro plan)
+    const canManageMembers = isOwner && (auth.user.can_invite_members ?? false);
 
     // Combine owner and members into a single list for display
     const allMembers: Member[] = [
@@ -67,16 +70,16 @@ export default function MembersIndex({ project }: Props) {
                 <MembersHeader
                     project={project}
                     membersCount={allMembers.length}
-                    isOwner={isOwner}
+                    canManageMembers={canManageMembers}
                     onAddMember={() => setAddMemberOpen(true)}
                 />
 
                 {allMembers.length === 1 && !isOwner ? (
-                    <MembersEmptyState isOwner={false} />
+                    <MembersEmptyState canManageMembers={canManageMembers} />
                 ) : (
                     <MembersList
                         members={allMembers}
-                        isOwner={isOwner}
+                        canManageMembers={canManageMembers}
                         onEditMember={handleEditMember}
                         onRemoveMember={handleRemoveMember}
                     />

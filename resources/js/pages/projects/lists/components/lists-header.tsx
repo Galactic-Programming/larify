@@ -215,7 +215,9 @@ export function ListsHeader({
                             </Link>
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Manage Members</TooltipContent>
+                    <TooltipContent>
+                        {permissions.canManageMembers ? 'Manage Members' : 'View Members'}
+                    </TooltipContent>
                 </Tooltip>
 
                 {/* Project Trash - Only for editors */}

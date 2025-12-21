@@ -25,11 +25,11 @@ const ProjectIconDisplay = memo(function ProjectIconDisplay({
 interface MembersHeaderProps {
     project: ProjectWithMembers;
     membersCount: number;
-    isOwner: boolean;
+    canManageMembers: boolean;
     onAddMember: () => void;
 }
 
-export function MembersHeader({ project, membersCount, isOwner, onAddMember }: MembersHeaderProps) {
+export function MembersHeader({ project, membersCount, canManageMembers, onAddMember }: MembersHeaderProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -76,8 +76,8 @@ export function MembersHeader({ project, membersCount, isOwner, onAddMember }: M
                 </div>
             </div>
 
-            {/* Actions */}
-            {isOwner && (
+            {/* Actions - Only show for users who can manage members (Pro plan) */}
+            {canManageMembers && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}

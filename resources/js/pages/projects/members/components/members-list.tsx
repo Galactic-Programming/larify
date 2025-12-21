@@ -46,12 +46,12 @@ const ROLE_BADGE_CONFIG: Record<ProjectRole, { label: string; icon: typeof Crown
 
 interface MembersListProps {
     members: Member[];
-    isOwner: boolean;
+    canManageMembers: boolean;
     onEditMember: (member: Member) => void;
     onRemoveMember: (member: Member) => void;
 }
 
-export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: MembersListProps) {
+export function MembersList({ members, canManageMembers, onEditMember, onRemoveMember }: MembersListProps) {
     const getInitials = useInitials();
 
     return (
@@ -67,7 +67,7 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                         <TableHead>Member</TableHead>
                         <TableHead className="hidden sm:table-cell">Role</TableHead>
                         <TableHead className="hidden md:table-cell">Joined</TableHead>
-                        {isOwner && <TableHead className="w-12 sm:w-17.5">Actions</TableHead>}
+                        {canManageMembers && <TableHead className="w-12 sm:w-17.5">Actions</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -139,8 +139,8 @@ export function MembersList({ members, isOwner, onEditMember, onRemoveMember }: 
                                     </Tooltip>
                                 </TableCell>
 
-                                {/* Actions */}
-                                {isOwner && (
+                                {/* Actions - Only for users who can manage members */}
+                                {canManageMembers && (
                                     <TableCell>
                                         {!member.is_owner ? (
                                             <DropdownMenu>
