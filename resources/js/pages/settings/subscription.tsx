@@ -1,3 +1,14 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -83,7 +94,6 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
     };
 
     const handleCancel = () => {
-        if (!confirm('Are you sure you want to cancel your subscription? You will still have access until the end of your billing period.')) return;
         setLoadingAction('cancel');
         router.post(
             '/billing/subscription/cancel',
@@ -187,10 +197,31 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                         </CardContent>
                         <CardFooter className="flex flex-wrap gap-2">
                             {subscription && !onGracePeriod && (
-                                <Button variant="destructive" size="sm" onClick={handleCancel} disabled={!!loadingAction}>
-                                    {loadingAction === 'cancel' && <Loader2Icon className="mr-2 size-4 animate-spin" />}
-                                    Cancel Subscription
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm" disabled={!!loadingAction}>
+                                            {loadingAction === 'cancel' && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+                                            Cancel Subscription
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to cancel your subscription? You will still have access to all Pro features until the end of your current billing period.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={handleCancel}
+                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                            >
+                                                Yes, Cancel
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             )}
                             {onGracePeriod && (
                                 <Button size="sm" onClick={handleResume} disabled={!!loadingAction}>

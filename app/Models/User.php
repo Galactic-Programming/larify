@@ -157,10 +157,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Check if user has premium subscription.
+     * Returns true if user is subscribed (including grace period).
      */
     public function isPremium(): bool
     {
-        return $this->subscribed('default') && !$this->subscription('default')->cancelled();
+        // subscribed() already handles grace period - returns true if active OR on grace period
+        return $this->subscribed('default');
     }
 
     /**
