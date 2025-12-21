@@ -6,11 +6,13 @@ This document describes the role-based permission system implemented in Larify f
 
 Larify uses a three-tier role system for project access control:
 
-| Role       | Description                                                                                                 |
-| ---------- | ----------------------------------------------------------------------------------------------------------- |
-| **Owner**  | Full control over the project. Can manage members, settings, and perform all actions.                       |
-| **Editor** | Can create and edit tasks/lists, complete tasks. Cannot delete or reopen tasks, manage members or settings. |
-| **Viewer** | Read-only access. Can only view project content without making any changes.                                 |
+| Role       | Description                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| **Owner**  | Full control over the project. Can manage settings and perform all actions. Can manage members if on Pro plan. |
+| **Editor** | Can create and edit tasks/lists, complete tasks. Cannot delete or reopen tasks, manage members or settings.    |
+| **Viewer** | Read-only access. Can only view project content without making any changes.                                    |
+
+> **Note:** Managing project members (inviting/removing) requires the Owner to have an active **Pro subscription**. Free plan users cannot invite members to their projects.
 
 ## Permission Matrix
 
@@ -29,23 +31,24 @@ Larify uses a three-tier role system for project access control:
 
 ### List Operations
 
-| Action        | Owner | Editor | Viewer |
-| ------------- | :---: | :----: | :----: |
-| View lists    |  ✅   |   ✅   |   ✅   |
-| Create lists  |  ✅   |   ✅   |   ❌   |
-| Edit lists    |  ✅   |   ✅   |   ❌   |
-| Delete lists  |  ✅   |   ❌   |   ❌   |
-| Reorder lists |  ✅   |   ✅   |   ❌   |
+| Action           | Owner | Editor | Viewer |
+| ---------------- | :---: | :----: | :----: |
+| View lists       |  ✅   |   ✅   |   ✅   |
+| Create lists     |  ✅   |   ✅   |   ❌   |
+| Edit lists       |  ✅   |   ✅   |   ❌   |
+| Delete lists     |  ✅   |   ❌   |   ❌   |
+| Reorder lists    |  ✅   |   ✅   |   ❌   |
+| Set as done list |  ✅   |   ❌   |   ❌   |
 
 ### Project Management
 
-| Action                | Owner | Editor | Viewer |
-| --------------------- | :---: | :----: | :----: |
-| View project          |  ✅   |   ✅   |   ✅   |
-| Edit project settings |  ✅   |   ❌   |   ❌   |
-| Delete project        |  ✅   |   ❌   |   ❌   |
-| Manage members        |  ✅   |   ❌   |   ❌   |
-| View members          |  ✅   |   ✅   |   ✅   |
+| Action                | Owner | Editor | Viewer | Notes               |
+| --------------------- | :---: | :----: | :----: | ------------------- |
+| View project          |  ✅   |   ✅   |   ✅   |                     |
+| Edit project settings |  ✅   |   ❌   |   ❌   |                     |
+| Delete project        |  ✅   |   ❌   |   ❌   |                     |
+| Manage members        | ✅\*  |   ❌   |   ❌   | \*Requires Pro plan |
+| View members          |  ✅   |   ✅   |   ✅   |                     |
 
 ## Implementation Details
 
@@ -64,7 +67,7 @@ enum ProjectRole: string
 
     public function canEdit(): bool
     {
-        return $this !== self::Viewer;
+        return in_array($this, [self::Owner, self::Editor]);
     }
 
     public function canDelete(): bool
@@ -83,6 +86,16 @@ enum ProjectRole: string
     }
 
     public function canManageMembers(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    public function canAssignTask(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    public function canSetDoneList(): bool
     {
         return $this === self::Owner;
     }
@@ -106,11 +119,15 @@ $project->canManageSettings($user); // Owner only
 // Get all permissions as array (for frontend)
 $project->getPermissions($user);
 // Returns: [
+//     'canView' => bool,
 //     'canEdit' => bool,
 //     'canDelete' => bool,
-//     'canManageSettings' => bool,
-//     'canManageMembers' => bool,
 //     'canReopen' => bool,
+//     'canManageSettings' => bool,
+//     'canManageMembers' => bool,    // Requires Owner + Pro plan
+//     'canAssignTask' => bool,
+//     'canSetDoneList' => bool,
+//     'isOwner' => bool,
 //     'role' => string
 // ]
 ```
@@ -146,11 +163,15 @@ Located at `resources/js/pages/projects/lists/lib/types.ts`:
 
 ```typescript
 export interface Permissions {
+    canView: boolean;
     canEdit: boolean;
     canDelete: boolean;
-    canManageSettings: boolean;
-    canManageMembers: boolean;
     canReopen: boolean;
+    canManageSettings: boolean;
+    canManageMembers: boolean; // Requires Owner + Pro plan
+    canAssignTask: boolean;
+    canSetDoneList: boolean;
+    isOwner: boolean;
     role: 'owner' | 'editor' | 'viewer';
 }
 ```
@@ -188,7 +209,9 @@ function TaskCard({ task, permissions }: Props) {
 - Full access to all UI elements
 - Can see and use all action buttons (create, edit, delete)
 - Can access project settings
-- Can manage team members
+- Can assign tasks to members
+- Can set/unset done list for auto-completion
+- Can manage team members (requires Pro plan)
 
 ### Editor View
 

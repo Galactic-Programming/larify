@@ -50,15 +50,14 @@ class BillingController extends Controller
     /**
      * Show public pricing page.
      */
-    public function pricing()
+    public function pricing(Request $request)
     {
-        $plans = Plan::active()->ordered()->get()->groupBy('interval');
+        $plans = Plan::active()->ordered()->get();
 
         return Inertia::render('pricing', [
-            'plans' => [
-                'monthly' => $plans->get('month', collect())->values(),
-                'yearly' => $plans->get('year', collect())->values(),
-            ],
+            'plans' => $plans,
+            'isAuthenticated' => $request->user() !== null,
+            'currentSubscription' => $request->user()?->subscription('default')?->stripe_price,
         ]);
     }
 
