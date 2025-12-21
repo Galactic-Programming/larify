@@ -1,13 +1,15 @@
 <?php
 
 use App\Enums\ProjectRole;
+use App\Enums\UserPlan;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->owner = User::factory()->create();
+    // Create owner with Pro plan to have full permissions
+    $this->owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $this->editor = User::factory()->create();
     $this->viewer = User::factory()->create();
 
@@ -310,6 +312,24 @@ test('getPermissions returns correct permissions for viewer', function () {
         'canAssignTask' => false,
         'canReopen' => false,
         'role' => 'viewer',
+    ]);
+});
+
+test('getPermissions returns canManageMembers false for free owner', function () {
+    $freeOwner = User::factory()->create(['plan' => UserPlan::Free]);
+    $project = Project::factory()->for($freeOwner)->create();
+
+    $permissions = $project->getPermissions($freeOwner);
+
+    expect($permissions)->toMatchArray([
+        'canEdit' => true,
+        'canDelete' => true,
+        'canManageSettings' => true,
+        'canManageMembers' => false, // Free plan cannot manage members
+        'canAssignTask' => true,
+        'canReopen' => true,
+        'isOwner' => true,
+        'role' => 'owner',
     ]);
 });
 

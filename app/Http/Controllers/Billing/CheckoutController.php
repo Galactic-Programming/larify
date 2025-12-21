@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Billing;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Billing\CheckoutRequest;
+use App\Http\Requests\Billing\SwapPlanRequest;
 use App\Models\Plan;
 use Illuminate\Http\Request;
 
@@ -11,28 +13,16 @@ class CheckoutController extends Controller
     /**
      * Create a Stripe Checkout session for a subscription.
      */
-    public function checkout(Request $request, string $planId)
+    public function checkout(CheckoutRequest $request, string $planId)
     {
-        $plan = Plan::findByStripeId($planId);
-
-        if (!$plan) {
-            return redirect()->route('billing.plans')
-                ->with('error', 'Plan not found.');
-        }
-
+        $plan = $request->plan();
         $user = $request->user();
-
-        // If user already has this subscription, redirect to billing
-        if ($user->subscribed('default') && $user->subscription('default')->hasPrice($planId)) {
-            return redirect()->route('billing.index')
-                ->with('info', 'You are already subscribed to this plan.');
-        }
 
         // Create Stripe Checkout Session
         return $user
             ->newSubscription('default', $planId)
             ->checkout([
-                'success_url' => route('billing.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'success_url' => route('billing.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('billing.cancel'),
             ]);
     }
@@ -70,17 +60,12 @@ class CheckoutController extends Controller
     /**
      * Swap to a different plan.
      */
-    public function swap(Request $request, string $planId)
+    public function swap(SwapPlanRequest $request, string $planId)
     {
-        $plan = Plan::findByStripeId($planId);
-
-        if (!$plan) {
-            return back()->with('error', 'Plan not found.');
-        }
-
+        $plan = $request->plan();
         $user = $request->user();
 
-        if (!$user->subscribed('default')) {
+        if (! $user->subscribed('default')) {
             return redirect()->route('billing.checkout', $planId);
         }
 

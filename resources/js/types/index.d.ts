@@ -35,7 +35,12 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
-    plan?: 'free' | 'premium';
+    // Plan-related fields from HandleInertiaRequests
+    plan?: 'free' | 'pro';
+    plan_label?: string;
+    is_premium?: boolean;
+    can_invite_members?: boolean;
+    // Other fields
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;

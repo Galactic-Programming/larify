@@ -13,13 +13,18 @@ class AddMemberRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * User must be project owner AND have a plan that allows inviting members.
      */
     public function authorize(): bool
     {
         $project = $this->route('project');
 
-        return $project instanceof Project
-            && Gate::allows('manageMembers', $project);
+        if (! $project instanceof Project) {
+            return false;
+        }
+
+        // Check if user can manage members (owner + has Pro plan)
+        return Gate::allows('manageMembers', $project);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ProjectRole;
+use App\Enums\UserPlan;
 use App\Models\Project;
 use App\Models\User;
 
@@ -24,8 +25,8 @@ it('allows project owner to access members page', function () {
     expect($response->status())->not->toBe(404);
 });
 
-it('allows project owner to add a member', function () {
-    $owner = User::factory()->create();
+it('allows pro user to add a member', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $project = Project::factory()->create(['user_id' => $owner->id]);
     $newMember = User::factory()->create();
 
@@ -39,8 +40,22 @@ it('allows project owner to add a member', function () {
     expect($project->members->first()->id)->toBe($newMember->id);
 });
 
-it('allows project owner to update member role', function () {
-    $owner = User::factory()->create();
+it('prevents free user from adding members', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Free]);
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $newMember = User::factory()->create();
+
+    $response = $this->actingAs($owner)->post(route('projects.members.store', $project), [
+        'user_id' => $newMember->id,
+        'role' => 'editor',
+    ]);
+
+    $response->assertForbidden();
+    expect($project->members)->toHaveCount(0);
+});
+
+it('allows pro user to update member role', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $project = Project::factory()->create(['user_id' => $owner->id]);
     $member = User::factory()->create();
     $project->members()->attach($member->id, [
@@ -60,8 +75,28 @@ it('allows project owner to update member role', function () {
     expect($projectMember->role->value)->toBe('editor');
 });
 
-it('allows project owner to remove a member', function () {
-    $owner = User::factory()->create();
+it('prevents free user from updating member role', function () {
+    // Free user somehow has a member (legacy data or downgrade scenario)
+    $owner = User::factory()->create(['plan' => UserPlan::Free]);
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $member = User::factory()->create();
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Viewer->value,
+        'joined_at' => now(),
+    ]);
+
+    $projectMember = $project->projectMembers()->first();
+
+    $response = $this->actingAs($owner)->patch(
+        route('projects.members.update', [$project, $projectMember]),
+        ['role' => 'editor']
+    );
+
+    $response->assertForbidden();
+});
+
+it('allows pro user to remove a member', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $project = Project::factory()->create(['user_id' => $owner->id]);
     $member = User::factory()->create();
     $project->members()->attach($member->id, [
@@ -79,10 +114,29 @@ it('allows project owner to remove a member', function () {
     expect($project->fresh()->members)->toHaveCount(0);
 });
 
-it('prevents non-owner from adding members', function () {
-    $owner = User::factory()->create();
+it('prevents free user from removing members', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Free]);
     $project = Project::factory()->create(['user_id' => $owner->id]);
     $member = User::factory()->create();
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+
+    $projectMember = $project->projectMembers()->first();
+
+    $response = $this->actingAs($owner)->delete(
+        route('projects.members.destroy', [$project, $projectMember])
+    );
+
+    $response->assertForbidden();
+    expect($project->fresh()->members)->toHaveCount(1);
+});
+
+it('prevents non-owner from adding members', function () {
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
     $project->members()->attach($member->id, [
         'role' => ProjectRole::Editor->value,
         'joined_at' => now(),

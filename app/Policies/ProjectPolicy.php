@@ -76,9 +76,16 @@ class ProjectPolicy
 
     /**
      * Determine whether the user can manage project members.
+     * User must be owner AND have a plan that allows inviting members (Pro plan).
      */
     public function manageMembers(User $user, Project $project): bool
     {
-        return $user->id === $project->user_id;
+        // Must be project owner
+        if ($user->id !== $project->user_id) {
+            return false;
+        }
+
+        // Must have a plan that allows inviting members
+        return $user->plan?->canInviteMembers() ?? false;
     }
 }

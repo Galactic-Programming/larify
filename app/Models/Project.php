@@ -210,6 +210,10 @@ class Project extends Model
     public function getPermissions(User $user): array
     {
         $role = $this->getMemberRole($user);
+        $isOwner = $this->user_id === $user->id;
+
+        // canManageMembers requires: owner role + plan that allows inviting members
+        $canManageMembers = $isOwner && ($user->plan?->canInviteMembers() ?? false);
 
         return [
             'canView' => $role !== null,
@@ -217,10 +221,10 @@ class Project extends Model
             'canDelete' => $role?->canDelete() ?? false,
             'canReopen' => $role?->canReopen() ?? false,
             'canManageSettings' => $role?->canManageSettings() ?? false,
-            'canManageMembers' => $role?->canManageMembers() ?? false,
+            'canManageMembers' => $canManageMembers,
             'canAssignTask' => $role?->canAssignTask() ?? false,
             'canSetDoneList' => $role?->canSetDoneList() ?? false,
-            'isOwner' => $this->user_id === $user->id,
+            'isOwner' => $isOwner,
             'role' => $role?->value,
         ];
     }
