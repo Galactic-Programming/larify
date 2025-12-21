@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Settings\AvatarController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -38,4 +39,10 @@ Route::middleware('auth')->group(function () {
         ->name('avatar.update');
     Route::delete('settings/avatar', [AvatarController::class, 'destroy'])
         ->name('avatar.destroy');
+
+    // Subscription & Invoices (in settings)
+    Route::get('settings/subscription', [BillingController::class, 'subscription'])
+        ->name('settings.subscription');
+    Route::get('settings/invoices', [BillingController::class, 'invoices'])
+        ->name('settings.invoices');
 });

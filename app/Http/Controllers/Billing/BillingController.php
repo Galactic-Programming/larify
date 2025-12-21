@@ -16,24 +16,19 @@ class BillingController extends Controller
     {
         $user = $request->user();
         $subscription = $user->subscription('default');
+        $currentPlan = $subscription ? Plan::findByStripeId($subscription->stripe_price) : null;
 
         return Inertia::render('billing/index', [
             'subscription' => $subscription ? [
-                'id' => $subscription->id,
-                'stripe_id' => $subscription->stripe_id,
                 'stripe_status' => $subscription->stripe_status,
                 'stripe_price' => $subscription->stripe_price,
-                'quantity' => $subscription->quantity,
                 'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
                 'ends_at' => $subscription->ends_at?->toISOString(),
-                'on_trial' => $subscription->onTrial(),
-                'cancelled' => $subscription->cancelled(),
-                'on_grace_period' => $subscription->onGracePeriod(),
-                'active' => $subscription->active(),
-                'plan' => Plan::findByStripeId($subscription->stripe_price),
             ] : null,
-            'on_trial' => $user->onTrial(),
-            'subscribed' => $user->subscribed('default'),
+            'currentPlan' => $currentPlan,
+            'plans' => Plan::active()->ordered()->get(),
+            'onGracePeriod' => $subscription?->onGracePeriod() ?? false,
+            'isSubscribed' => $user->subscribed('default'),
         ]);
     }
 
@@ -68,21 +63,47 @@ class BillingController extends Controller
     }
 
     /**
+     * Show subscription settings page.
+     */
+    public function subscription(Request $request)
+    {
+        $user = $request->user();
+        $subscription = $user->subscription('default');
+        $currentPlan = $subscription ? Plan::findByStripeId($subscription->stripe_price) : null;
+
+        return Inertia::render('settings/subscription', [
+            'subscription' => $subscription ? [
+                'stripe_status' => $subscription->stripe_status,
+                'stripe_price' => $subscription->stripe_price,
+                'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
+                'ends_at' => $subscription->ends_at?->toISOString(),
+            ] : null,
+            'currentPlan' => $currentPlan,
+            'plans' => Plan::active()->ordered()->get(),
+            'onGracePeriod' => $subscription?->onGracePeriod() ?? false,
+            'isSubscribed' => $user->subscribed('default'),
+        ]);
+    }
+
+    /**
      * Show invoices page.
      */
     public function invoices(Request $request)
     {
-        $invoices = $request->user()->invoices()->map(function ($invoice) {
+        $user = $request->user();
+
+        $invoices = $user->invoices()->map(function ($invoice) {
             return [
                 'id' => $invoice->id,
-                'date' => $invoice->date()->toFormattedDateString(),
+                'date' => $invoice->date()->toISOString(),
                 'total' => $invoice->total(),
                 'status' => $invoice->status,
-                'invoice_pdf' => $invoice->invoice_pdf,
+                'invoice_pdf' => $invoice->invoicePdf(),
+                'hosted_invoice_url' => $invoice->hostedInvoiceUrl(),
             ];
         });
 
-        return Inertia::render('billing/invoices', [
+        return Inertia::render('settings/invoices', [
             'invoices' => $invoices,
         ]);
     }

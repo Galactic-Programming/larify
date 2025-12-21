@@ -35,7 +35,17 @@ const sidebarNavItems: NavItem[] = [
         title: 'Connections',
         href: '/settings/connections',
         icon: null,
-    }
+    },
+    {
+        title: 'Subscription',
+        href: '/settings/subscription',
+        icon: null,
+    },
+    {
+        title: 'Invoices',
+        href: '/settings/invoices',
+        icon: null,
+    },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
