@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TrashFilter, TrashSortBy } from '@/types/trash.d';
-import { ArrowDownWideNarrow, CheckSquare, Clock, FolderKanban, LayoutList, Search } from 'lucide-react';
+import { CheckSquare, Clock, FolderKanban, LayoutList, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface TrashFiltersProps {
@@ -34,84 +34,64 @@ export function TrashFilters({
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col gap-4"
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4"
         >
             {/* Filter Buttons */}
-            <div className="grid grid-cols-4 gap-1 rounded-lg border bg-muted/30 p-1">
+            <div className="flex w-full gap-1 rounded-lg border bg-muted/30 p-1 sm:w-auto">
                 <Button
                     variant={filter === 'all' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('all')}
-                    className="gap-1.5 text-xs sm:text-sm"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     All
-                    {counts.all > 0 && (
-                        <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5">
-                            {counts.all}
-                        </Badge>
-                    )}
+                    <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                        {counts.all}
+                    </Badge>
                 </Button>
                 <Button
                     variant={filter === 'projects' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('projects')}
-                    className="gap-1.5 text-xs sm:text-sm"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <FolderKanban className="size-4" />
                     <span className="hidden xs:inline">Projects</span>
-                    {counts.projects > 0 && (
-                        <Badge variant={filter === 'projects' ? 'secondary' : 'outline'} className="ml-0.5">
-                            {counts.projects}
-                        </Badge>
-                    )}
+                    <Badge variant={filter === 'projects' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                        {counts.projects}
+                    </Badge>
                 </Button>
                 <Button
                     variant={filter === 'lists' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('lists')}
-                    className="gap-1.5 text-xs sm:text-sm"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <LayoutList className="size-4" />
                     <span className="hidden xs:inline">Lists</span>
-                    {counts.lists > 0 && (
-                        <Badge variant={filter === 'lists' ? 'secondary' : 'outline'} className="ml-0.5">
-                            {counts.lists}
-                        </Badge>
-                    )}
+                    <Badge variant={filter === 'lists' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                        {counts.lists}
+                    </Badge>
                 </Button>
                 <Button
                     variant={filter === 'tasks' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => onFilterChange('tasks')}
-                    className="gap-1.5 text-xs sm:text-sm"
+                    className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <CheckSquare className="size-4" />
                     <span className="hidden xs:inline">Tasks</span>
-                    {counts.tasks > 0 && (
-                        <Badge variant={filter === 'tasks' ? 'secondary' : 'outline'} className="ml-0.5">
-                            {counts.tasks}
-                        </Badge>
-                    )}
+                    <Badge variant={filter === 'tasks' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                        {counts.tasks}
+                    </Badge>
                 </Button>
             </div>
 
-            {/* Search and Sort Row */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search deleted items..."
-                        value={searchQuery}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-
+            {/* Sort & Search */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Select value={sortBy} onValueChange={(value) => onSortChange(value as TrashSortBy)}>
-                    <SelectTrigger className="w-full sm:w-64">
-                        <ArrowDownWideNarrow className="mr-2 size-4" />
+                    <SelectTrigger className="h-9 w-full sm:w-40">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -135,6 +115,17 @@ export function TrashFilters({
                         </SelectItem>
                     </SelectContent>
                 </Select>
+
+                <div className="group relative">
+                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <Input
+                        type="text"
+                        placeholder="Search deleted items..."
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className="h-9 w-full pl-9 transition-all duration-200 sm:w-50 sm:focus:w-65"
+                    />
+                </div>
             </div>
         </motion.div>
     );

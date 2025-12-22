@@ -47,6 +47,7 @@ export interface Notification {
 }
 
 export type NotificationFilter = 'all' | 'unread' | 'read';
+export type NotificationSortBy = 'recent' | 'oldest' | 'type';
 
 // Notification type constants
 export const NOTIFICATION_TYPES = {

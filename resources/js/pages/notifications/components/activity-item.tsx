@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import type { Activity } from '@/types/notifications.d';
 import { Link } from '@inertiajs/react';
 import {
@@ -25,26 +26,104 @@ interface ActivityItemProps {
     index?: number;
 }
 
-// Map activity type icons
-const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
-    'task.created': <PlusCircle className="size-4 text-green-500" />,
-    'task.updated': <Pencil className="size-4 text-blue-500" />,
-    'task.completed': <CheckCircle className="size-4 text-green-500" />,
-    'task.reopened': <RotateCcw className="size-4 text-yellow-500" />,
-    'task.deleted': <Trash className="size-4 text-red-500" />,
-    'task.assigned': <UserPlus className="size-4 text-blue-500" />,
-    'task.moved': <Move className="size-4 text-purple-500" />,
-    'project.created': <FolderPlus className="size-4 text-green-500" />,
-    'project.updated': <FolderEdit className="size-4 text-blue-500" />,
-    'project.archived': <Archive className="size-4 text-orange-500" />,
-    'project.restored': <ArchiveRestore className="size-4 text-green-500" />,
-    'member.added': <UserPlus className="size-4 text-green-500" />,
-    'member.removed': <UserMinus className="size-4 text-red-500" />,
-    'member.role_changed': <Shield className="size-4 text-indigo-500" />,
-    'list.created': <ListPlus className="size-4 text-green-500" />,
-    'list.updated': <List className="size-4 text-blue-500" />,
-    'list.deleted': <Trash className="size-4 text-red-500" />,
-    'list.reordered': <Move className="size-4 text-purple-500" />,
+// Map activity type icons and colors
+const ACTIVITY_STYLES: Record<string, { icon: React.ReactNode; bgColor: string; textColor: string }> = {
+    'task.created': {
+        icon: <PlusCircle className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'task.updated': {
+        icon: <Pencil className="size-4" />,
+        bgColor: 'bg-blue-500/10',
+        textColor: 'text-blue-500',
+    },
+    'task.completed': {
+        icon: <CheckCircle className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'task.reopened': {
+        icon: <RotateCcw className="size-4" />,
+        bgColor: 'bg-yellow-500/10',
+        textColor: 'text-yellow-500',
+    },
+    'task.deleted': {
+        icon: <Trash className="size-4" />,
+        bgColor: 'bg-red-500/10',
+        textColor: 'text-red-500',
+    },
+    'task.assigned': {
+        icon: <UserPlus className="size-4" />,
+        bgColor: 'bg-blue-500/10',
+        textColor: 'text-blue-500',
+    },
+    'task.moved': {
+        icon: <Move className="size-4" />,
+        bgColor: 'bg-purple-500/10',
+        textColor: 'text-purple-500',
+    },
+    'project.created': {
+        icon: <FolderPlus className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'project.updated': {
+        icon: <FolderEdit className="size-4" />,
+        bgColor: 'bg-blue-500/10',
+        textColor: 'text-blue-500',
+    },
+    'project.archived': {
+        icon: <Archive className="size-4" />,
+        bgColor: 'bg-orange-500/10',
+        textColor: 'text-orange-500',
+    },
+    'project.restored': {
+        icon: <ArchiveRestore className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'member.added': {
+        icon: <UserPlus className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'member.removed': {
+        icon: <UserMinus className="size-4" />,
+        bgColor: 'bg-red-500/10',
+        textColor: 'text-red-500',
+    },
+    'member.role_changed': {
+        icon: <Shield className="size-4" />,
+        bgColor: 'bg-indigo-500/10',
+        textColor: 'text-indigo-500',
+    },
+    'list.created': {
+        icon: <ListPlus className="size-4" />,
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-500',
+    },
+    'list.updated': {
+        icon: <List className="size-4" />,
+        bgColor: 'bg-blue-500/10',
+        textColor: 'text-blue-500',
+    },
+    'list.deleted': {
+        icon: <Trash className="size-4" />,
+        bgColor: 'bg-red-500/10',
+        textColor: 'text-red-500',
+    },
+    'list.reordered': {
+        icon: <Move className="size-4" />,
+        bgColor: 'bg-purple-500/10',
+        textColor: 'text-purple-500',
+    },
+};
+
+const DEFAULT_STYLE = {
+    icon: <PlusCircle className="size-4" />,
+    bgColor: 'bg-muted',
+    textColor: 'text-muted-foreground',
 };
 
 function getInitials(name: string): string {
@@ -57,37 +136,27 @@ function getInitials(name: string): string {
 }
 
 export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
-    const icon = ACTIVITY_ICONS[activity.type] || <PlusCircle className="size-4 text-muted-foreground" />;
+    const style = ACTIVITY_STYLES[activity.type] || DEFAULT_STYLE;
 
     return (
-        <div className="flex items-start gap-3 py-3">
-            {/* Timeline indicator with animation */}
-            <div className="relative flex flex-col items-center">
-                <motion.div
-                    initial={{ scale: 0, rotate: -90 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 15,
-                        delay: 0.1 + index * 0.05,
-                    }}
-                    className="flex size-8 items-center justify-center rounded-full bg-muted"
-                >
-                    {icon}
-                </motion.div>
+        <motion.div
+            layout
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ delay: index * 0.05 }}
+            className="group relative flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50"
+        >
+            {/* Icon */}
+            <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${style.bgColor} ${style.textColor}`}>
+                {style.icon}
             </div>
 
-            {/* Content with fade animation */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
-                className="min-w-0 flex-1 pb-4"
-            >
+            {/* Content */}
+            <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                     {activity.user && (
-                        <Avatar className="size-6">
+                        <Avatar className="size-6 border border-background">
                             {activity.user.avatar && (
                                 <AvatarImage src={activity.user.avatar} alt={activity.user.name} />
                             )}
@@ -104,28 +173,30 @@ export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
                     </span>
                 </div>
 
-                {/* Description with subject */}
+                {/* Description */}
                 <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                     {activity.description}
                 </p>
 
                 {/* Project badge and timestamp */}
-                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                     {activity.project && (
                         <Link
                             href={`/projects/${activity.project.id}/lists`}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 transition-colors hover:bg-accent"
+                            className="inline-flex items-center gap-1.5"
                         >
-                            <span
-                                className="size-2 rounded-full"
-                                style={{ backgroundColor: activity.project.color }}
-                            />
-                            {activity.project.name}
+                            <Badge variant="secondary" className="text-xs hover:bg-accent">
+                                <span
+                                    className="mr-1 size-2 rounded-full"
+                                    style={{ backgroundColor: activity.project.color }}
+                                />
+                                {activity.project.name}
+                            </Badge>
                         </Link>
                     )}
-                    <span>{activity.created_at_human}</span>
+                    <span className="text-xs text-muted-foreground">{activity.created_at_human}</span>
                 </div>
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 }

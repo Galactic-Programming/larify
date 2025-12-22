@@ -22,9 +22,9 @@ export function TrashHeader({ totalCount, retentionDays, onEmptyTrash, isEmptyDi
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
-                    className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-destructive/10 shadow-lg sm:size-14"
+                    className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-lg shadow-primary/25 sm:size-14"
                 >
-                    <Trash2 className="size-6 text-destructive sm:size-7" />
+                    <Trash2 className="size-6 sm:size-7" />
                 </motion.div>
                 <div className="min-w-0">
                     <motion.h1

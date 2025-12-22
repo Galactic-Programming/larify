@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Notification } from '@/types/notifications.d';
-import { motion, type Variants } from 'motion/react';
+import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { NotificationItem } from './notification-item';
 
 interface NotificationListProps {
@@ -25,27 +25,14 @@ const containerVariants: Variants = {
     },
 };
 
-const itemVariants: Variants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: {
-        opacity: 1,
-        x: 0,
-        transition: {
-            type: 'spring',
-            stiffness: 100,
-            damping: 15,
-        },
-    },
-};
-
 function NotificationSkeleton() {
     return (
-        <div className="flex items-start gap-3 rounded-lg border p-4">
+        <div className="flex items-start gap-3 rounded-lg border bg-card p-4">
             <Skeleton className="size-10 rounded-full" />
             <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/4" />
-                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-5 w-24 rounded-full" />
             </div>
         </div>
     );
@@ -61,7 +48,7 @@ export function NotificationList({
 }: NotificationListProps) {
     if (isLoading && notifications.length === 0) {
         return (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
                 {[...Array(5)].map((_, i) => (
                     <NotificationSkeleton key={i} />
                 ))}
@@ -71,20 +58,21 @@ export function NotificationList({
 
     return (
         <motion.div
-            className="space-y-3"
+            className="flex flex-col gap-3"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
         >
-            {notifications.map((notification) => (
-                <motion.div key={notification.id} variants={itemVariants}>
+            <AnimatePresence mode="popLayout">
+                {notifications.map((notification) => (
                     <NotificationItem
+                        key={notification.id}
                         notification={notification}
                         onMarkAsRead={onMarkAsRead}
                         onDelete={onDelete}
                     />
-                </motion.div>
-            ))}
+                ))}
+            </AnimatePresence>
 
             {hasMore && (
                 <motion.div
