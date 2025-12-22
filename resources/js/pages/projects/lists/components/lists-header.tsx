@@ -113,7 +113,7 @@ export function ListsHeader({
                     type="single"
                     value={taskFilter}
                     onValueChange={(value) => value && onTaskFilterChange(value as TaskFilter)}
-                    className="bg-muted rounded-lg p-0.5 sm:p-1"
+                    className="rounded-lg border bg-muted/30 p-1"
                 >
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -177,7 +177,7 @@ export function ListsHeader({
                     type="single"
                     value={viewMode}
                     onValueChange={(value) => value && onViewModeChange(value as ViewMode)}
-                    className="bg-muted rounded-lg p-0.5 sm:p-1"
+                    className="rounded-lg border bg-muted/30 p-1"
                 >
                     <Tooltip>
                         <TooltipTrigger asChild>
