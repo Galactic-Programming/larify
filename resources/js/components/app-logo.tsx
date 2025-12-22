@@ -18,10 +18,10 @@ export default function AppLogo() {
                         Larify
                     </span>
                     <Badge
-                        variant={plan === 'premium' ? 'default' : 'secondary'}
+                        variant={plan === 'pro' ? 'default' : 'secondary'}
                         className="text-[10px] px-1.5 py-0 h-4"
                     >
-                        {plan === 'premium' ? 'Premium' : 'Free'}
+                        {plan === 'pro' ? 'Pro' : 'Free'}
                     </Badge>
                 </div>
             </div>
