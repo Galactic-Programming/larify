@@ -241,7 +241,11 @@ export default function NotificationsIndex({
 
             if (response.ok) {
                 const data = await response.json();
-                setActivities((prev) => [...prev, ...data.activities.data]);
+                // API returns { activities: [...], pagination: {...} }
+                const newActivities = Array.isArray(data.activities)
+                    ? data.activities
+                    : data.activities?.data || [];
+                setActivities((prev) => [...prev, ...newActivities]);
             }
         } catch {
             toast.error('Failed to load more activities');
