@@ -45,3 +45,13 @@ function something()
 {
     // ..
 }
+
+/**
+ * Helper function to call protected methods on objects for testing.
+ */
+function callProtectedMethod(object $object, string $method, array $args = []): mixed
+{
+    $reflection = new ReflectionMethod($object, $method);
+
+    return $reflection->invoke($object, ...$args);
+}

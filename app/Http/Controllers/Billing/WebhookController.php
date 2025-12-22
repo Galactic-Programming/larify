@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Billing;
 
+use App\Enums\UserPlan;
 use App\Models\Plan;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookController;
 use Stripe\Price;
@@ -108,8 +110,10 @@ class WebhookController extends CashierWebhookController
             'status' => $subscription['status'],
         ]);
 
-        // Add any custom business logic here
-        // e.g., send welcome email, update user plan enum, etc.
+        // Upgrade user to Pro plan when subscription is active
+        if (in_array($subscription['status'], ['active', 'trialing'])) {
+            $this->updateUserPlan($subscription['customer'], UserPlan::Pro);
+        }
     }
 
     /**
@@ -124,6 +128,38 @@ class WebhookController extends CashierWebhookController
         Log::info('Subscription updated.', [
             'subscription_id' => $subscription['id'],
             'status' => $subscription['status'],
+        ]);
+
+        // Update user plan based on subscription status
+        $plan = in_array($subscription['status'], ['active', 'trialing'])
+            ? UserPlan::Pro
+            : UserPlan::Free;
+
+        $this->updateUserPlan($subscription['customer'], $plan);
+    }
+
+    /**
+     * Update user plan based on Stripe customer ID.
+     */
+    protected function updateUserPlan(string $stripeCustomerId, UserPlan $plan): void
+    {
+        $user = User::where('stripe_id', $stripeCustomerId)->first();
+
+        if (! $user) {
+            Log::warning('User not found for Stripe customer.', [
+                'stripe_customer_id' => $stripeCustomerId,
+            ]);
+
+            return;
+        }
+
+        $previousPlan = $user->plan;
+        $user->update(['plan' => $plan]);
+
+        Log::info('User plan updated.', [
+            'user_id' => $user->id,
+            'previous_plan' => $previousPlan?->value ?? 'free',
+            'new_plan' => $plan->value,
         ]);
     }
 
@@ -141,8 +177,8 @@ class WebhookController extends CashierWebhookController
             'customer_id' => $subscription['customer'],
         ]);
 
-        // Add any custom business logic here
-        // e.g., send cancellation email, downgrade user, etc.
+        // Downgrade user to Free plan when subscription is cancelled
+        $this->updateUserPlan($subscription['customer'], UserPlan::Free);
     }
 
     /**
@@ -190,8 +226,9 @@ class WebhookController extends CashierWebhookController
         }
 
         // Only sync active prices
-        if (!($price['active'] ?? true)) {
+        if (! ($price['active'] ?? true)) {
             Plan::where('stripe_id', $price['id'])->update(['is_active' => false]);
+
             return;
         }
 
