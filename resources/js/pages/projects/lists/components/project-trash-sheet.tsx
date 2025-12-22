@@ -26,7 +26,7 @@ import {
     restoreList,
     restoreTask,
 } from '@/actions/App/Http/Controllers/Projects/ProjectTrashController';
-import type { ProjectTrashItemType, TrashSortBy, TrashedList, TrashedTask } from '@/types/trash';
+import type { ProjectTrashItemType, TrashSortBy } from '@/types/trash';
 import { router } from '@inertiajs/react';
 import {
     ArrowDownUp,
@@ -43,9 +43,37 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 
+// Local interface matching backend response (ProjectTrashController)
+interface ApiTrashedList {
+    id: number;
+    type: 'list';
+    name: string;
+    deleted_at: string;
+    deleted_at_human: string;
+    expires_at: string;
+    expires_at_human: string;
+    tasks_count: number;
+}
+
+interface ApiTrashedTask {
+    id: number;
+    type: 'task';
+    title: string;
+    description: string | null;
+    priority: string | null;
+    due_date: string | null;
+    list: { id: number; name: string } | null;
+    assignee: { id: number; name: string; avatar: string | null } | null;
+    deleted_at: string;
+    deleted_at_human: string;
+    expires_at: string;
+    expires_at_human: string;
+}
+
 interface ProjectTrashData {
-    lists: TrashedList[];
-    tasks: TrashedTask[];
+    trashedLists: ApiTrashedList[];
+    trashedTasks: ApiTrashedTask[];
+    retentionDays: number;
 }
 
 interface ProjectTrashSheetProps {
@@ -61,28 +89,30 @@ type NormalizedItem = {
     deletedAt: Date;
     expiresAt: Date;
     parentInfo?: string;
-    original: TrashedList | TrashedTask;
+    tasksCount?: number;
+    original: ApiTrashedList | ApiTrashedTask;
 };
 
-function normalizeList(list: TrashedList): NormalizedItem {
+function normalizeList(list: ApiTrashedList): NormalizedItem {
     return {
         id: list.id,
         type: 'list',
         name: list.name,
-        color: list.color,
+        color: null,
         icon: <ListTodo className="size-4" />,
         deletedAt: new Date(list.deleted_at),
         expiresAt: new Date(list.expires_at),
+        tasksCount: list.tasks_count,
         original: list,
     };
 }
 
-function normalizeTask(task: TrashedTask): NormalizedItem {
+function normalizeTask(task: ApiTrashedTask): NormalizedItem {
     return {
         id: task.id,
         type: 'task',
         name: task.title,
-        color: task.list?.color || null,
+        color: null,
         icon: <CheckSquare className="size-4" />,
         deletedAt: new Date(task.deleted_at),
         expiresAt: new Date(task.expires_at),
@@ -127,7 +157,7 @@ function ProjectTrashItem({
             ? restoreList([projectId, item.id])
             : restoreTask([projectId, item.id]);
 
-        router.post(route.url, {}, {
+        router.patch(route.url, {}, {
             preserveScroll: true,
             onSuccess: onAction,
             onFinish: () => setIsRestoring(false),
@@ -179,6 +209,12 @@ function ProjectTrashItem({
                 <p className="font-medium truncate">{item.name}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="capitalize">{item.type}</span>
+                    {item.type === 'list' && item.tasksCount !== undefined && item.tasksCount > 0 && (
+                        <>
+                            <span>•</span>
+                            <span>{item.tasksCount} {item.tasksCount === 1 ? 'task' : 'tasks'} included</span>
+                        </>
+                    )}
                     {item.parentInfo && (
                         <>
                             <span>•</span>
@@ -215,7 +251,11 @@ function ProjectTrashItem({
                             )}
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Restore</TooltipContent>
+                    <TooltipContent>
+                        {item.type === 'list' && item.tasksCount && item.tasksCount > 0
+                            ? `Restore list and ${item.tasksCount} ${item.tasksCount === 1 ? 'task' : 'tasks'}`
+                            : 'Restore'}
+                    </TooltipContent>
                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -273,8 +313,8 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
         if (!trashData) return [];
 
         const items: NormalizedItem[] = [
-            ...trashData.lists.map(normalizeList),
-            ...trashData.tasks.map(normalizeTask),
+            ...(trashData.trashedLists || []).map(normalizeList),
+            ...(trashData.trashedTasks || []).map(normalizeTask),
         ];
 
         return items;
@@ -340,18 +380,19 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                 <TooltipContent>View Deleted Items</TooltipContent>
             </Tooltip>
 
-            <SheetContent className="flex w-full flex-col sm:max-w-lg">
-                <SheetHeader>
+            <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+                <SheetHeader className="border-b px-4 py-4 sm:px-6">
                     <SheetTitle className="flex items-center gap-2">
                         <Trash2 className="size-5" />
                         Project Trash
                     </SheetTitle>
                     <SheetDescription>
                         Deleted lists and tasks from this project. Items are automatically removed after 7 days.
+                        When a list is deleted, its tasks are included and will be restored together.
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-4 flex flex-col gap-4 flex-1 min-h-0">
+                <div className="flex flex-1 flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
                     {/* Filters */}
                     <div className="flex flex-col gap-3">
                         {/* Tabs */}
@@ -412,7 +453,7 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                                 )}
                             </div>
                             <Select value={sortBy} onValueChange={(v) => setSortBy(v as TrashSortBy)}>
-                                <SelectTrigger className="w-35">
+                                <SelectTrigger className="w-40">
                                     <ArrowDownUp className="mr-2 size-4" />
                                     <SelectValue />
                                 </SelectTrigger>
@@ -441,8 +482,8 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                     </div>
 
                     {/* Content */}
-                    <ScrollArea className="flex-1">
-                        <div className="flex flex-col gap-2 pr-4">
+                    <ScrollArea className="flex-1 -mx-4 sm:-mx-6">
+                        <div className="flex flex-col gap-2 px-4 sm:px-6">
                             {isLoading ? (
                                 <div className="flex flex-col gap-2">
                                     {[1, 2, 3].map((i) => (

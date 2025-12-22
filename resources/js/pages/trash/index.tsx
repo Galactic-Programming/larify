@@ -14,11 +14,7 @@ import type { BreadcrumbItem } from '@/types';
 import type {
     NormalizedTrashItem,
     TrashFilter,
-    TrashPageProps,
     TrashSortBy,
-    TrashedList,
-    TrashedProject,
-    TrashedTask,
 } from '@/types/trash.d';
 import { Head, router } from '@inertiajs/react';
 import { useCallback, useMemo, useState } from 'react';
@@ -34,8 +30,67 @@ import { TrashItemList } from './components/trash-item-list';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Trash', href: index().url }];
 
+// Local interfaces matching backend response (TrashController)
+interface ApiTrashedProject {
+    id: number;
+    type: 'project';
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string | null;
+    deleted_at: string;
+    deleted_at_human: string;
+    expires_at: string;
+    expires_at_human: string;
+    lists_count: number;
+    tasks_count: number;
+}
+
+interface ApiTrashedList {
+    id: number;
+    type: 'list';
+    name: string;
+    project: { id: number; name: string; color: string } | null;
+    deleted_at: string;
+    deleted_at_human: string;
+    expires_at: string;
+    expires_at_human: string;
+    tasks_count: number;
+}
+
+interface ApiTrashedTask {
+    id: number;
+    type: 'task';
+    title: string;
+    description: string | null;
+    priority: string | null;
+    due_date: string | null;
+    project: { id: number; name: string; color: string } | null;
+    list: { id: number; name: string } | null;
+    assignee: { id: number; name: string; avatar: string | null } | null;
+    deleted_at: string;
+    deleted_at_human: string;
+    expires_at: string;
+    expires_at_human: string;
+}
+
+interface TrashPageProps {
+    trashedProjects: ApiTrashedProject[];
+    trashedLists: ApiTrashedList[];
+    trashedTasks: ApiTrashedTask[];
+    retentionDays: number;
+}
+
+// Helper function to calculate days remaining
+function calculateDaysRemaining(expiresAt: string): number {
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    const diff = expires.getTime() - now.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
 // Helper to normalize items for display
-function normalizeProject(project: TrashedProject): NormalizedTrashItem {
+function normalizeProject(project: ApiTrashedProject): NormalizedTrashItem {
     return {
         id: project.id,
         type: 'project',
@@ -44,7 +99,7 @@ function normalizeProject(project: TrashedProject): NormalizedTrashItem {
         color: project.color,
         icon: project.icon,
         deletedAt: project.deleted_at,
-        daysRemaining: project.days_remaining,
+        daysRemaining: calculateDaysRemaining(project.expires_at),
         metadata: {
             listsCount: project.lists_count,
             tasksCount: project.tasks_count,
@@ -52,41 +107,43 @@ function normalizeProject(project: TrashedProject): NormalizedTrashItem {
     };
 }
 
-function normalizeList(list: TrashedList): NormalizedTrashItem {
+function normalizeList(list: ApiTrashedList): NormalizedTrashItem {
     return {
         id: list.id,
         type: 'list',
         title: list.name,
-        subtitle: list.project_name,
-        color: list.project_color,
+        subtitle: list.project?.name ?? null,
+        color: list.project?.color ?? '#6b7280',
         icon: null,
         deletedAt: list.deleted_at,
-        daysRemaining: list.days_remaining,
+        daysRemaining: calculateDaysRemaining(list.expires_at),
         metadata: {
-            projectId: list.project_id,
-            projectName: list.project_name,
+            projectId: list.project?.id,
+            projectName: list.project?.name,
             tasksCount: list.tasks_count,
         },
     };
 }
 
-function normalizeTask(task: TrashedTask): NormalizedTrashItem {
+function normalizeTask(task: ApiTrashedTask): NormalizedTrashItem {
+    const projectName = task.project?.name ?? 'Unknown';
+    const listName = task.list?.name ?? 'Unknown';
     return {
         id: task.id,
         type: 'task',
         title: task.title,
-        subtitle: `${task.project_name} / ${task.list_name}`,
-        color: task.project_color,
+        subtitle: `${projectName} / ${listName}`,
+        color: task.project?.color ?? '#6b7280',
         icon: null,
         deletedAt: task.deleted_at,
-        daysRemaining: task.days_remaining,
+        daysRemaining: calculateDaysRemaining(task.expires_at),
         metadata: {
-            projectId: task.project_id,
-            projectName: task.project_name,
-            listId: task.list_id,
-            listName: task.list_name,
-            listDeleted: task.list_deleted,
-            priority: task.priority,
+            projectId: task.project?.id,
+            projectName: task.project?.name,
+            listId: task.list?.id,
+            listName: task.list?.name,
+            listDeleted: false,
+            priority: task.priority ?? undefined,
         },
     };
 }
