@@ -11,12 +11,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as conversationsIndex } from '@/routes/conversations';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as trashIndex } from '@/actions/App/Http/Controllers/Trash/TrashController';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Bell, FolderKanban, LayoutGrid, Trash2 } from 'lucide-react';
+import { Bell, FolderKanban, LayoutGrid, MessageCircle, Trash2 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -24,16 +25,25 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        shortcut: 'd',
     },
     {
         title: 'Projects',
         href: projectsIndex(),
         icon: FolderKanban,
+        shortcut: 'p',
+    },
+    {
+        title: 'Conversations',
+        href: conversationsIndex(),
+        icon: MessageCircle,
+        shortcut: 'm',
     },
     {
         title: 'Notifications',
         href: notificationsIndex(),
         icon: Bell,
+        shortcut: 'n',
     },
     {
         title: 'Trash',
