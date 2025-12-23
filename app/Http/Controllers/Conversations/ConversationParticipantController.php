@@ -24,12 +24,27 @@ class ConversationParticipantController extends Controller
         $userId = $request->validated('user_id');
         $addedUser = User::findOrFail($userId);
 
-        // Create the participant record
-        $conversation->participantRecords()->create([
-            'user_id' => $userId,
-            'role' => ParticipantRole::Member,
-            'joined_at' => now(),
-        ]);
+        // Check if user previously left (has existing record with left_at)
+        $existingParticipant = $conversation->participantRecords()
+            ->where('user_id', $userId)
+            ->whereNotNull('left_at')
+            ->first();
+
+        if ($existingParticipant) {
+            // Rejoin: update the existing record
+            $existingParticipant->update([
+                'left_at' => null,
+                'joined_at' => now(),
+                'role' => ParticipantRole::Member,
+            ]);
+        } else {
+            // Create new participant record
+            $conversation->participantRecords()->create([
+                'user_id' => $userId,
+                'role' => ParticipantRole::Member,
+                'joined_at' => now(),
+            ]);
+        }
 
         // Broadcast the event
         broadcast(new ParticipantAdded(

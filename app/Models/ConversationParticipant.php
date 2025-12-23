@@ -58,6 +58,14 @@ class ConversationParticipant extends Model
     }
 
     /**
+     * Check if the participant is a member.
+     */
+    public function isMember(): bool
+    {
+        return $this->role === ParticipantRole::Member;
+    }
+
+    /**
      * Check if the participant has left the conversation.
      */
     public function hasLeft(): bool
