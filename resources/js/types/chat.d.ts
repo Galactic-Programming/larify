@@ -75,6 +75,7 @@ export interface ConversationDetail extends Conversation {
     can_update: boolean;
     can_manage_participants: boolean;
     can_leave: boolean;
+    can_delete: boolean;
 }
 
 // ============================================

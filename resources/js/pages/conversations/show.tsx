@@ -323,6 +323,8 @@ export default function ConversationShow({
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConversation, setShowDeleteConversation] = useState(false);
+    const [isDeletingConversation, setIsDeletingConversation] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastTypingRef = useRef<number>(0);
@@ -654,6 +656,17 @@ export default function ConversationShow({
         setInputValue('');
     };
 
+    // Delete conversation
+    const confirmDeleteConversation = () => {
+        setIsDeletingConversation(true);
+        router.delete(`/conversations/${conversation.id}`, {
+            onFinish: () => {
+                setIsDeletingConversation(false);
+                setShowDeleteConversation(false);
+            },
+        });
+    };
+
     return (
         <ChatLayout
             breadcrumbs={breadcrumbs}
@@ -744,6 +757,22 @@ export default function ConversationShow({
                                                     className="text-destructive"
                                                 >
                                                     Leave conversation
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+                                        {conversation.can_delete && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        setShowDeleteConversation(
+                                                            true,
+                                                        )
+                                                    }
+                                                    className="text-destructive"
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete conversation
                                                 </DropdownMenuItem>
                                             </>
                                         )}
@@ -908,6 +937,37 @@ export default function ConversationShow({
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete Conversation Confirmation Dialog */}
+            <AlertDialog
+                open={showDeleteConversation}
+                onOpenChange={(open) => !open && setShowDeleteConversation(false)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this conversation?
+                            All messages and attachments will be permanently
+                            deleted. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeletingConversation}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDeleteConversation}
+                            disabled={isDeletingConversation}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {isDeletingConversation
+                                ? 'Deleting...'
+                                : 'Delete Conversation'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

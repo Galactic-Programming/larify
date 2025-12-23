@@ -253,6 +253,7 @@ class ConversationController extends Controller
                 'can_update' => Gate::allows('update', $conversation),
                 'can_manage_participants' => Gate::allows('manageParticipants', $conversation),
                 'can_leave' => Gate::allows('leave', $conversation),
+                'can_delete' => Gate::allows('delete', $conversation),
             ],
         ]);
     }
