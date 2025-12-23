@@ -27,9 +27,20 @@ class MessageSent implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
+        $channels = [
             new PrivateChannel('conversation.'.$this->message->conversation_id),
         ];
+
+        // Also broadcast to each participant's user channel for sidebar updates
+        $participants = $this->message->conversation->activeParticipants()
+            ->where('users.id', '!=', $this->message->sender_id)
+            ->pluck('users.id');
+
+        foreach ($participants as $userId) {
+            $channels[] = new PrivateChannel('user.'.$userId.'.conversations');
+        }
+
+        return $channels;
     }
 
     /**
@@ -40,6 +51,7 @@ class MessageSent implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
+            'conversation_id' => $this->message->conversation_id,
             'message' => [
                 'id' => $this->message->id,
                 'conversation_id' => $this->message->conversation_id,

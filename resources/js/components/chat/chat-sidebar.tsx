@@ -12,7 +12,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { formatDistanceToNow } from 'date-fns';
 import { MessagesSquare, Search, User, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface ChatSidebarProps {
     conversations: Conversation[];
@@ -111,8 +111,8 @@ function EmptyState({
                 {type === 'direct'
                     ? 'No direct messages'
                     : type === 'group'
-                      ? 'No group chats'
-                      : 'No conversations yet'}
+                        ? 'No group chats'
+                        : 'No conversations yet'}
             </p>
         </div>
     );
@@ -152,14 +152,14 @@ export function ChatSidebar({
                 prev.map((conv) =>
                     conv.id === data.conversation_id
                         ? {
-                              ...conv,
-                              last_message: data.message,
-                              last_message_at: data.message?.created_at,
-                              unread_count:
-                                  conv.id === activeConversationId
-                                      ? conv.unread_count
-                                      : conv.unread_count + 1,
-                          }
+                            ...conv,
+                            last_message: data.message,
+                            last_message_at: data.message?.created_at,
+                            unread_count:
+                                conv.id === activeConversationId
+                                    ? conv.unread_count
+                                    : conv.unread_count + 1,
+                        }
                         : conv,
                 ),
             );
@@ -167,6 +167,20 @@ export function ChatSidebar({
         [auth.user.id, activeConversationId],
         'private',
     );
+
+    // Reset unread count when viewing a conversation
+    // This happens when activeConversationId changes (user clicks on conversation)
+    useEffect(() => {
+        if (activeConversationId) {
+            setConversations((prev) =>
+                prev.map((conv) =>
+                    conv.id === activeConversationId
+                        ? { ...conv, unread_count: 0 }
+                        : conv,
+                ),
+            );
+        }
+    }, [activeConversationId]);
 
     const filteredConversations = useMemo(() => {
         return conversations.filter((conversation) => {

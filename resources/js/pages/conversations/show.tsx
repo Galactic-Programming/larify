@@ -377,6 +377,7 @@ export default function ConversationShow({
                     }
                     return [...prev, data.message];
                 });
+                // Note: Don't auto mark as read - only mark when user actively views/interacts
             }
         },
         [auth.user.id],
@@ -386,9 +387,13 @@ export default function ConversationShow({
     useEcho(
         `conversation.${conversation.id}`,
         '.message.edited',
-        (data: { message: Message }) => {
+        (data: { message: { id: number; content: string; is_edited: boolean; edited_at: string } }) => {
             setMessages((prev) =>
-                prev.map((m) => (m.id === data.message.id ? data.message : m)),
+                prev.map((m) =>
+                    m.id === data.message.id
+                        ? { ...m, content: data.message.content, is_edited: data.message.is_edited, edited_at: data.message.edited_at }
+                        : m,
+                ),
             );
         },
         [],
@@ -453,7 +458,6 @@ export default function ConversationShow({
         `conversation.${conversation.id}`,
         '.messages.read',
         (data: { reader_id: number; read_at: string }) => {
-            console.log('MessagesRead event received:', data);
             // Don't process if the reader is the current user
             if (data.reader_id === auth.user.id) return;
 

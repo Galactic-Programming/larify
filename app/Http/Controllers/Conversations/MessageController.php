@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Conversations;
 
 use App\Events\MessageDeleted;
 use App\Events\MessageEdited;
-use App\Events\MessageRead;
 use App\Events\MessageSent;
 use App\Events\UserTyping;
 use App\Http\Controllers\Controller;
@@ -161,12 +160,36 @@ class MessageController extends Controller
         broadcast(new MessageEdited($message))->toOthers();
 
         if ($request->expectsJson()) {
+            $message->load(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name']);
+
             return response()->json([
                 'message' => [
                     'id' => $message->id,
                     'content' => $message->content,
                     'is_edited' => $message->is_edited,
                     'edited_at' => $message->edited_at->toISOString(),
+                    'created_at' => $message->created_at->toISOString(),
+                    'sender' => $message->sender ? [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name,
+                        'avatar' => $message->sender->avatar,
+                    ] : null,
+                    'is_mine' => $message->sender_id === $request->user()->id,
+                    'is_read' => true, // Own message, always "read" by self
+                    'parent' => $message->parent ? [
+                        'id' => $message->parent->id,
+                        'content' => $message->parent->trashed() ? null : $message->parent->content,
+                        'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
+                        'is_deleted' => $message->parent->trashed(),
+                    ] : null,
+                    'attachments' => $message->attachments->map(fn ($a) => [
+                        'id' => $a->id,
+                        'original_name' => $a->original_name,
+                        'mime_type' => $a->mime_type,
+                        'size' => $a->size,
+                        'human_size' => $a->human_size,
+                        'url' => $a->url,
+                    ])->values()->toArray(),
                 ],
             ]);
         }
@@ -215,18 +238,17 @@ class MessageController extends Controller
     {
         Gate::authorize('view', $conversation);
 
-        $lastMessageId = $request->input('last_message_id');
-
         // Update the participant's last_read_at
+        $now = now();
         $conversation->participantRecords()
             ->where('user_id', $request->user()->id)
-            ->update(['last_read_at' => now()]);
+            ->update(['last_read_at' => $now]);
 
         // Broadcast read receipt
-        broadcast(new MessageRead(
+        broadcast(new \App\Events\MessagesRead(
             $conversation,
             $request->user(),
-            $lastMessageId
+            $now->toISOString()
         ))->toOthers();
 
         return response()->json(['success' => true]);
