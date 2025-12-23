@@ -1,3 +1,7 @@
+import {
+    setDoneList,
+    update,
+} from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
@@ -12,7 +16,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { update, setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { Form, router } from '@inertiajs/react';
 import { LayoutList } from 'lucide-react';
 
@@ -38,9 +41,17 @@ interface EditListDialogProps {
     canSetDoneList?: boolean;
 }
 
-export function EditListDialog({ project, list, open, onOpenChange, canSetDoneList = false }: EditListDialogProps) {
+export function EditListDialog({
+    project,
+    list,
+    open,
+    onOpenChange,
+    canSetDoneList = false,
+}: EditListDialogProps) {
     // Check if another list is already the done list
-    const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
+    const hasDoneListElsewhere = project.lists.some(
+        (l) => l.is_done_list && l.id !== list.id,
+    );
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,9 +70,14 @@ export function EditListDialog({ project, list, open, onOpenChange, canSetDoneLi
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="flex size-10 items-center justify-center rounded-lg"
-                                        style={{ backgroundColor: `${project.color}20` }}
+                                        style={{
+                                            backgroundColor: `${project.color}20`,
+                                        }}
                                     >
-                                        <LayoutList className="size-5" style={{ color: project.color }} />
+                                        <LayoutList
+                                            className="size-5"
+                                            style={{ color: project.color }}
+                                        />
                                     </div>
                                     <div>
                                         <DialogTitle>Edit List</DialogTitle>
@@ -90,9 +106,15 @@ export function EditListDialog({ project, list, open, onOpenChange, canSetDoneLi
                                 {canSetDoneList && (
                                     <div className="flex items-center justify-between rounded-lg border p-4">
                                         <div className="space-y-0.5">
-                                            <Label htmlFor="is_done_list" className="text-base">Done List</Label>
-                                            <p className="text-muted-foreground text-sm">
-                                                {hasDoneListElsewhere && !list.is_done_list
+                                            <Label
+                                                htmlFor="is_done_list"
+                                                className="text-base"
+                                            >
+                                                Done List
+                                            </Label>
+                                            <p className="text-sm text-muted-foreground">
+                                                {hasDoneListElsewhere &&
+                                                !list.is_done_list
                                                     ? 'Another list is already set as Done List. Unset it first to change.'
                                                     : 'Completed tasks will automatically move to this list.'}
                                             </p>
@@ -100,18 +122,29 @@ export function EditListDialog({ project, list, open, onOpenChange, canSetDoneLi
                                         <Switch
                                             id="is_done_list"
                                             checked={list.is_done_list}
-                                            disabled={hasDoneListElsewhere && !list.is_done_list}
+                                            disabled={
+                                                hasDoneListElsewhere &&
+                                                !list.is_done_list
+                                            }
                                             onCheckedChange={() => {
-                                                const isCurrentlyDone = list.is_done_list;
-                                                router.patch(setDoneList.url({ project: project.id, list: list.id }), {}, {
-                                                    onSuccess: () => {
-                                                        softToastSuccess(
-                                                            isCurrentlyDone
-                                                                ? 'Done list unset successfully'
-                                                                : 'Done list set successfully'
-                                                        );
+                                                const isCurrentlyDone =
+                                                    list.is_done_list;
+                                                router.patch(
+                                                    setDoneList.url({
+                                                        project: project.id,
+                                                        list: list.id,
+                                                    }),
+                                                    {},
+                                                    {
+                                                        onSuccess: () => {
+                                                            softToastSuccess(
+                                                                isCurrentlyDone
+                                                                    ? 'Done list unset successfully'
+                                                                    : 'Done list set successfully',
+                                                            );
+                                                        },
                                                     },
-                                                });
+                                                );
                                             }}
                                         />
                                     </div>

@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { Check, CircleCheck, ExternalLink } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import { Check, CircleCheck, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
 
 export interface SelectOption {
     value: string;
@@ -95,35 +95,39 @@ export interface FormLayoutPlanSelectionProps {
 }
 
 export default function FormLayoutPlanSelection({
-    title = "Create new design workspace",
+    title = 'Create new design workspace',
     organizations,
     defaultOrganization,
     regions,
     defaultRegion,
-    defaultWorkspace = "",
+    defaultWorkspace = '',
     plans,
     defaultPlan,
     highlights,
-    sidebarTitle = "Choose the right plan for your design team",
+    sidebarTitle = 'Choose the right plan for your design team',
     sidebarDescription = "Our flexible plans are designed to scale with your team's needs. All plans include core design collaboration features with varying levels of storage and support.",
-    sidebarLearnMoreHref = "#",
-    planTypeLabel = "Plan type",
+    sidebarLearnMoreHref = '#',
+    planTypeLabel = 'Plan type',
     planRequired = true,
-    regionDescription = "For best performance, choose a region closest to your operations",
-    submitButtonText = "Update",
-    cancelButtonText = "Cancel",
+    regionDescription = 'For best performance, choose a region closest to your operations',
+    submitButtonText = 'Update',
+    cancelButtonText = 'Cancel',
     onSubmit,
     onCancel,
     className,
     isLoading = false,
 }: FormLayoutPlanSelectionProps) {
-    const [organization, setOrganization] = useState(defaultOrganization ?? organizations?.[0]?.value ?? "");
+    const [organization, setOrganization] = useState(
+        defaultOrganization ?? organizations?.[0]?.value ?? '',
+    );
     const [workspace, setWorkspace] = useState(defaultWorkspace);
-    const [region, setRegion] = useState(defaultRegion ?? regions?.[0]?.value ?? "");
+    const [region, setRegion] = useState(
+        defaultRegion ?? regions?.[0]?.value ?? '',
+    );
     const [selectedPlan, setSelectedPlan] = useState(() => {
         if (defaultPlan) return defaultPlan;
         const recommended = plans.find((p) => p.isRecommended);
-        return recommended?.id ?? plans[0]?.id ?? "";
+        return recommended?.id ?? plans[0]?.id ?? '';
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -137,17 +141,24 @@ export default function FormLayoutPlanSelection({
     };
 
     return (
-        <div className={cn("flex items-center justify-center p-10", className)}>
+        <div className={cn('flex items-center justify-center p-10', className)}>
             <form className="sm:mx-auto sm:max-w-7xl" onSubmit={handleSubmit}>
-                <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+                <h3 className="text-xl font-semibold text-foreground">
+                    {title}
+                </h3>
                 <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
                     <div className="mt-6 lg:col-span-7">
                         <div className="space-y-4 md:space-y-6">
                             <div className="md:flex md:items-center md:space-x-4">
                                 <div className="md:w-1/4">
                                     <Field className="gap-2">
-                                        <FieldLabel htmlFor="organization">Organization</FieldLabel>
-                                        <Select value={organization} onValueChange={setOrganization}>
+                                        <FieldLabel htmlFor="organization">
+                                            Organization
+                                        </FieldLabel>
+                                        <Select
+                                            value={organization}
+                                            onValueChange={setOrganization}
+                                        >
                                             <SelectTrigger
                                                 id="organization"
                                                 name="organization"
@@ -156,8 +167,11 @@ export default function FormLayoutPlanSelection({
                                                 <SelectValue placeholder="Select organization" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                            {organizations?.map((org) => (
-                                                    <SelectItem key={org.value} value={org.value}>
+                                                {organizations?.map((org) => (
+                                                    <SelectItem
+                                                        key={org.value}
+                                                        value={org.value}
+                                                    >
                                                         {org.label}
                                                     </SelectItem>
                                                 ))}
@@ -167,40 +181,59 @@ export default function FormLayoutPlanSelection({
                                 </div>
                                 <div className="mt-4 md:mt-0 md:w-3/4">
                                     <Field className="gap-2">
-                                        <FieldLabel htmlFor="workspace">Workspace name</FieldLabel>
+                                        <FieldLabel htmlFor="workspace">
+                                            Workspace name
+                                        </FieldLabel>
                                         <Input
                                             id="workspace"
                                             name="workspace"
                                             value={workspace}
-                                            onChange={(e) => setWorkspace(e.target.value)}
+                                            onChange={(e) =>
+                                                setWorkspace(e.target.value)
+                                            }
                                         />
                                     </Field>
                                 </div>
                             </div>
                             <div>
                                 <Field className="gap-2">
-                                    <FieldLabel htmlFor="region">Region</FieldLabel>
-                                    <Select value={region} onValueChange={setRegion}>
-                                        <SelectTrigger id="region" name="region">
+                                    <FieldLabel htmlFor="region">
+                                        Region
+                                    </FieldLabel>
+                                    <Select
+                                        value={region}
+                                        onValueChange={setRegion}
+                                    >
+                                        <SelectTrigger
+                                            id="region"
+                                            name="region"
+                                        >
                                             <SelectValue placeholder="Select region" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {regions?.map((reg) => (
-                                                <SelectItem key={reg.value} value={reg.value}>
+                                                <SelectItem
+                                                    key={reg.value}
+                                                    value={reg.value}
+                                                >
                                                     {reg.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     {regionDescription && (
-                                        <FieldDescription>{regionDescription}</FieldDescription>
+                                        <FieldDescription>
+                                            {regionDescription}
+                                        </FieldDescription>
                                     )}
                                 </Field>
                             </div>
                         </div>
                         <h4 className="mt-14 font-medium">
                             {planTypeLabel}
-                            {planRequired && <span className="text-red-500">*</span>}
+                            {planRequired && (
+                                <span className="text-red-500">*</span>
+                            )}
                         </h4>
                         <RadioGroup
                             value={selectedPlan}
@@ -212,15 +245,18 @@ export default function FormLayoutPlanSelection({
                                     key={plan.id}
                                     htmlFor={plan.id}
                                     className={cn(
-                                        "relative block cursor-pointer rounded-md border bg-background transition",
+                                        'relative block cursor-pointer rounded-md border bg-background transition',
                                         selectedPlan === plan.id
-                                            ? "border-primary/20 ring-2 ring-primary/20"
-                                            : "border-border"
+                                            ? 'border-primary/20 ring-2 ring-primary/20'
+                                            : 'border-border',
                                     )}
                                 >
                                     <div className="flex items-start space-x-4 px-6 py-4">
                                         <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center">
-                                            <RadioGroupItem value={plan.id} id={plan.id} />
+                                            <RadioGroupItem
+                                                value={plan.id}
+                                                id={plan.id}
+                                            />
                                         </div>
                                         <div className="w-full">
                                             <p className="leading-6">
@@ -228,24 +264,31 @@ export default function FormLayoutPlanSelection({
                                                     {plan.name}
                                                 </span>
                                                 {plan.isRecommended && (
-                                                    <Badge variant="secondary" className="ml-2">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="ml-2"
+                                                    >
                                                         recommended
                                                     </Badge>
                                                 )}
                                             </p>
                                             <ul className="mt-2 space-y-1">
-                                                {plan.features.map((feature, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="flex items-center gap-2 text-sm"
-                                                    >
-                                                        <Check
-                                                            className="h-4 w-4 text-muted-foreground"
-                                                            aria-hidden={true}
-                                                        />
-                                                        {feature.feature}
-                                                    </li>
-                                                ))}
+                                                {plan.features.map(
+                                                    (feature, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="flex items-center gap-2 text-sm"
+                                                        >
+                                                            <Check
+                                                                className="h-4 w-4 text-muted-foreground"
+                                                                aria-hidden={
+                                                                    true
+                                                                }
+                                                            />
+                                                            {feature.feature}
+                                                        </li>
+                                                    ),
+                                                )}
                                             </ul>
                                         </div>
                                     </div>
@@ -256,7 +299,10 @@ export default function FormLayoutPlanSelection({
                                                 className="inline-flex items-center gap-1 text-sm text-primary hover:underline hover:underline-offset-4"
                                             >
                                                 Learn more
-                                                <ExternalLink className="h-4 w-4" aria-hidden={true} />
+                                                <ExternalLink
+                                                    className="h-4 w-4"
+                                                    aria-hidden={true}
+                                                />
                                             </a>
                                         ) : (
                                             <div />
@@ -266,7 +312,7 @@ export default function FormLayoutPlanSelection({
                                                 {plan.price}
                                             </span>
                                             <span className="text-sm text-muted-foreground">
-                                                {plan.priceLabel ?? "/mo"}
+                                                {plan.priceLabel ?? '/mo'}
                                             </span>
                                         </div>
                                     </div>
@@ -291,7 +337,9 @@ export default function FormLayoutPlanSelection({
                                                 className="flex items-center space-x-2 py-1.5 text-foreground"
                                             >
                                                 <CircleCheck className="h-5 w-5 text-primary" />
-                                                <span className="truncate text-sm">{item.feature}</span>
+                                                <span className="truncate text-sm">
+                                                    {item.feature}
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -302,7 +350,10 @@ export default function FormLayoutPlanSelection({
                                         className="mt-4 inline-flex items-center gap-1 text-sm text-primary"
                                     >
                                         Learn more
-                                        <ExternalLink className="h-4 w-4" aria-hidden={true} />
+                                        <ExternalLink
+                                            className="h-4 w-4"
+                                            aria-hidden={true}
+                                        />
                                     </a>
                                 )}
                             </CardContent>
@@ -315,7 +366,7 @@ export default function FormLayoutPlanSelection({
                         {cancelButtonText}
                     </Button>
                     <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Loading..." : submitButtonText}
+                        {isLoading ? 'Loading...' : submitButtonText}
                     </Button>
                 </div>
             </form>

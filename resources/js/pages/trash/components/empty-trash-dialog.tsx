@@ -18,7 +18,13 @@ interface EmptyTrashDialogProps {
     itemCount: number;
 }
 
-export function EmptyTrashDialog({ open, onOpenChange, onConfirm, isLoading, itemCount }: EmptyTrashDialogProps) {
+export function EmptyTrashDialog({
+    open,
+    onOpenChange,
+    onConfirm,
+    isLoading,
+    itemCount,
+}: EmptyTrashDialogProps) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
@@ -33,12 +39,15 @@ export function EmptyTrashDialog({ open, onOpenChange, onConfirm, isLoading, ite
                             from trash?
                         </span>
                         <span className="block font-semibold text-destructive">
-                            This action cannot be undone. All projects, lists, and tasks in trash will be permanently removed.
+                            This action cannot be undone. All projects, lists,
+                            and tasks in trash will be permanently removed.
                         </span>
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isLoading}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
                         disabled={isLoading}

@@ -1,5 +1,10 @@
 import { Head, router } from '@inertiajs/react';
-import { FileTextIcon, ShieldCheckIcon, ArrowLeftIcon, CheckCircleIcon } from 'lucide-react';
+import {
+    ArrowLeftIcon,
+    CheckCircleIcon,
+    FileTextIcon,
+    ShieldCheckIcon,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 
 import TextLink from '@/components/text-link';
@@ -7,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { staggerContainer, fadeInUp, listItemVariants } from '@/lib/motion';
 import AuthLayout from '@/layouts/auth-layout';
+import { fadeInUp, listItemVariants, staggerContainer } from '@/lib/motion';
 
 interface ConditionProps {
     type?: 'terms' | 'privacy';
@@ -24,7 +29,11 @@ export default function Condition({ type = 'terms' }: ConditionProps) {
     return (
         <AuthLayout
             title={isTerms ? 'Terms of Service' : 'Privacy Policy'}
-            description={isTerms ? 'Please read our terms carefully' : 'How we handle your data'}
+            description={
+                isTerms
+                    ? 'Please read our terms carefully'
+                    : 'How we handle your data'
+            }
         >
             <Head title={isTerms ? 'Terms of Service' : 'Privacy Policy'} />
 
@@ -36,7 +45,11 @@ export default function Condition({ type = 'terms' }: ConditionProps) {
             >
                 {/* Tabs Navigation */}
                 <motion.div variants={fadeInUp}>
-                    <Tabs value={type} onValueChange={handleTabChange} className="w-full">
+                    <Tabs
+                        value={type}
+                        onValueChange={handleTabChange}
+                        className="w-full"
+                    >
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="terms" className="gap-2">
                                 <FileTextIcon className="size-4" />
@@ -129,7 +142,9 @@ export default function Condition({ type = 'terms' }: ConditionProps) {
                     variants={fadeInUp}
                     className="rounded-lg border border-dashed bg-muted/20 p-4"
                 >
-                    <h4 className="mb-3 text-sm font-medium text-foreground">Key Points</h4>
+                    <h4 className="mb-3 text-sm font-medium text-foreground">
+                        Key Points
+                    </h4>
                     <motion.ul
                         variants={staggerContainer}
                         initial="hidden"
@@ -159,7 +174,10 @@ export default function Condition({ type = 'terms' }: ConditionProps) {
                 {/* Back to Register */}
                 <motion.div variants={fadeInUp}>
                     <Button variant="outline" asChild className="w-full">
-                        <TextLink href="/register" className="no-underline gap-2">
+                        <TextLink
+                            href="/register"
+                            className="gap-2 no-underline"
+                        >
                             <ArrowLeftIcon className="size-4" />
                             Back to Register
                         </TextLink>
@@ -170,7 +188,15 @@ export default function Condition({ type = 'terms' }: ConditionProps) {
     );
 }
 
-function Section({ number, title, content }: { number: number; title: string; content: string }) {
+function Section({
+    number,
+    title,
+    content,
+}: {
+    number: number;
+    title: string;
+    content: string;
+}) {
     return (
         <div className="space-y-2">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -179,7 +205,7 @@ function Section({ number, title, content }: { number: number; title: string; co
                 </span>
                 {title}
             </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground pl-8">
+            <p className="pl-8 text-sm leading-relaxed text-muted-foreground">
                 {content}
             </p>
         </div>

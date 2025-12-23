@@ -1,3 +1,10 @@
+import {
+    forceDeleteList,
+    forceDeleteTask,
+    index as projectTrashIndex,
+    restoreList,
+    restoreTask,
+} from '@/actions/App/Http/Controllers/Projects/ProjectTrashController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,14 +25,11 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-    forceDeleteList,
-    forceDeleteTask,
-    index as projectTrashIndex,
-    restoreList,
-    restoreTask,
-} from '@/actions/App/Http/Controllers/Projects/ProjectTrashController';
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { ProjectTrashItemType, TrashSortBy } from '@/types/trash';
 import { router } from '@inertiajs/react';
 import {
@@ -121,7 +125,10 @@ function normalizeTask(task: ApiTrashedTask): NormalizedItem {
     };
 }
 
-function getTimeRemaining(expiresAt: Date): { text: string; isUrgent: boolean } {
+function getTimeRemaining(expiresAt: Date): {
+    text: string;
+    isUrgent: boolean;
+} {
     const now = new Date();
     const diff = expiresAt.getTime() - now.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -153,22 +160,28 @@ function ProjectTrashItem({
 
     const handleRestore = () => {
         setIsRestoring(true);
-        const route = item.type === 'list'
-            ? restoreList([projectId, item.id])
-            : restoreTask([projectId, item.id]);
+        const route =
+            item.type === 'list'
+                ? restoreList([projectId, item.id])
+                : restoreTask([projectId, item.id]);
 
-        router.patch(route.url, {}, {
-            preserveScroll: true,
-            onSuccess: onAction,
-            onFinish: () => setIsRestoring(false),
-        });
+        router.patch(
+            route.url,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: onAction,
+                onFinish: () => setIsRestoring(false),
+            },
+        );
     };
 
     const handleForceDelete = () => {
         setIsDeleting(true);
-        const route = item.type === 'list'
-            ? forceDeleteList([projectId, item.id])
-            : forceDeleteTask([projectId, item.id]);
+        const route =
+            item.type === 'list'
+                ? forceDeleteList([projectId, item.id])
+                : forceDeleteTask([projectId, item.id]);
 
         router.delete(route.url, {
             preserveScroll: true,
@@ -188,7 +201,7 @@ function ProjectTrashItem({
             {/* Color accent */}
             {item.color && (
                 <div
-                    className="absolute left-0 top-0 h-full w-1 rounded-l-lg"
+                    className="absolute top-0 left-0 h-full w-1 rounded-l-lg"
                     style={{ backgroundColor: item.color }}
                 />
             )}
@@ -197,7 +210,9 @@ function ProjectTrashItem({
             <div
                 className="flex size-8 shrink-0 items-center justify-center rounded-md"
                 style={{
-                    backgroundColor: item.color ? `${item.color}20` : 'hsl(var(--muted))',
+                    backgroundColor: item.color
+                        ? `${item.color}20`
+                        : 'hsl(var(--muted))',
                     color: item.color || 'hsl(var(--muted-foreground))',
                 }}
             >
@@ -205,16 +220,22 @@ function ProjectTrashItem({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{item.name}</p>
+            <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{item.name}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="capitalize">{item.type}</span>
-                    {item.type === 'list' && item.tasksCount !== undefined && item.tasksCount > 0 && (
-                        <>
-                            <span>•</span>
-                            <span>{item.tasksCount} {item.tasksCount === 1 ? 'task' : 'tasks'} included</span>
-                        </>
-                    )}
+                    {item.type === 'list' &&
+                        item.tasksCount !== undefined &&
+                        item.tasksCount > 0 && (
+                            <>
+                                <span>•</span>
+                                <span>
+                                    {item.tasksCount}{' '}
+                                    {item.tasksCount === 1 ? 'task' : 'tasks'}{' '}
+                                    included
+                                </span>
+                            </>
+                        )}
                     {item.parentInfo && (
                         <>
                             <span>•</span>
@@ -252,7 +273,9 @@ function ProjectTrashItem({
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        {item.type === 'list' && item.tasksCount && item.tasksCount > 0
+                        {item.type === 'list' &&
+                        item.tasksCount &&
+                        item.tasksCount > 0
                             ? `Restore list and ${item.tasksCount} ${item.tasksCount === 1 ? 'task' : 'tasks'}`
                             : 'Restore'}
                     </TooltipContent>
@@ -278,7 +301,9 @@ function ProjectTrashItem({
 
 export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
     const [open, setOpen] = React.useState(false);
-    const [trashData, setTrashData] = React.useState<ProjectTrashData | null>(null);
+    const [trashData, setTrashData] = React.useState<ProjectTrashData | null>(
+        null,
+    );
     const [isLoading, setIsLoading] = React.useState(false);
     const [filter, setFilter] = React.useState<ProjectTrashItemType>('all');
     const [sortBy, setSortBy] = React.useState<TrashSortBy>('recent');
@@ -289,7 +314,7 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
         try {
             const response = await fetch(projectTrashIndex(projectId).url, {
                 headers: {
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
@@ -334,9 +359,10 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            items = items.filter((item) =>
-                item.name.toLowerCase().includes(query) ||
-                item.parentInfo?.toLowerCase().includes(query)
+            items = items.filter(
+                (item) =>
+                    item.name.toLowerCase().includes(query) ||
+                    item.parentInfo?.toLowerCase().includes(query),
             );
         }
 
@@ -387,8 +413,10 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                         Project Trash
                     </SheetTitle>
                     <SheetDescription>
-                        Deleted lists and tasks from this project. Items are automatically removed after 7 days.
-                        When a list is deleted, its tasks are included and will be restored together.
+                        Deleted lists and tasks from this project. Items are
+                        automatically removed after 7 days. When a list is
+                        deleted, its tasks are included and will be restored
+                        together.
                     </SheetDescription>
                 </SheetHeader>
 
@@ -398,32 +426,52 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                         {/* Tabs */}
                         <Tabs
                             value={filter}
-                            onValueChange={(v) => setFilter(v as ProjectTrashItemType)}
+                            onValueChange={(v) =>
+                                setFilter(v as ProjectTrashItemType)
+                            }
                             className="w-full"
                         >
                             <TabsList className="w-full">
-                                <TabsTrigger value="all" className="flex-1 gap-1.5">
+                                <TabsTrigger
+                                    value="all"
+                                    className="flex-1 gap-1.5"
+                                >
                                     All
                                     {counts.all > 0 && (
-                                        <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                                        <Badge
+                                            variant="secondary"
+                                            className="ml-1 h-5 px-1.5"
+                                        >
                                             {counts.all}
                                         </Badge>
                                     )}
                                 </TabsTrigger>
-                                <TabsTrigger value="lists" className="flex-1 gap-1.5">
+                                <TabsTrigger
+                                    value="lists"
+                                    className="flex-1 gap-1.5"
+                                >
                                     <ListTodo className="size-3.5" />
                                     Lists
                                     {counts.lists > 0 && (
-                                        <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                                        <Badge
+                                            variant="secondary"
+                                            className="ml-1 h-5 px-1.5"
+                                        >
                                             {counts.lists}
                                         </Badge>
                                     )}
                                 </TabsTrigger>
-                                <TabsTrigger value="tasks" className="flex-1 gap-1.5">
+                                <TabsTrigger
+                                    value="tasks"
+                                    className="flex-1 gap-1.5"
+                                >
                                     <CheckSquare className="size-3.5" />
                                     Tasks
                                     {counts.tasks > 0 && (
-                                        <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                                        <Badge
+                                            variant="secondary"
+                                            className="ml-1 h-5 px-1.5"
+                                        >
                                             {counts.tasks}
                                         </Badge>
                                     )}
@@ -434,25 +482,32 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                         {/* Search and Sort */}
                         <div className="flex gap-2">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Search deleted items..."
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-9"
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
+                                    className="pr-9 pl-9"
                                 />
                                 {searchQuery && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute right-1 top-1/2 size-7 -translate-y-1/2"
+                                        className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
                                         onClick={() => setSearchQuery('')}
                                     >
                                         <X className="size-4" />
                                     </Button>
                                 )}
                             </div>
-                            <Select value={sortBy} onValueChange={(v) => setSortBy(v as TrashSortBy)}>
+                            <Select
+                                value={sortBy}
+                                onValueChange={(v) =>
+                                    setSortBy(v as TrashSortBy)
+                                }
+                            >
                                 <SelectTrigger className="w-40">
                                     <ArrowDownUp className="mr-2 size-4" />
                                     <SelectValue />
@@ -482,7 +537,7 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                     </div>
 
                     {/* Content */}
-                    <ScrollArea className="flex-1 -mx-4 sm:-mx-6">
+                    <ScrollArea className="-mx-4 flex-1 sm:-mx-6">
                         <div className="flex flex-col gap-2 px-4 sm:px-6">
                             {isLoading ? (
                                 <div className="flex flex-col gap-2">
@@ -503,7 +558,9 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                                         <Trash2 className="size-8 text-muted-foreground" />
                                     </div>
                                     <h3 className="font-semibold">
-                                        {searchQuery ? 'No matches found' : 'Trash is empty'}
+                                        {searchQuery
+                                            ? 'No matches found'
+                                            : 'Trash is empty'}
                                     </h3>
                                     <p className="mt-1 text-sm text-muted-foreground">
                                         {searchQuery

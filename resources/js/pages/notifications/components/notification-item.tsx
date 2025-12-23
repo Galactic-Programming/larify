@@ -2,27 +2,24 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/types/notifications.d';
 import { router } from '@inertiajs/react';
 import {
+    AlertTriangle,
     Bell,
     Check,
     CheckCircle,
     Clock,
     FolderPlus,
-    MoreHorizontal,
     Shield,
     Trash2,
     UserMinus,
     UserPlus,
-    AlertTriangle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -33,7 +30,11 @@ interface NotificationItemProps {
 }
 
 // Get notification icon and color based on type
-function getNotificationStyle(type: string): { icon: React.ReactNode; bgColor: string; textColor: string } {
+function getNotificationStyle(type: string): {
+    icon: React.ReactNode;
+    bgColor: string;
+    textColor: string;
+} {
     switch (type) {
         case 'task.assigned':
             return {
@@ -87,14 +88,19 @@ function getNotificationStyle(type: string): { icon: React.ReactNode; bgColor: s
 }
 
 // Get actor info (who triggered the notification)
-function getActorInfo(notification: Notification): { name: string; avatar?: string } | null {
+function getActorInfo(
+    notification: Notification,
+): { name: string; avatar?: string } | null {
     const data = notification.data;
 
     if (data.assigned_by_name) {
         return { name: data.assigned_by_name, avatar: data.assigned_by_avatar };
     }
     if (data.completed_by_name) {
-        return { name: data.completed_by_name, avatar: data.completed_by_avatar };
+        return {
+            name: data.completed_by_name,
+            avatar: data.completed_by_avatar,
+        };
     }
     if (data.invited_by_name) {
         return { name: data.invited_by_name, avatar: data.invited_by_avatar };
@@ -142,7 +148,11 @@ function getTypeLabel(type: string): string {
     return labels[type] || 'Notification';
 }
 
-export function NotificationItem({ notification, onMarkAsRead, onDelete }: NotificationItemProps) {
+export function NotificationItem({
+    notification,
+    onMarkAsRead,
+    onDelete,
+}: NotificationItemProps) {
     const actor = getActorInfo(notification);
     const url = getNotificationUrl(notification);
     const style = getNotificationStyle(notification.type);
@@ -179,14 +189,15 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
             whileHover={{ y: -2, transition: { duration: 0.2 } }}
             className={cn(
                 'group relative flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50',
-                !notification.is_read && 'border-primary/30 bg-primary/5 dark:bg-primary/10',
+                !notification.is_read &&
+                    'border-primary/30 bg-primary/5 dark:bg-primary/10',
                 url && 'cursor-pointer',
             )}
             onClick={handleClick}
         >
             {/* Unread indicator bar */}
             {!notification.is_read && (
-                <div className="absolute left-0 top-0 h-full w-1 rounded-l-lg bg-primary" />
+                <div className="absolute top-0 left-0 h-full w-1 rounded-l-lg bg-primary" />
             )}
 
             {/* Icon or Avatar */}
@@ -194,14 +205,24 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
                 {actor?.avatar ? (
                     <Avatar className="size-10 border-2 border-background shadow-sm">
                         <AvatarImage src={actor.avatar} alt={actor.name} />
-                        <AvatarFallback>{getInitials(actor.name)}</AvatarFallback>
+                        <AvatarFallback>
+                            {getInitials(actor.name)}
+                        </AvatarFallback>
                     </Avatar>
                 ) : actor ? (
                     <Avatar className="size-10 border-2 border-background shadow-sm">
-                        <AvatarFallback>{getInitials(actor.name)}</AvatarFallback>
+                        <AvatarFallback>
+                            {getInitials(actor.name)}
+                        </AvatarFallback>
                     </Avatar>
                 ) : (
-                    <div className={cn('flex size-10 items-center justify-center rounded-full', style.bgColor, style.textColor)}>
+                    <div
+                        className={cn(
+                            'flex size-10 items-center justify-center rounded-full',
+                            style.bgColor,
+                            style.textColor,
+                        )}
+                    >
                         {style.icon}
                     </div>
                 )}
@@ -211,14 +232,20 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
             <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium leading-snug">{message}</p>
+                        <p className="text-sm leading-snug font-medium">
+                            {message}
+                        </p>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             {notification.data.project_name && (
                                 <span className="inline-flex items-center gap-1.5">
                                     {notification.data.project_color && (
                                         <span
                                             className="size-2 rounded-full"
-                                            style={{ backgroundColor: notification.data.project_color }}
+                                            style={{
+                                                backgroundColor:
+                                                    notification.data
+                                                        .project_color,
+                                            }}
                                         />
                                     )}
                                     {notification.data.project_name}
@@ -232,9 +259,14 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
 
                 {/* Type Badge */}
                 <div className="mt-2">
-                    <Badge variant="secondary" className={cn('text-xs', style.textColor)}>
+                    <Badge
+                        variant="secondary"
+                        className={cn('text-xs', style.textColor)}
+                    >
                         <span className={style.textColor}>{style.icon}</span>
-                        <span className="ml-1">{getTypeLabel(notification.type)}</span>
+                        <span className="ml-1">
+                            {getTypeLabel(notification.type)}
+                        </span>
                     </Badge>
                 </div>
             </div>
@@ -261,7 +293,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="size-8 text-destructive opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                            className="size-8 text-destructive opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                             onClick={handleDelete}
                         >
                             <Trash2 className="size-4" />

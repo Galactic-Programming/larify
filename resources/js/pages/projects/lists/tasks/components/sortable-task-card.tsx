@@ -12,7 +12,14 @@ interface SortableTaskCardProps {
     permissions?: Permissions;
 }
 
-export function SortableTaskCard({ task, project, index, onClick, disabled = false, permissions }: SortableTaskCardProps) {
+export function SortableTaskCard({
+    task,
+    project,
+    index,
+    onClick,
+    disabled = false,
+    permissions,
+}: SortableTaskCardProps) {
     const {
         attributes,
         listeners,
@@ -38,7 +45,12 @@ export function SortableTaskCard({ task, project, index, onClick, disabled = fal
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...(disabled ? {} : listeners)}
+        >
             <TaskCard
                 task={task}
                 project={project}

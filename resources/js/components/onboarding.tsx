@@ -1,6 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import {
     IconArchive,
     IconChevronRight,
@@ -8,15 +15,8 @@ import {
     IconCircleDashed,
     IconDots,
     IconMail,
-} from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@tabler/icons-react';
+import { useState } from 'react';
 
 export interface OnboardingStep {
     id: string;
@@ -66,7 +66,7 @@ function CircularProgress({
 
     return (
         <svg
-            className="-rotate-90 scale-y-[-1]"
+            className="scale-y-[-1] -rotate-90"
             height="14"
             width="14"
             viewBox="0 0 14 14"
@@ -115,20 +115,21 @@ function StepIndicator({ completed }: { completed: boolean }) {
 }
 
 export function Onboarding({
-    title = "Get started with Documenso",
+    title = 'Get started with Documenso',
     steps: initialSteps,
     onStepAction,
     onDismiss,
     onFeedback,
-    feedbackEmail = "hello@example.com",
+    feedbackEmail = 'hello@example.com',
     dismissed: controlledDismissed,
     onDismissedChange,
-    dismissedText = "Checklist dismissed",
-    showAgainText = "Show again",
+    dismissedText = 'Checklist dismissed',
+    showAgainText = 'Show again',
     className,
     fullScreen = true,
 }: OnboardingProps) {
-    const [currentSteps, setCurrentSteps] = useState<OnboardingStep[]>(initialSteps);
+    const [currentSteps, setCurrentSteps] =
+        useState<OnboardingStep[]>(initialSteps);
     const [openStepId, setOpenStepId] = useState<string | null>(() => {
         const firstIncomplete = initialSteps.find((s) => !s.completed);
         return firstIncomplete?.id ?? initialSteps[0]?.id ?? null;
@@ -136,7 +137,9 @@ export function Onboarding({
     const [uncontrolledDismissed, setUncontrolledDismissed] = useState(false);
 
     const isControlled = controlledDismissed !== undefined;
-    const isDismissed = isControlled ? controlledDismissed : uncontrolledDismissed;
+    const isDismissed = isControlled
+        ? controlledDismissed
+        : uncontrolledDismissed;
 
     const setDismissed = (value: boolean) => {
         if (!isControlled) {
@@ -157,7 +160,9 @@ export function Onboarding({
             onStepAction(step);
         } else {
             setCurrentSteps((prev) =>
-                prev.map((s) => (s.id === step.id ? { ...s, completed: true } : s))
+                prev.map((s) =>
+                    s.id === step.id ? { ...s, completed: true } : s,
+                ),
             );
         }
     };
@@ -176,8 +181,8 @@ export function Onboarding({
     };
 
     const wrapperClass = fullScreen
-        ? "flex min-h-screen items-center justify-center bg-background p-4"
-        : "";
+        ? 'flex min-h-screen items-center justify-center bg-background p-4'
+        : '';
 
     if (isDismissed) {
         return (
@@ -199,31 +204,43 @@ export function Onboarding({
         <div className={cn(wrapperClass, className)}>
             <div className="w-full max-w-xl">
                 <div className="w-xl rounded-lg border bg-card p-4 text-card-foreground shadow-xs">
-                    <div className="mb-4 mr-2 flex flex-col justify-between sm:flex-row sm:items-center">
-                        <h3 className="ml-2 font-semibold text-foreground">{title}</h3>
+                    <div className="mr-2 mb-4 flex flex-col justify-between sm:flex-row sm:items-center">
+                        <h3 className="ml-2 font-semibold text-foreground">
+                            {title}
+                        </h3>
                         <div className="mt-2 flex items-center justify-end sm:mt-0">
                             <CircularProgress
                                 completed={remainingCount}
                                 total={currentSteps.length}
                             />
-                            <div className="ml-1.5 mr-3 text-sm text-muted-foreground">
+                            <div className="mr-3 ml-1.5 text-sm text-muted-foreground">
                                 <span className="font-medium text-foreground">
                                     {remainingCount}
-                                </span>{" "}
-                                out of{" "}
+                                </span>{' '}
+                                out of{' '}
                                 <span className="font-medium text-foreground">
                                     {currentSteps.length} steps
-                                </span>{" "}
+                                </span>{' '}
                                 left
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                        <IconDots className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                    >
+                                        <IconDots
+                                            className="h-4 w-4 shrink-0"
+                                            aria-hidden="true"
+                                        />
                                         <span className="sr-only">Options</span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-40"
+                                >
                                     <DropdownMenuItem onClick={handleDismiss}>
                                         <IconArchive
                                             className="mr-2 h-4 w-4 shrink-0"
@@ -248,17 +265,20 @@ export function Onboarding({
                             const isOpen = openStepId === step.id;
                             const isFirst = index === 0;
                             const prevStep = currentSteps[index - 1];
-                            const isPrevOpen = prevStep && openStepId === prevStep.id;
+                            const isPrevOpen =
+                                prevStep && openStepId === prevStep.id;
 
-                            const showBorderTop = !isFirst && !isOpen && !isPrevOpen;
+                            const showBorderTop =
+                                !isFirst && !isOpen && !isPrevOpen;
 
                             return (
                                 <div
                                     key={step.id}
                                     className={cn(
-                                        "group",
-                                        isOpen && "rounded-lg",
-                                        showBorderTop && "border-t border-border"
+                                        'group',
+                                        isOpen && 'rounded-lg',
+                                        showBorderTop &&
+                                            'border-t border-border',
                                     )}
                                 >
                                     <div
@@ -266,58 +286,84 @@ export function Onboarding({
                                         tabIndex={0}
                                         onClick={() => handleStepClick(step.id)}
                                         onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ") {
+                                            if (
+                                                e.key === 'Enter' ||
+                                                e.key === ' '
+                                            ) {
                                                 e.preventDefault();
                                                 handleStepClick(step.id);
                                             }
                                         }}
                                         className={cn(
-                                            "block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                                            isOpen && "rounded-lg"
+                                            'block w-full cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                                            isOpen && 'rounded-lg',
                                         )}
                                     >
                                         <div
                                             className={cn(
-                                                "relative overflow-hidden rounded-lg transition-colors",
-                                                isOpen && "border border-border bg-muted"
+                                                'relative overflow-hidden rounded-lg transition-colors',
+                                                isOpen &&
+                                                    'border border-border bg-muted',
                                             )}
                                         >
-                                            <div className="relative flex items-center justify-between gap-3 py-3 pl-4 pr-2">
+                                            <div className="relative flex items-center justify-between gap-3 py-3 pr-2 pl-4">
                                                 <div className="flex w-full gap-3">
                                                     <div className="shrink-0">
-                                                        <StepIndicator completed={step.completed} />
+                                                        <StepIndicator
+                                                            completed={
+                                                                step.completed
+                                                            }
+                                                        />
                                                     </div>
                                                     <div className="mt-0.5 grow">
                                                         <h4
                                                             className={cn(
-                                                                "font-semibold",
+                                                                'font-semibold',
                                                                 step.completed
-                                                                    ? "text-primary"
-                                                                    : "text-foreground"
+                                                                    ? 'text-primary'
+                                                                    : 'text-foreground',
                                                             )}
                                                         >
                                                             {step.title}
                                                         </h4>
                                                         <div
                                                             className={cn(
-                                                                "overflow-hidden transition-all duration-200",
-                                                                isOpen ? "h-auto opacity-100" : "h-0 opacity-0"
+                                                                'overflow-hidden transition-all duration-200',
+                                                                isOpen
+                                                                    ? 'h-auto opacity-100'
+                                                                    : 'h-0 opacity-0',
                                                             )}
                                                         >
                                                             <p className="mt-2 text-sm text-muted-foreground sm:max-w-64 md:max-w-xs">
-                                                                {step.description}
+                                                                {
+                                                                    step.description
+                                                                }
                                                             </p>
                                                             <Button
                                                                 size="sm"
                                                                 className="mt-3"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
                                                                     e.stopPropagation();
-                                                                    handleStepAction(step);
+                                                                    handleStepAction(
+                                                                        step,
+                                                                    );
                                                                 }}
-                                                                asChild={!!step.actionHref}
+                                                                asChild={
+                                                                    !!step.actionHref
+                                                                }
                                                             >
                                                                 {step.actionHref ? (
-                                                                    <a href={step.actionHref}>{step.actionLabel}</a>
+                                                                    <a
+                                                                        href={
+                                                                            step.actionHref
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            step.actionLabel
+                                                                        }
+                                                                    </a>
                                                                 ) : (
                                                                     step.actionLabel
                                                                 )}

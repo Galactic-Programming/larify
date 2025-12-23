@@ -1,7 +1,6 @@
 import { type ComponentType, useEffect, useRef, useState } from 'react';
 
 import { Head, Link, usePage } from '@inertiajs/react';
-import { motion } from 'motion/react';
 import {
     ArrowRightIcon,
     CalendarIcon,
@@ -16,12 +15,18 @@ import {
     TargetIcon,
     ZapIcon,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 import LarifyLogo from '@/assets/svg/larify-logo';
 import { LogoLoop } from '@/components/logo-loop';
-import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,7 +43,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -126,7 +135,8 @@ const contactInfo: ContactInfo[] = [
     {
         title: 'Visit Us',
         icon: MapPinIcon,
-        description: '5th Floor – Emporium Tower, 184 Le Dai Hanh, Ward. Phu Tho, HCM City',
+        description:
+            '5th Floor – Emporium Tower, 184 Le Dai Hanh, Ward. Phu Tho, HCM City',
     },
 ];
 
@@ -213,7 +223,8 @@ const features: Feature[] = [
             'AI-powered scheduling that learns your productivity patterns and suggests optimal times for different tasks.',
         cardBorderColor: 'hover:border-green-500/50',
         hoverTextColor: 'group-hover:text-green-600',
-        hoverBgColor: 'group-hover:bg-green-100 dark:group-hover:bg-green-900/30',
+        hoverBgColor:
+            'group-hover:bg-green-100 dark:group-hover:bg-green-900/30',
     },
     {
         icon: LayoutDashboardIcon,
@@ -222,7 +233,8 @@ const features: Feature[] = [
             "Get a bird's eye view of all your projects with intuitive dashboards and progress tracking.",
         cardBorderColor: 'hover:border-purple-500/50',
         hoverTextColor: 'group-hover:text-purple-600',
-        hoverBgColor: 'group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30',
+        hoverBgColor:
+            'group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30',
     },
     {
         icon: ClockIcon,
@@ -231,7 +243,8 @@ const features: Feature[] = [
             'Automatic time tracking with detailed reports to help you understand where your time goes.',
         cardBorderColor: 'hover:border-orange-500/50',
         hoverTextColor: 'group-hover:text-orange-600',
-        hoverBgColor: 'group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30',
+        hoverBgColor:
+            'group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30',
     },
     {
         icon: ZapIcon,
@@ -240,7 +253,8 @@ const features: Feature[] = [
             'Keyboard shortcuts and quick actions to manage tasks without breaking your flow state.',
         cardBorderColor: 'hover:border-yellow-500/50',
         hoverTextColor: 'group-hover:text-yellow-600',
-        hoverBgColor: 'group-hover:bg-yellow-100 dark:group-hover:bg-yellow-900/30',
+        hoverBgColor:
+            'group-hover:bg-yellow-100 dark:group-hover:bg-yellow-900/30',
     },
     {
         icon: CheckCircle2Icon,
@@ -265,7 +279,7 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="bg-background sticky top-0 z-50 h-16 border-b"
+            className="sticky top-0 z-50 h-16 border-b bg-background"
         >
             <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
                 {/* LarifyLogo */}
@@ -288,12 +302,15 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
                                 key={item.title}
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
+                                transition={{
+                                    delay: 0.3 + index * 0.1,
+                                    duration: 0.3,
+                                }}
                             >
                                 <NavigationMenuItem>
                                     <NavigationMenuLink
                                         href={item.href}
-                                        className="text-muted-foreground hover:text-primary px-3 py-1.5 text-base font-medium hover:bg-transparent"
+                                        className="px-3 py-1.5 text-base font-medium text-muted-foreground hover:bg-transparent hover:text-primary"
                                     >
                                         {item.title}
                                     </NavigationMenuLink>
@@ -316,7 +333,11 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
                         </Button>
                     ) : (
                         <>
-                            <Button variant="ghost" className="rounded-lg" asChild>
+                            <Button
+                                variant="ghost"
+                                className="rounded-lg"
+                                asChild
+                            >
                                 <Link href={login()}>Log in</Link>
                             </Button>
                             {canRegister && (
@@ -357,7 +378,9 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
                                 <>
                                     <Separator className="my-1" />
                                     <DropdownMenuItem asChild>
-                                        <Link href={register()}>Get Started</Link>
+                                        <Link href={register()}>
+                                            Get Started
+                                        </Link>
                                     </DropdownMenuItem>
                                 </>
                             )}
@@ -377,14 +400,78 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
     const { auth } = usePage<SharedData>().props;
 
     const partnerLogos = [
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg" alt="Google" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" alt="Apple" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all dark:invert" /> },
-        { node: <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/slack/slack-original.svg" alt="Slack" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/trello/trello-original.svg" alt="Trello" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg" alt="Figma" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/notion/notion-original.svg" alt="Notion" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all dark:invert" /> },
-        { node: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="GitHub" className="h-6 w-auto opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all dark:invert" /> },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg"
+                    alt="Google"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg"
+                    alt="Apple"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0 dark:invert"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg"
+                    alt="Microsoft"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/slack/slack-original.svg"
+                    alt="Slack"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/trello/trello-original.svg"
+                    alt="Trello"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg"
+                    alt="Figma"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/notion/notion-original.svg"
+                    alt="Notion"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0 dark:invert"
+                />
+            ),
+        },
+        {
+            node: (
+                <img
+                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg"
+                    alt="GitHub"
+                    className="h-6 w-auto opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0 dark:invert"
+                />
+            ),
+        },
     ];
 
     return (
@@ -394,10 +481,12 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
-                    className="bg-muted flex items-center gap-2.5 rounded-full border px-3 py-2"
+                    className="flex items-center gap-2.5 rounded-full border bg-muted px-3 py-2"
                 >
                     <Badge>New</Badge>
-                    <span className="text-muted-foreground text-sm">AI-Powered Productivity</span>
+                    <span className="text-sm text-muted-foreground">
+                        AI-Powered Productivity
+                    </span>
                 </motion.div>
 
                 <motion.h1
@@ -416,10 +505,11 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7, duration: 0.5 }}
-                    className="text-muted-foreground max-w-2xl text-lg"
+                    className="max-w-2xl text-lg text-muted-foreground"
                 >
-                    Larify helps you focus, plan, and accomplish more with intelligent task management and
-                    distraction-free work sessions. Get more done in less time.
+                    Larify helps you focus, plan, and accomplish more with
+                    intelligent task management and distraction-free work
+                    sessions. Get more done in less time.
                 </motion.p>
 
                 <motion.div
@@ -429,7 +519,10 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     className="flex flex-wrap items-center justify-center gap-4"
                 >
                     {auth.user ? (
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
                             <Button size="lg" asChild>
                                 <Link href={dashboard()}>
                                     Go to Dashboard
@@ -440,7 +533,10 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     ) : (
                         <>
                             {canRegister && (
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
                                     <Button size="lg" asChild>
                                         <Link href={register()}>
                                             Start Free Trial
@@ -449,7 +545,10 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                                     </Button>
                                 </motion.div>
                             )}
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
                                 <Button size="lg" variant="outline" asChild>
                                     <a href="#features">Learn More</a>
                                 </Button>
@@ -465,7 +564,9 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     transition={{ delay: 1.1, duration: 0.6 }}
                     className="mt-4 w-full max-w-3xl"
                 >
-                    <p className="text-muted-foreground mb-4 text-sm">Trusted by teams at</p>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                        Trusted by teams at
+                    </p>
                     <LogoLoop
                         logos={partnerLogos}
                         speed={60}
@@ -500,8 +601,9 @@ function FeaturesSection() {
                     <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
                         Everything You Need to Stay Productive
                     </h2>
-                    <p className="text-muted-foreground max-w-3xl text-lg">
-                        Powerful features designed to help you focus, organize, and accomplish your goals with ease.
+                    <p className="max-w-3xl text-lg text-muted-foreground">
+                        Powerful features designed to help you focus, organize,
+                        and accomplish your goals with ease.
                     </p>
                 </motion.div>
 
@@ -512,33 +614,44 @@ function FeaturesSection() {
                             initial={{ opacity: 0, y: 40 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: '-50px' }}
-                            transition={{ delay: index * 0.1, duration: 0.5, ease: 'easeOut' }}
-                            whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                            transition={{
+                                delay: index * 0.1,
+                                duration: 0.5,
+                                ease: 'easeOut',
+                            }}
+                            whileHover={{
+                                y: -8,
+                                transition: { duration: 0.2 },
+                            }}
                         >
                             <Card
                                 className={cn(
                                     'group h-full shadow-none transition-all duration-300 hover:shadow-lg',
-                                    feature.cardBorderColor
+                                    feature.cardBorderColor,
                                 )}
                             >
                                 <CardContent>
                                     <Avatar
                                         className={cn(
                                             'mb-6 size-10 rounded-md text-foreground transition-colors duration-300',
-                                            feature.hoverTextColor
+                                            feature.hoverTextColor,
                                         )}
                                     >
                                         <AvatarFallback
                                             className={cn(
                                                 'rounded-md bg-muted transition-colors duration-300 [&>svg]:size-6',
-                                                feature.hoverBgColor
+                                                feature.hoverBgColor,
                                             )}
                                         >
                                             <feature.icon />
                                         </AvatarFallback>
                                     </Avatar>
-                                    <h6 className="mb-2 text-lg font-semibold">{feature.title}</h6>
-                                    <p className="text-muted-foreground">{feature.description}</p>
+                                    <h6 className="mb-2 text-lg font-semibold">
+                                        {feature.title}
+                                    </h6>
+                                    <p className="text-muted-foreground">
+                                        {feature.description}
+                                    </p>
                                 </CardContent>
                             </Card>
                         </motion.div>
@@ -571,19 +684,24 @@ function TestimonialsSection() {
                     transition={{ duration: 0.6 }}
                     className="space-y-4 sm:w-1/2 lg:w-1/3"
                 >
-                    <p className="text-primary text-sm font-medium uppercase">Real customers</p>
-                    <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">What Our Users Say</h2>
-                    <p className="text-muted-foreground text-lg">
-                        Discover how Larify has helped thousands achieve their productivity goals.
+                    <p className="text-sm font-medium text-primary uppercase">
+                        Real customers
+                    </p>
+                    <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">
+                        What Our Users Say
+                    </h2>
+                    <p className="text-lg text-muted-foreground">
+                        Discover how Larify has helped thousands achieve their
+                        productivity goals.
                     </p>
                     <div className="flex items-center gap-4">
                         <CarouselPrevious
                             variant="default"
-                            className="disabled:bg-primary/10 disabled:text-primary static translate-y-0 rounded-md disabled:opacity-100"
+                            className="static translate-y-0 rounded-md disabled:bg-primary/10 disabled:text-primary disabled:opacity-100"
                         />
                         <CarouselNext
                             variant="default"
-                            className="disabled:bg-primary/10 disabled:text-primary static translate-y-0 rounded-md disabled:opacity-100"
+                            className="static translate-y-0 rounded-md disabled:bg-primary/10 disabled:text-primary disabled:opacity-100"
                         />
                     </div>
                 </motion.div>
@@ -598,12 +716,18 @@ function TestimonialsSection() {
                 >
                     <CarouselContent className="sm:-ml-6">
                         {testimonials.map((testimonial, index) => (
-                            <CarouselItem key={index} className="sm:pl-6 lg:basis-1/2">
-                                <Card className="hover:border-primary h-full transition-colors duration-300">
+                            <CarouselItem
+                                key={index}
+                                className="sm:pl-6 lg:basis-1/2"
+                            >
+                                <Card className="h-full transition-colors duration-300 hover:border-primary">
                                     <CardContent className="space-y-5">
                                         <div className="flex items-center gap-3">
                                             <Avatar className="size-10 rounded-full">
-                                                <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                                                <AvatarImage
+                                                    src={testimonial.avatar}
+                                                    alt={testimonial.name}
+                                                />
                                                 <AvatarFallback className="rounded-full text-sm">
                                                     {testimonial.name
                                                         .split(' ', 2)
@@ -612,31 +736,40 @@ function TestimonialsSection() {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                <h4 className="font-medium">{testimonial.name}</h4>
-                                                <p className="text-muted-foreground text-sm">
+                                                <h4 className="font-medium">
+                                                    {testimonial.name}
+                                                </h4>
+                                                <p className="text-sm text-muted-foreground">
                                                     {testimonial.role} at{' '}
-                                                    <span className="text-card-foreground font-semibold">
+                                                    <span className="font-semibold text-card-foreground">
                                                         {testimonial.company}
                                                     </span>
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="flex gap-1">
-                                            {Array.from({ length: 5 }).map((_, i) => (
-                                                <svg
-                                                    key={i}
-                                                    className={cn(
-                                                        'size-5',
-                                                        i < testimonial.rating ? 'text-yellow-400' : 'text-gray-300'
-                                                    )}
-                                                    fill="currentColor"
-                                                    viewBox="0 0 20 20"
-                                                >
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                            ))}
+                                            {Array.from({ length: 5 }).map(
+                                                (_, i) => (
+                                                    <svg
+                                                        key={i}
+                                                        className={cn(
+                                                            'size-5',
+                                                            i <
+                                                                testimonial.rating
+                                                                ? 'text-yellow-400'
+                                                                : 'text-gray-300',
+                                                        )}
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                ),
+                                            )}
                                         </div>
-                                        <p className="text-muted-foreground">{testimonial.content}</p>
+                                        <p className="text-muted-foreground">
+                                            {testimonial.content}
+                                        </p>
                                     </CardContent>
                                 </Card>
                             </CarouselItem>
@@ -664,9 +797,12 @@ function FAQSection() {
                     transition={{ duration: 0.6 }}
                     className="mb-8 space-y-3 text-center sm:mb-10 lg:mb-12"
                 >
-                    <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">Frequently Asked Questions</h2>
-                    <p className="text-muted-foreground text-lg">
-                        Everything you need to know about Larify. Can't find what you're looking for? Contact us.
+                    <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
+                        Frequently Asked Questions
+                    </h2>
+                    <p className="text-lg text-muted-foreground">
+                        Everything you need to know about Larify. Can't find
+                        what you're looking for? Contact us.
                     </p>
                 </motion.div>
 
@@ -677,11 +813,21 @@ function FAQSection() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="mx-auto max-w-3xl"
                 >
-                    <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full"
+                        defaultValue="item-1"
+                    >
                         {faqItems.map((item, index) => (
-                            <AccordionItem key={index} value={`item-${index + 1}`}>
-                                <AccordionTrigger className="text-left text-lg">{item.question}</AccordionTrigger>
-                                <AccordionContent className="text-muted-foreground text-base">
+                            <AccordionItem
+                                key={index}
+                                value={`item-${index + 1}`}
+                            >
+                                <AccordionTrigger className="text-left text-lg">
+                                    {item.question}
+                                </AccordionTrigger>
+                                <AccordionContent className="text-base text-muted-foreground">
                                     {item.answer}
                                 </AccordionContent>
                             </AccordionItem>
@@ -697,7 +843,13 @@ function FAQSection() {
 // Animated Counter Component
 // ============================================================================
 
-function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
+function AnimatedCounter({
+    target,
+    suffix = '',
+}: {
+    target: number;
+    suffix?: string;
+}) {
     const [count, setCount] = useState(0);
     const [hasAnimated, setHasAnimated] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -723,7 +875,7 @@ function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: str
                     }, duration / steps);
                 }
             },
-            { threshold: 0.5 }
+            { threshold: 0.5 },
         );
 
         if (ref.current) {
@@ -735,7 +887,8 @@ function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: str
 
     return (
         <div ref={ref} className="mb-2 text-5xl font-bold lg:text-6xl">
-            {count.toLocaleString()}{suffix}
+            {count.toLocaleString()}
+            {suffix}
         </div>
     );
 }
@@ -756,14 +909,17 @@ function SocialProofSection() {
                         transition={{ duration: 0.6 }}
                     >
                         <div className="space-y-4">
-                            <p className="text-primary text-sm font-medium uppercase">Why Larify</p>
+                            <p className="text-sm font-medium text-primary uppercase">
+                                Why Larify
+                            </p>
                             <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
                                 Everything You Need to Achieve Peak Productivity
                             </h2>
-                            <p className="text-muted-foreground text-lg">
-                                Larify combines the best productivity techniques with modern AI to help you work
-                                smarter, not harder. Join thousands of professionals who have transformed their
-                                workflow.
+                            <p className="text-lg text-muted-foreground">
+                                Larify combines the best productivity techniques
+                                with modern AI to help you work smarter, not
+                                harder. Join thousands of professionals who have
+                                transformed their workflow.
                             </p>
                         </div>
 
@@ -774,10 +930,13 @@ function SocialProofSection() {
                                     initial={{ opacity: 0, x: -20 }}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
-                                    transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                                    transition={{
+                                        delay: 0.3 + index * 0.1,
+                                        duration: 0.4,
+                                    }}
                                     className="flex gap-2"
                                 >
-                                    <CircleCheckIcon className="text-primary mt-0.75 size-5" />
+                                    <CircleCheckIcon className="mt-0.75 size-5 text-primary" />
                                     <span>{feature.title}</span>
                                 </motion.li>
                             ))}
@@ -801,7 +960,9 @@ function SocialProofSection() {
                             <div className="absolute inset-0 bg-black/60" />
                             <div className="relative z-10 text-center text-white">
                                 <AnimatedCounter target={1000} suffix="+" />
-                                <div className="text-base lg:text-lg opacity-90">Active Users</div>
+                                <div className="text-base opacity-90 lg:text-lg">
+                                    Active Users
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -827,13 +988,15 @@ function ContactSection() {
                     transition={{ duration: 0.5 }}
                     className="relative mx-auto mb-8 w-fit sm:mb-10 lg:mb-12"
                 >
-                    <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">Get in Touch</h2>
+                    <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
+                        Get in Touch
+                    </h2>
                     <motion.span
                         initial={{ scaleX: 0 }}
                         whileInView={{ scaleX: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="bg-primary absolute top-9 left-0 h-px w-full origin-left"
+                        className="absolute top-9 left-0 h-px w-full origin-left bg-primary"
                     />
                 </motion.div>
 
@@ -844,7 +1007,7 @@ function ContactSection() {
                         viewport={{ once: true, margin: '-50px' }}
                         transition={{ duration: 0.6 }}
                         whileHover={{ scale: 1.02 }}
-                        className="bg-primary/10 flex aspect-video items-center justify-center overflow-hidden rounded-xl lg:aspect-square"
+                        className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-primary/10 lg:aspect-square"
                     >
                         <img
                             src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&q=80"
@@ -859,10 +1022,13 @@ function ContactSection() {
                         viewport={{ once: true, margin: '-50px' }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        <h3 className="mb-6 text-2xl font-semibold">Happy to help you!</h3>
-                        <p className="text-muted-foreground mb-10 text-lg font-medium">
-                            Have questions about Larify? Want to learn more about our team plans? Or just want to
-                            say hello? We're here for you.
+                        <h3 className="mb-6 text-2xl font-semibold">
+                            Happy to help you!
+                        </h3>
+                        <p className="mb-10 text-lg font-medium text-muted-foreground">
+                            Have questions about Larify? Want to learn more
+                            about our team plans? Or just want to say hello?
+                            We're here for you.
                         </p>
 
                         {/* Contact Info Grid */}
@@ -873,7 +1039,10 @@ function ContactSection() {
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
-                                    transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                                    transition={{
+                                        delay: 0.3 + index * 0.1,
+                                        duration: 0.4,
+                                    }}
                                 >
                                     <HoverCard openDelay={100} closeDelay={100}>
                                         <HoverCardTrigger asChild>
@@ -887,7 +1056,11 @@ function ContactSection() {
                                                 </CardContent>
                                             </Card>
                                         </HoverCardTrigger>
-                                        <HoverCardContent className="w-72" side="top" align="center">
+                                        <HoverCardContent
+                                            className="w-72"
+                                            side="top"
+                                            align="center"
+                                        >
                                             <div className="flex justify-between gap-4">
                                                 <Avatar className="size-10">
                                                     <AvatarFallback className="bg-primary/10 [&>svg]:size-5">
@@ -895,11 +1068,23 @@ function ContactSection() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 space-y-1">
-                                                    <h4 className="text-sm font-semibold">{info.title}</h4>
-                                                    <div className="text-muted-foreground text-sm">
-                                                        {info.description.split('\n').map((line, idx) => (
-                                                            <p key={idx}>{line}</p>
-                                                        ))}
+                                                    <h4 className="text-sm font-semibold">
+                                                        {info.title}
+                                                    </h4>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {info.description
+                                                            .split('\n')
+                                                            .map(
+                                                                (line, idx) => (
+                                                                    <p
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                    >
+                                                                        {line}
+                                                                    </p>
+                                                                ),
+                                                            )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -934,24 +1119,27 @@ function Footer() {
                     <span className="font-semibold">Larify</span>
                 </Link>
 
-                <div className="text-muted-foreground flex items-center gap-5 text-sm whitespace-nowrap">
-                    {['#features', '#testimonials', '#faq', '#contact'].map((href) => (
-                        <motion.a
-                            key={href}
-                            href={href}
-                            whileHover={{ y: -2 }}
-                            className="hover:text-foreground transition-colors"
-                        >
-                            {href.replace('#', '').charAt(0).toUpperCase() + href.slice(2)}
-                        </motion.a>
-                    ))}
+                <div className="flex items-center gap-5 text-sm whitespace-nowrap text-muted-foreground">
+                    {['#features', '#testimonials', '#faq', '#contact'].map(
+                        (href) => (
+                            <motion.a
+                                key={href}
+                                href={href}
+                                whileHover={{ y: -2 }}
+                                className="transition-colors hover:text-foreground"
+                            >
+                                {href.replace('#', '').charAt(0).toUpperCase() +
+                                    href.slice(2)}
+                            </motion.a>
+                        ),
+                    )}
                 </div>
             </div>
 
             <Separator />
 
             <div className="mx-auto flex max-w-7xl justify-center px-4 py-6 sm:px-6">
-                <p className="text-muted-foreground text-center text-sm text-balance">
+                <p className="text-center text-sm text-balance text-muted-foreground">
                     © {new Date().getFullYear()} Larify - All rights reserved.
                 </p>
             </div>
@@ -963,11 +1151,15 @@ function Footer() {
 // Main Welcome Page
 // ============================================================================
 
-export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
+export default function Welcome({
+    canRegister = true,
+}: {
+    canRegister?: boolean;
+}) {
     return (
         <>
             <Head title="Welcome to Larify" />
-            <div className="bg-background text-foreground min-h-screen">
+            <div className="min-h-screen bg-background text-foreground">
                 <Header canRegister={canRegister} />
                 <main>
                     <HeroSection canRegister={canRegister} />

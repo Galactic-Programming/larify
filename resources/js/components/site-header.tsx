@@ -1,11 +1,11 @@
-import * as React from "react"
+import * as React from 'react';
 
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export interface SiteHeaderProps {
-    title: string
-    children?: React.ReactNode
+    title: string;
+    children?: React.ReactNode;
 }
 
 export function SiteHeader({ title, children }: SiteHeaderProps) {
@@ -23,5 +23,5 @@ export function SiteHeader({ title, children }: SiteHeaderProps) {
                 </div>
             </div>
         </header>
-    )
+    );
 }

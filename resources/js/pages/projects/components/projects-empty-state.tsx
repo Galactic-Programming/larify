@@ -18,7 +18,11 @@ interface ProjectsEmptyStateProps {
     onClearSearch: () => void;
 }
 
-export function ProjectsEmptyState({ filter, searchQuery, onClearSearch }: ProjectsEmptyStateProps) {
+export function ProjectsEmptyState({
+    filter,
+    searchQuery,
+    onClearSearch,
+}: ProjectsEmptyStateProps) {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -33,7 +37,8 @@ export function ProjectsEmptyState({ filter, searchQuery, onClearSearch }: Proje
                         </EmptyMedia>
                         <EmptyTitle>No results found</EmptyTitle>
                         <EmptyDescription>
-                            No projects found matching "{searchQuery}". Try a different search term.
+                            No projects found matching "{searchQuery}". Try a
+                            different search term.
                         </EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
@@ -50,7 +55,8 @@ export function ProjectsEmptyState({ filter, searchQuery, onClearSearch }: Proje
                         </EmptyMedia>
                         <EmptyTitle>No archived projects</EmptyTitle>
                         <EmptyDescription>
-                            Archived projects will appear here. You can archive projects from the project menu.
+                            Archived projects will appear here. You can archive
+                            projects from the project menu.
                         </EmptyDescription>
                     </EmptyHeader>
                 </Empty>
@@ -65,9 +71,12 @@ export function ProjectsEmptyState({ filter, searchQuery, onClearSearch }: Proje
                             <Plus className="size-4" />
                         </div>
                     </div>
-                    <h3 className="mb-2 text-xl font-semibold">No projects yet</h3>
+                    <h3 className="mb-2 text-xl font-semibold">
+                        No projects yet
+                    </h3>
                     <p className="mb-6 max-w-sm text-center text-muted-foreground">
-                        Create your first project to start organizing your tasks and collaborate with Kanban boards.
+                        Create your first project to start organizing your tasks
+                        and collaborate with Kanban boards.
                     </p>
                     <CreateProjectDialog
                         trigger={

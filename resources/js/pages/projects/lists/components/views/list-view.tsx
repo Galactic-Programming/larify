@@ -1,4 +1,9 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
 import { Circle, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { TaskCard } from '../../tasks/components/task-card';
@@ -21,15 +26,23 @@ interface ListViewProps {
     onDeleteList: (list: TaskList) => void;
 }
 
-export function ListView({ project, permissions, onEditList, onDeleteList }: ListViewProps) {
+export function ListView({
+    project,
+    permissions,
+    onEditList,
+    onDeleteList,
+}: ListViewProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
-    const handleTaskDeleted = useCallback((taskId: number) => {
-        if (selectedTask?.id === taskId) {
-            setSelectedTask(null);
-        }
-    }, [selectedTask?.id]);
+    const handleTaskDeleted = useCallback(
+        (taskId: number) => {
+            if (selectedTask?.id === taskId) {
+                setSelectedTask(null);
+            }
+        },
+        [selectedTask?.id],
+    );
 
     // Real-time updates with task deletion handler
     useTaskRealtime({
@@ -44,7 +57,9 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                 <div className="mx-auto max-w-4xl space-y-3 px-1 sm:space-y-4 sm:px-0">
                     <Accordion
                         type="multiple"
-                        defaultValue={project.lists.map((list) => `list-${list.id}`)}
+                        defaultValue={project.lists.map(
+                            (list) => `list-${list.id}`,
+                        )}
                         className="space-y-3 sm:space-y-4"
                     >
                         {project.lists.map((list, listIdx) => (
@@ -52,7 +67,10 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                 key={list.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, delay: listIdx * 0.1 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: listIdx * 0.1,
+                                }}
                             >
                                 <AccordionItem
                                     value={`list-${list.id}`}
@@ -63,15 +81,36 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                                                 <div
                                                     className="size-2.5 shrink-0 rounded-full sm:size-3"
-                                                    style={{ backgroundColor: project.color }}
+                                                    style={{
+                                                        backgroundColor:
+                                                            project.color,
+                                                    }}
                                                 />
-                                                <span className="max-w-[12ch] truncate text-sm font-semibold sm:max-w-[16ch] sm:text-base" title={list.name}>{list.name}</span>
-                                                <Badge variant="secondary" className="text-xs">{list.tasks.length}</Badge>
+                                                <span
+                                                    className="max-w-[12ch] truncate text-sm font-semibold sm:max-w-[16ch] sm:text-base"
+                                                    title={list.name}
+                                                >
+                                                    {list.name}
+                                                </span>
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="text-xs"
+                                                >
+                                                    {list.tasks.length}
+                                                </Badge>
                                             </div>
                                             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                                                <Badge variant="outline" className="hidden text-xs sm:flex">
-                                                    {list.tasks.filter((t) => t.completed_at).length}/
-                                                    {list.tasks.length} done
+                                                <Badge
+                                                    variant="outline"
+                                                    className="hidden text-xs sm:flex"
+                                                >
+                                                    {
+                                                        list.tasks.filter(
+                                                            (t) =>
+                                                                t.completed_at,
+                                                        ).length
+                                                    }
+                                                    /{list.tasks.length} done
                                                 </Badge>
                                                 <ListDropdownMenu
                                                     project={project}
@@ -79,31 +118,41 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                                     permissions={permissions}
                                                     onEdit={onEditList}
                                                     onDelete={onDeleteList}
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
                                                 />
                                             </div>
                                         </div>
                                     </AccordionTrigger>
-                                    <AccordionContent className="px-3 pb-3 pt-0 sm:px-4 sm:pb-4">
+                                    <AccordionContent className="px-3 pt-0 pb-3 sm:px-4 sm:pb-4">
                                         {list.tasks.length > 0 ? (
                                             <div className="space-y-2">
-                                                {list.tasks.map((task, taskIdx) => (
-                                                    <TaskCard
-                                                        key={task.id}
-                                                        task={task}
-                                                        project={project}
-                                                        index={taskIdx}
-                                                        variant="list"
-                                                        onClick={setSelectedTask}
-                                                        permissions={permissions}
-                                                    />
-                                                ))}
+                                                {list.tasks.map(
+                                                    (task, taskIdx) => (
+                                                        <TaskCard
+                                                            key={task.id}
+                                                            task={task}
+                                                            project={project}
+                                                            index={taskIdx}
+                                                            variant="list"
+                                                            onClick={
+                                                                setSelectedTask
+                                                            }
+                                                            permissions={
+                                                                permissions
+                                                            }
+                                                        />
+                                                    ),
+                                                )}
                                                 {/* Add task button - Only for editors */}
                                                 {permissions.canEdit && (
                                                     <CreateTaskDialog
                                                         project={project}
                                                         list={list}
-                                                        canAssignTask={permissions.canAssignTask}
+                                                        canAssignTask={
+                                                            permissions.canAssignTask
+                                                        }
                                                         trigger={
                                                             <Button
                                                                 variant="ghost"
@@ -119,14 +168,22 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                         ) : (
                                             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-6 text-center">
                                                 <Circle className="mb-2 size-6 text-muted-foreground/50" />
-                                                <p className="text-sm text-muted-foreground">No tasks in this list</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    No tasks in this list
+                                                </p>
                                                 {permissions.canEdit && (
                                                     <CreateTaskDialog
                                                         project={project}
                                                         list={list}
-                                                        canAssignTask={permissions.canAssignTask}
+                                                        canAssignTask={
+                                                            permissions.canAssignTask
+                                                        }
                                                         trigger={
-                                                            <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="mt-2 gap-1"
+                                                            >
                                                                 <Plus className="size-3" />
                                                                 Add task
                                                             </Button>
@@ -146,7 +203,10 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: project.lists.length * 0.1 }}
+                            transition={{
+                                duration: 0.3,
+                                delay: project.lists.length * 0.1,
+                            }}
                         >
                             <CreateListDialog
                                 project={project}
@@ -154,7 +214,9 @@ export function ListView({ project, permissions, onEditList, onDeleteList }: Lis
                                     <Card className="flex cursor-pointer items-center justify-center border-dashed bg-muted/20 py-6 transition-all hover:border-primary hover:bg-muted/40">
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Plus className="size-5" />
-                                            <span className="font-medium">Add new list</span>
+                                            <span className="font-medium">
+                                                Add new list
+                                            </span>
                                         </div>
                                     </Card>
                                 }

@@ -1,56 +1,56 @@
-import { MenuIcon, SearchIcon } from 'lucide-react'
+import { MenuIcon, SearchIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-import Logo from '@/assets/svg/logo'
+import Logo from '@/assets/svg/logo';
 
 type NavigationItem = {
-    title: string
-    href: string
-}[]
+    title: string;
+    href: string;
+}[];
 
 const Navbar = ({ navigationData }: { navigationData: NavigationItem }) => {
     return (
-        <header className='bg-background sticky top-0 z-50'>
-            <div className='mx-auto flex max-w-7xl items-center justify-between gap-8 px-4 py-7 sm:px-6'>
-                <div className='text-muted-foreground flex flex-1 items-center gap-8 font-medium md:justify-center lg:gap-16'>
-                    <a href='#' className='hover:text-primary max-md:hidden'>
+        <header className="sticky top-0 z-50 bg-background">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-4 py-7 sm:px-6">
+                <div className="flex flex-1 items-center gap-8 font-medium text-muted-foreground md:justify-center lg:gap-16">
+                    <a href="#" className="hover:text-primary max-md:hidden">
                         Home
                     </a>
-                    <a href='#' className='hover:text-primary max-md:hidden'>
+                    <a href="#" className="hover:text-primary max-md:hidden">
                         Products
                     </a>
-                    <a href='#'>
-                        <Logo className='text-foreground gap-3' />
+                    <a href="#">
+                        <Logo className="gap-3 text-foreground" />
                     </a>
-                    <a href='#' className='hover:text-primary max-md:hidden'>
+                    <a href="#" className="hover:text-primary max-md:hidden">
                         About Us
                     </a>
-                    <a href='#' className='hover:text-primary max-md:hidden'>
+                    <a href="#" className="hover:text-primary max-md:hidden">
                         Contacts
                     </a>
                 </div>
 
-                <div className='flex items-center gap-6'>
-                    <Button variant='ghost' size='icon'>
+                <div className="flex items-center gap-6">
+                    <Button variant="ghost" size="icon">
                         <SearchIcon />
-                        <span className='sr-only'>Search</span>
+                        <span className="sr-only">Search</span>
                     </Button>
                     <DropdownMenu>
-                        <DropdownMenuTrigger className='md:hidden' asChild>
-                            <Button variant='outline' size='icon'>
+                        <DropdownMenuTrigger className="md:hidden" asChild>
+                            <Button variant="outline" size="icon">
                                 <MenuIcon />
-                                <span className='sr-only'>Menu</span>
+                                <span className="sr-only">Menu</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className='w-56' align='end'>
+                        <DropdownMenuContent className="w-56" align="end">
                             <DropdownMenuGroup>
                                 {navigationData.map((item, index) => (
                                     <DropdownMenuItem key={index}>
@@ -63,7 +63,7 @@ const Navbar = ({ navigationData }: { navigationData: NavigationItem }) => {
                 </div>
             </div>
         </header>
-    )
-}
+    );
+};
 
-export default Navbar
+export default Navbar;

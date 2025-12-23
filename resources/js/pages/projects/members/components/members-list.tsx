@@ -16,11 +16,22 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Crown, MoreHorizontal, Pencil, Trash2, Shield, Eye } from 'lucide-react';
+import {
+    Crown,
+    Eye,
+    MoreHorizontal,
+    Pencil,
+    Shield,
+    Trash2,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import type { Member, ProjectRole } from '../lib/types';
 
@@ -31,14 +42,25 @@ import type { Member, ProjectRole } from '../lib/types';
  */
 function parseUTCDate(dateString: string): Date {
     // If the string doesn't have timezone info, treat it as UTC
-    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+    if (
+        !dateString.endsWith('Z') &&
+        !dateString.includes('+') &&
+        !dateString.includes('-', 10)
+    ) {
         // Replace space with T and append Z for UTC
         return parseISO(dateString.replace(' ', 'T') + 'Z');
     }
     return parseISO(dateString);
 }
 
-const ROLE_BADGE_CONFIG: Record<ProjectRole, { label: string; icon: typeof Crown; variant: 'default' | 'secondary' | 'outline' }> = {
+const ROLE_BADGE_CONFIG: Record<
+    ProjectRole,
+    {
+        label: string;
+        icon: typeof Crown;
+        variant: 'default' | 'secondary' | 'outline';
+    }
+> = {
     owner: { label: 'Owner', icon: Crown, variant: 'default' },
     editor: { label: 'Editor', icon: Shield, variant: 'secondary' },
     viewer: { label: 'Viewer', icon: Eye, variant: 'outline' },
@@ -51,7 +73,12 @@ interface MembersListProps {
     onRemoveMember: (member: Member) => void;
 }
 
-export function MembersList({ members, canManageMembers, onEditMember, onRemoveMember }: MembersListProps) {
+export function MembersList({
+    members,
+    canManageMembers,
+    onEditMember,
+    onRemoveMember,
+}: MembersListProps) {
     const getInitials = useInitials();
 
     return (
@@ -65,9 +92,17 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                 <TableHeader>
                     <TableRow>
                         <TableHead>Member</TableHead>
-                        <TableHead className="hidden sm:table-cell">Role</TableHead>
-                        <TableHead className="hidden md:table-cell">Joined</TableHead>
-                        {canManageMembers && <TableHead className="w-12 sm:w-17.5">Actions</TableHead>}
+                        <TableHead className="hidden sm:table-cell">
+                            Role
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell">
+                            Joined
+                        </TableHead>
+                        {canManageMembers && (
+                            <TableHead className="w-12 sm:w-17.5">
+                                Actions
+                            </TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -80,27 +115,38 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                                 key={member.id}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: 0.1 + index * 0.05,
+                                }}
                                 className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                             >
                                 {/* Member Info */}
                                 <TableCell>
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <Avatar className="size-8 sm:size-10">
-                                            <AvatarImage src={member.avatar ?? undefined} alt={member.name} />
-                                            <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                                            <AvatarImage
+                                                src={member.avatar ?? undefined}
+                                                alt={member.name}
+                                            />
+                                            <AvatarFallback className="bg-primary/10 text-xs text-primary sm:text-sm">
                                                 {getInitials(member.name)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="flex min-w-0 flex-col">
-                                            <span className="truncate text-sm font-medium sm:text-base">{member.name}</span>
-                                            <span className="truncate text-xs text-muted-foreground sm:text-sm">{member.email}</span>
+                                            <span className="truncate text-sm font-medium sm:text-base">
+                                                {member.name}
+                                            </span>
+                                            <span className="truncate text-xs text-muted-foreground sm:text-sm">
+                                                {member.email}
+                                            </span>
                                             {/* Show role badge on mobile */}
                                             <Badge
                                                 variant={roleConfig.variant}
                                                 className={cn(
-                                                    'mt-1 gap-1 w-fit text-xs sm:hidden',
-                                                    member.is_owner && 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400'
+                                                    'mt-1 w-fit gap-1 text-xs sm:hidden',
+                                                    member.is_owner &&
+                                                        'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
                                                 )}
                                             >
                                                 <RoleIcon className="size-2.5" />
@@ -116,7 +162,8 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                                         variant={roleConfig.variant}
                                         className={cn(
                                             'gap-1.5',
-                                            member.is_owner && 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400'
+                                            member.is_owner &&
+                                                'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
                                         )}
                                     >
                                         <RoleIcon className="size-3" />
@@ -128,10 +175,15 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                                 <TableCell className="hidden text-muted-foreground md:table-cell">
                                     <Tooltip>
                                         <TooltipTrigger>
-                                            {formatDistanceToNow(parseUTCDate(member.joined_at), { addSuffix: true })}
+                                            {formatDistanceToNow(
+                                                parseUTCDate(member.joined_at),
+                                                { addSuffix: true },
+                                            )}
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            {parseUTCDate(member.joined_at).toLocaleString(undefined, {
+                                            {parseUTCDate(
+                                                member.joined_at,
+                                            ).toLocaleString(undefined, {
                                                 dateStyle: 'medium',
                                                 timeStyle: 'short',
                                             })}
@@ -145,19 +197,33 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                                         {!member.is_owner ? (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="size-8">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8"
+                                                    >
                                                         <MoreHorizontal className="size-4" />
-                                                        <span className="sr-only">Open menu</span>
+                                                        <span className="sr-only">
+                                                            Open menu
+                                                        </span>
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => onEditMember(member)}>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            onEditMember(member)
+                                                        }
+                                                    >
                                                         <Pencil className="mr-2 size-4" />
                                                         Change Role
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
-                                                        onClick={() => onRemoveMember(member)}
+                                                        onClick={() =>
+                                                            onRemoveMember(
+                                                                member,
+                                                            )
+                                                        }
                                                         className="text-destructive focus:text-destructive"
                                                     >
                                                         <Trash2 className="mr-2 size-4" />
@@ -172,7 +238,9 @@ export function MembersList({ members, canManageMembers, onEditMember, onRemoveM
                                                         <Crown className="size-4 text-amber-500" />
                                                     </div>
                                                 </TooltipTrigger>
-                                                <TooltipContent>Project Owner</TooltipContent>
+                                                <TooltipContent>
+                                                    Project Owner
+                                                </TooltipContent>
                                             </Tooltip>
                                         )}
                                     </TableCell>

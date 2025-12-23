@@ -1,80 +1,103 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const ResetPasswordForm = () => {
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false)
-    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false)
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+        useState(false);
 
     return (
-        <form className='space-y-4' onSubmit={e => e.preventDefault()}>
+        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             {/* Email */}
-            <div className='space-y-1'>
-                <Label className='leading-5' htmlFor='userEmail'>
+            <div className="space-y-1">
+                <Label className="leading-5" htmlFor="userEmail">
                     Email address*
                 </Label>
-                <Input type='email' id='userEmail' placeholder='Enter your email address' />
+                <Input
+                    type="email"
+                    id="userEmail"
+                    placeholder="Enter your email address"
+                />
             </div>
 
             {/* Password */}
-            <div className='w-full space-y-1'>
-                <Label className='leading-5' htmlFor='password'>
+            <div className="w-full space-y-1">
+                <Label className="leading-5" htmlFor="password">
                     New Password*
                 </Label>
-                <div className='relative'>
+                <div className="relative">
                     <Input
-                        id='password'
+                        id="password"
                         type={isPasswordVisible ? 'text' : 'password'}
-                        placeholder='••••••••••••••••'
-                        className='pr-9'
+                        placeholder="••••••••••••••••"
+                        className="pr-9"
                     />
                     <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setIsPasswordVisible(prevState => !prevState)}
-                        className='text-muted-foreground focus-visible:ring-ring/50 absolute inset-y-0 right-0 rounded-l-none hover:bg-transparent'
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                            setIsPasswordVisible((prevState) => !prevState)
+                        }
+                        className="absolute inset-y-0 right-0 rounded-l-none text-muted-foreground hover:bg-transparent focus-visible:ring-ring/50"
                     >
                         {isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-                        <span className='sr-only'>{isPasswordVisible ? 'Hide password' : 'Show password'}</span>
+                        <span className="sr-only">
+                            {isPasswordVisible
+                                ? 'Hide password'
+                                : 'Show password'}
+                        </span>
                     </Button>
                 </div>
             </div>
 
             {/* Confirm Password */}
-            <div className='w-full space-y-1'>
-                <Label className='leading-5' htmlFor='confirmPassword'>
+            <div className="w-full space-y-1">
+                <Label className="leading-5" htmlFor="confirmPassword">
                     Confirm Password*
                 </Label>
-                <div className='relative'>
+                <div className="relative">
                     <Input
-                        id='confirmPassword'
+                        id="confirmPassword"
                         type={isConfirmPasswordVisible ? 'text' : 'password'}
-                        placeholder='••••••••••••••••'
-                        className='pr-9'
+                        placeholder="••••••••••••••••"
+                        className="pr-9"
                     />
                     <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setIsConfirmPasswordVisible(prevState => !prevState)}
-                        className='text-muted-foreground focus-visible:ring-ring/50 absolute inset-y-0 right-0 rounded-l-none hover:bg-transparent'
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                            setIsConfirmPasswordVisible(
+                                (prevState) => !prevState,
+                            )
+                        }
+                        className="absolute inset-y-0 right-0 rounded-l-none text-muted-foreground hover:bg-transparent focus-visible:ring-ring/50"
                     >
-                        {isConfirmPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-                        <span className='sr-only'>{isConfirmPasswordVisible ? 'Hide password' : 'Show password'}</span>
+                        {isConfirmPasswordVisible ? (
+                            <EyeOffIcon />
+                        ) : (
+                            <EyeIcon />
+                        )}
+                        <span className="sr-only">
+                            {isConfirmPasswordVisible
+                                ? 'Hide password'
+                                : 'Show password'}
+                        </span>
                     </Button>
                 </div>
             </div>
 
-            <Button className='w-full' type='submit'>
+            <Button className="w-full" type="submit">
                 Set New Password
             </Button>
         </form>
-    )
-}
+    );
+};
 
-export default ResetPasswordForm
+export default ResetPasswordForm;

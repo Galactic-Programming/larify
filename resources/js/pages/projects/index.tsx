@@ -26,12 +26,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ProjectsIndex({ projects }: Props) {
-    const [filter, setFilter] = useState<'all' | 'active' | 'archived'>('active');
-    const [sortBy, setSortBy] = useState<'recent' | 'name' | 'created'>('recent');
+    const [filter, setFilter] = useState<'all' | 'active' | 'archived'>(
+        'active',
+    );
+    const [sortBy, setSortBy] = useState<'recent' | 'name' | 'created'>(
+        'recent',
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [viewingProject, setViewingProject] = useState<Project | null>(null);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
-    const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+    const [deletingProject, setDeletingProject] = useState<Project | null>(
+        null,
+    );
 
     // Handle project deletion from real-time updates
     const handleProjectDeleted = useCallback(
@@ -72,10 +78,16 @@ export default function ProjectsIndex({ projects }: Props) {
                     case 'name':
                         return a.name.localeCompare(b.name);
                     case 'created':
-                        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                        return (
+                            new Date(b.created_at).getTime() -
+                            new Date(a.created_at).getTime()
+                        );
                     case 'recent':
                     default:
-                        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+                        return (
+                            new Date(b.updated_at).getTime() -
+                            new Date(a.updated_at).getTime()
+                        );
                 }
             });
     }, [projects, filter, sortBy, searchQuery]);
@@ -91,7 +103,9 @@ export default function ProjectsIndex({ projects }: Props) {
                 preserveScroll: true,
                 onSuccess: () => {
                     softToastSuccess(
-                        project.is_archived ? 'Project restored successfully' : 'Project archived successfully',
+                        project.is_archived
+                            ? 'Project restored successfully'
+                            : 'Project archived successfully',
                     );
                 },
             },

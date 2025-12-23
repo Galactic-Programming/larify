@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { AppWindowIcon as Apps } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { AppWindowIcon as Apps } from 'lucide-react';
+import { type ReactNode, useCallback, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
@@ -11,16 +11,16 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 export interface SelectOption {
     value: string;
@@ -79,19 +79,19 @@ export default function DialogMultiStep({
     open: controlledOpen,
     defaultOpen = false,
     onOpenChange,
-    dialogTitle = "Initialize New Project",
+    dialogTitle = 'Initialize New Project',
     sidebarInfo = {
         icon: <Apps className="size-5 text-foreground" aria-hidden={true} />,
-        title: "Project Starter",
-        subtitle: "Configure your new codebase",
-        description: "Quickly set up the foundational tools for your project.",
-        additionalInfo: "Select your preferred stack and configurations.",
+        title: 'Project Starter',
+        subtitle: 'Configure your new codebase',
+        description: 'Quickly set up the foundational tools for your project.',
+        additionalInfo: 'Select your preferred stack and configurations.',
     },
     fields,
     onSubmit,
     onCancel,
-    submitButtonText = "Initialize",
-    cancelButtonText = "Cancel",
+    submitButtonText = 'Initialize',
+    cancelButtonText = 'Cancel',
     trigger,
     showTrigger = true,
     className,
@@ -118,7 +118,7 @@ export default function DialogMultiStep({
             }
             onOpenChange?.(value);
         },
-        [isControlled, onOpenChange]
+        [isControlled, onOpenChange],
     );
 
     const handleValueChange = (fieldId: string, value: string) => {
@@ -142,8 +142,10 @@ export default function DialogMultiStep({
                     {trigger ?? <Button>{dialogTitle}</Button>}
                 </DialogTrigger>
             )}
-            <DialogContent className={`overflow-visible p-0 sm:max-w-2xl gap-0 ${className ?? ""}`}>
-                <DialogHeader className="border-b px-6 py-4 mb-0">
+            <DialogContent
+                className={`gap-0 overflow-visible p-0 sm:max-w-2xl ${className ?? ''}`}
+            >
+                <DialogHeader className="mb-0 border-b px-6 py-4">
                     <DialogTitle>{dialogTitle}</DialogTitle>
                 </DialogHeader>
 
@@ -167,7 +169,8 @@ export default function DialogMultiStep({
                                             )}
                                         </div>
                                     </div>
-                                    {(sidebarInfo.description || sidebarInfo.additionalInfo) && (
+                                    {(sidebarInfo.description ||
+                                        sidebarInfo.additionalInfo) && (
                                         <>
                                             <Separator className="my-4" />
                                             {sidebarInfo.description && (
@@ -176,7 +179,9 @@ export default function DialogMultiStep({
                                                         Description
                                                     </h4>
                                                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                                        {sidebarInfo.description}
+                                                        {
+                                                            sidebarInfo.description
+                                                        }
                                                     </p>
                                                 </>
                                             )}
@@ -186,7 +191,9 @@ export default function DialogMultiStep({
                                                         Info
                                                     </h4>
                                                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                                        {sidebarInfo.additionalInfo}
+                                                        {
+                                                            sidebarInfo.additionalInfo
+                                                        }
                                                     </p>
                                                 </>
                                             )}
@@ -196,19 +203,34 @@ export default function DialogMultiStep({
                             </div>
                             <div className="flex items-center justify-between border-t p-4">
                                 <DialogClose asChild>
-                                    <Button type="button" variant="ghost" onClick={handleCancel}>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={handleCancel}
+                                    >
                                         {cancelButtonText}
                                     </Button>
                                 </DialogClose>
-                                <Button type="submit" size="sm" disabled={isLoading}>
-                                    {isLoading ? "Loading..." : submitButtonText}
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading
+                                        ? 'Loading...'
+                                        : submitButtonText}
                                 </Button>
                             </div>
                         </div>
 
-                        <div className="flex-1 space-y-6 p-6 md:px-6 md:pb-8 md:pt-6">
+                        <div className="flex-1 space-y-6 p-6 md:px-6 md:pt-6 md:pb-8">
                             {fields.map((field, index) => (
-                                <div key={field.id} className={field.description ? "" : "space-y-2"}>
+                                <div
+                                    key={field.id}
+                                    className={
+                                        field.description ? '' : 'space-y-2'
+                                    }
+                                >
                                     <div className="flex items-center space-x-3">
                                         <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground">
                                             {index + 1}
@@ -227,19 +249,29 @@ export default function DialogMultiStep({
                                     )}
                                     <Select
                                         value={values[field.id]}
-                                        onValueChange={(value) => handleValueChange(field.id, value)}
+                                        onValueChange={(value) =>
+                                            handleValueChange(field.id, value)
+                                        }
                                         defaultValue={field.defaultValue}
                                     >
                                         <SelectTrigger
                                             id={field.id}
                                             name={field.id}
-                                            className={`w-full ${field.description ? "mt-4" : ""}`}
+                                            className={`w-full ${field.description ? 'mt-4' : ''}`}
                                         >
-                                            <SelectValue placeholder={field.placeholder ?? `Select ${field.label.toLowerCase()}`} />
+                                            <SelectValue
+                                                placeholder={
+                                                    field.placeholder ??
+                                                    `Select ${field.label.toLowerCase()}`
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {field.options.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}

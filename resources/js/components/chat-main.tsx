@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, FormEvent, KeyboardEvent } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { ArrowRight, ImageIcon, MoreVertical, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ChatMainProps, ChatMessage } from "@/types/chat";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { ChatMainProps, ChatMessage } from '@/types/chat';
+import { ArrowRight, ImageIcon, Loader2, MoreVertical } from 'lucide-react';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 
 interface MessageBubbleProps {
     message: ChatMessage;
@@ -19,29 +19,40 @@ const MessageBubble = ({
     isCurrentUser,
     showAvatar,
     senderAvatar,
-    senderName
+    senderName,
 }: MessageBubbleProps) => (
-    <div className={cn("flex items-end gap-2", isCurrentUser ? "justify-end" : "")}>
+    <div
+        className={cn(
+            'flex items-end gap-2',
+            isCurrentUser ? 'justify-end' : '',
+        )}
+    >
         {!isCurrentUser && showAvatar && (
             <Avatar className="h-8 w-8">
-                <AvatarImage src={senderAvatar} alt={senderName ?? "User"} />
-                <AvatarFallback>{senderName?.charAt(0).toUpperCase() ?? "U"}</AvatarFallback>
+                <AvatarImage src={senderAvatar} alt={senderName ?? 'User'} />
+                <AvatarFallback>
+                    {senderName?.charAt(0).toUpperCase() ?? 'U'}
+                </AvatarFallback>
             </Avatar>
         )}
         {!isCurrentUser && !showAvatar && <div className="w-8" />}
         <div
             className={cn(
-                "max-w-[70%] rounded-lg p-3",
+                'max-w-[70%] rounded-lg p-3',
                 isCurrentUser
-                    ? "bg-primary text-primary-foreground rounded-br-none"
-                    : "bg-muted rounded-bl-none"
+                    ? 'rounded-br-none bg-primary text-primary-foreground'
+                    : 'rounded-bl-none bg-muted',
             )}
         >
-            <p className="text-sm whitespace-pre-wrap wrap-break-word">{message.content}</p>
+            <p className="text-sm wrap-break-word whitespace-pre-wrap">
+                {message.content}
+            </p>
             <span
                 className={cn(
-                    "mt-1 block text-xs",
-                    isCurrentUser ? "text-primary-foreground/70" : "text-muted-foreground"
+                    'mt-1 block text-xs',
+                    isCurrentUser
+                        ? 'text-primary-foreground/70'
+                        : 'text-muted-foreground',
                 )}
             >
                 {message.timestamp}
@@ -58,7 +69,9 @@ const EmptyState = ({ conversationName }: EmptyStateProps) => (
     <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="text-muted-foreground">
             <p className="text-lg font-medium">
-                {conversationName ? `Start a conversation with ${conversationName}` : "Select a conversation"}
+                {conversationName
+                    ? `Start a conversation with ${conversationName}`
+                    : 'Select a conversation'}
             </p>
             <p className="mt-1 text-sm">Send a message to get started</p>
         </div>
@@ -71,28 +84,28 @@ export function ChatMain({
     currentUserId,
     onSendMessage,
     onAttachImage,
-    isLoading = false
+    isLoading = false,
 }: ChatMainProps) {
-    const [inputValue, setInputValue] = useState("");
+    const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Auto scroll to bottom when new messages arrive
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (inputValue.trim() && !isLoading) {
             onSendMessage(inputValue.trim());
-            setInputValue("");
+            setInputValue('');
             inputRef.current?.focus();
         }
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(e);
         }
@@ -100,10 +113,12 @@ export function ChatMain({
 
     // Get participant info for displaying avatars (for non-current user messages)
     const getParticipantInfo = (senderId: number) => {
-        const participant = conversation?.participants.find((p) => p.id === senderId);
+        const participant = conversation?.participants.find(
+            (p) => p.id === senderId,
+        );
         return {
             avatar: participant?.avatar,
-            name: participant?.name ?? "Unknown"
+            name: participant?.name ?? 'Unknown',
         };
     };
 
@@ -124,8 +139,13 @@ export function ChatMain({
 
     const displayName = conversation.name;
     const displayAvatar = conversation.avatar;
-    const otherParticipant = conversation.participants.find((p) => p.id !== currentUserId);
-    const status = otherParticipant?.status === "online" ? "Online" : otherParticipant?.lastSeen ?? "last seen recently";
+    const otherParticipant = conversation.participants.find(
+        (p) => p.id !== currentUserId,
+    );
+    const status =
+        otherParticipant?.status === 'online'
+            ? 'Online'
+            : (otherParticipant?.lastSeen ?? 'last seen recently');
 
     return (
         <div className="m-4 flex flex-1 flex-col rounded-lg border shadow-sm">
@@ -134,11 +154,15 @@ export function ChatMain({
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={displayAvatar} alt={displayName} />
-                        <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>
+                            {displayName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                     </Avatar>
                     <div>
                         <h2 className="font-semibold">{displayName}</h2>
-                        <p className="text-muted-foreground text-sm">{status}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {status}
+                        </p>
                     </div>
                 </div>
                 <Button variant="ghost" size="icon" aria-label="More options">
@@ -153,14 +177,19 @@ export function ChatMain({
                 ) : (
                     messages.map((msg, index) => {
                         const isCurrentUser = msg.senderId === currentUserId;
-                        const participantInfo = getParticipantInfo(msg.senderId);
+                        const participantInfo = getParticipantInfo(
+                            msg.senderId,
+                        );
 
                         return (
                             <MessageBubble
                                 key={msg.id}
                                 message={msg}
                                 isCurrentUser={isCurrentUser}
-                                showAvatar={!isCurrentUser && shouldShowAvatar(index, msg)}
+                                showAvatar={
+                                    !isCurrentUser &&
+                                    shouldShowAvatar(index, msg)
+                                }
                                 senderAvatar={participantInfo.avatar}
                                 senderName={participantInfo.name}
                             />
@@ -171,7 +200,10 @@ export function ChatMain({
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSubmit} className="flex items-center gap-3 border-t p-4">
+            <form
+                onSubmit={handleSubmit}
+                className="flex items-center gap-3 border-t p-4"
+            >
                 {onAttachImage && (
                     <Button
                         type="button"

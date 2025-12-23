@@ -43,7 +43,9 @@ interface ProjectGroup {
  *
  * Example: If activities come in order P1, P1, P2, P1 → creates 3 groups: [P1, P1], [P2], [P1]
  */
-function groupConsecutiveActivitiesByProject(activities: Activity[]): ProjectGroup[] {
+function groupConsecutiveActivitiesByProject(
+    activities: Activity[],
+): ProjectGroup[] {
     if (activities.length === 0) return [];
 
     const groups: ProjectGroup[] = [];
@@ -76,7 +78,7 @@ function ActivitySkeleton() {
     return (
         <div className="relative pl-6">
             {/* Timeline dot */}
-            <div className="absolute left-0 top-5 -translate-x-1/2">
+            <div className="absolute top-5 left-0 -translate-x-1/2">
                 <Skeleton className="size-2.5 rounded-full" />
             </div>
             {/* Card skeleton */}
@@ -125,15 +127,25 @@ function ProjectTimelineGroup({
                     className="flex size-7 shrink-0 items-center justify-center rounded-md"
                     style={{ backgroundColor: `${group.projectColor}20` }}
                 >
-                    <FolderOpen className="size-4" style={{ color: group.projectColor }} />
+                    <FolderOpen
+                        className="size-4"
+                        style={{ color: group.projectColor }}
+                    />
                 </div>
                 {/* Project info */}
                 <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">{group.projectName}</h3>
+                    <h3 className="font-semibold text-foreground">
+                        {group.projectName}
+                    </h3>
                     <span className="text-xs text-muted-foreground">
-                        {group.activities.length} {group.activities.length === 1 ? 'activity' : 'activities'}
+                        {group.activities.length}{' '}
+                        {group.activities.length === 1
+                            ? 'activity'
+                            : 'activities'}
                     </span>
-                    <span className="text-xs text-muted-foreground">• {group.latestActivityTime}</span>
+                    <span className="text-xs text-muted-foreground">
+                        • {group.latestActivityTime}
+                    </span>
                 </div>
             </div>
 
@@ -141,7 +153,7 @@ function ProjectTimelineGroup({
             <div className="relative ml-3">
                 {/* Continuous timeline line - only for activities */}
                 <div
-                    className="absolute left-0 top-0 w-0.5 rounded-full"
+                    className="absolute top-0 left-0 w-0.5 rounded-full"
                     style={{
                         backgroundColor: group.projectColor,
                         opacity: 0.3,
@@ -156,11 +168,14 @@ function ProjectTimelineGroup({
                     <div key={activity.id} className="relative pb-4 pl-6">
                         {/* Activity dot - centered on the timeline line */}
                         <div
-                            className="absolute left-0 top-5 z-10 -translate-x-1/2 size-2.5 rounded-full ring-[3px] ring-background"
+                            className="absolute top-5 left-0 z-10 size-2.5 -translate-x-1/2 rounded-full ring-[3px] ring-background"
                             style={{ backgroundColor: group.projectColor }}
                         />
                         {/* Activity card */}
-                        <ActivityItem activity={activity} index={groupIndex * 10 + index} />
+                        <ActivityItem
+                            activity={activity}
+                            index={groupIndex * 10 + index}
+                        />
                     </div>
                 ))}
             </div>
@@ -179,14 +194,14 @@ export function ActivityTimeline({
 }: ActivityTimelineProps) {
     const projectGroups = useMemo(
         () => groupConsecutiveActivitiesByProject(activities),
-        [activities]
+        [activities],
     );
 
     if (isLoading && activities.length === 0) {
         return (
             <div className="relative ml-3">
                 {/* Skeleton timeline line */}
-                <div className="absolute left-0 top-5 h-[calc(100%-44px)] w-0.5 rounded-full bg-muted opacity-30" />
+                <div className="absolute top-5 left-0 h-[calc(100%-44px)] w-0.5 rounded-full bg-muted opacity-30" />
                 <div className="flex flex-col">
                     {[...Array(5)].map((_, i) => (
                         <ActivitySkeleton key={i} />
@@ -221,7 +236,11 @@ export function ActivityTimeline({
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <Button variant="outline" onClick={onLoadMore} disabled={isLoading}>
+                    <Button
+                        variant="outline"
+                        onClick={onLoadMore}
+                        disabled={isLoading}
+                    >
                         {isLoading ? 'Loading...' : 'Load more'}
                     </Button>
                 </motion.div>

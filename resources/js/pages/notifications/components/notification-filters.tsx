@@ -1,8 +1,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { NotificationFilter, NotificationSortBy } from '@/types/notifications.d';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import type {
+    NotificationFilter,
+    NotificationSortBy,
+} from '@/types/notifications.d';
 import { Activity, Bell, Clock, Search, Tag } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -46,7 +55,9 @@ export function NotificationFilters({
                 {/* Tab Buttons - Notifications vs Activities */}
                 <div className="flex w-full gap-1 rounded-lg border bg-muted/30 p-1 sm:w-auto">
                     <Button
-                        variant={activeTab === 'notifications' ? 'default' : 'ghost'}
+                        variant={
+                            activeTab === 'notifications' ? 'default' : 'ghost'
+                        }
                         size="sm"
                         onClick={() => onTabChange('notifications')}
                         className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
@@ -54,13 +65,22 @@ export function NotificationFilters({
                         <Bell className="size-4" />
                         Notifications
                         {counts.notifications > 0 && (
-                            <Badge variant={activeTab === 'notifications' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                            <Badge
+                                variant={
+                                    activeTab === 'notifications'
+                                        ? 'secondary'
+                                        : 'outline'
+                                }
+                                className="ml-0.5 sm:ml-1"
+                            >
                                 {counts.notifications}
                             </Badge>
                         )}
                     </Button>
                     <Button
-                        variant={activeTab === 'activities' ? 'default' : 'ghost'}
+                        variant={
+                            activeTab === 'activities' ? 'default' : 'ghost'
+                        }
                         size="sm"
                         onClick={() => onTabChange('activities')}
                         className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
@@ -68,7 +88,14 @@ export function NotificationFilters({
                         <Activity className="size-4" />
                         Activities
                         {counts.activities > 0 && (
-                            <Badge variant={activeTab === 'activities' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                            <Badge
+                                variant={
+                                    activeTab === 'activities'
+                                        ? 'secondary'
+                                        : 'outline'
+                                }
+                                className="ml-0.5 sm:ml-1"
+                            >
                                 {counts.activities}
                             </Badge>
                         )}
@@ -85,7 +112,12 @@ export function NotificationFilters({
                             className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                         >
                             All
-                            <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                            <Badge
+                                variant={
+                                    filter === 'all' ? 'secondary' : 'outline'
+                                }
+                                className="ml-0.5 sm:ml-1"
+                            >
                                 {counts.notifications}
                             </Badge>
                         </Button>
@@ -96,7 +128,14 @@ export function NotificationFilters({
                             className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                         >
                             Unread
-                            <Badge variant={filter === 'unread' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                            <Badge
+                                variant={
+                                    filter === 'unread'
+                                        ? 'secondary'
+                                        : 'outline'
+                                }
+                                className="ml-0.5 sm:ml-1"
+                            >
                                 {counts.unread}
                             </Badge>
                         </Button>
@@ -107,7 +146,12 @@ export function NotificationFilters({
                             className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                         >
                             Read
-                            <Badge variant={filter === 'read' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                            <Badge
+                                variant={
+                                    filter === 'read' ? 'secondary' : 'outline'
+                                }
+                                className="ml-0.5 sm:ml-1"
+                            >
                                 {counts.read}
                             </Badge>
                         </Button>
@@ -118,7 +162,12 @@ export function NotificationFilters({
             {/* Sort & Search */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 {activeTab === 'notifications' && (
-                    <Select value={sortBy} onValueChange={(v) => onSortChange(v as NotificationSortBy)}>
+                    <Select
+                        value={sortBy}
+                        onValueChange={(v) =>
+                            onSortChange(v as NotificationSortBy)
+                        }
+                    >
                         <SelectTrigger className="h-9 w-full sm:w-36">
                             <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
@@ -146,10 +195,14 @@ export function NotificationFilters({
                 )}
 
                 <div className="group relative">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
                     <Input
                         type="text"
-                        placeholder={activeTab === 'notifications' ? 'Search notifications...' : 'Search activities...'}
+                        placeholder={
+                            activeTab === 'notifications'
+                                ? 'Search notifications...'
+                                : 'Search activities...'
+                        }
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="h-9 w-full pl-9 transition-all duration-200 sm:w-50 sm:focus:w-65"
@@ -159,4 +212,3 @@ export function NotificationFilters({
         </motion.div>
     );
 }
-

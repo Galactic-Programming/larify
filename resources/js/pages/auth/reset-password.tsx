@@ -58,7 +58,10 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         initial="hidden"
                         animate="visible"
                     >
-                        <motion.div className="grid gap-2" variants={fieldVariants}>
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fieldVariants}
+                        >
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
@@ -75,7 +78,10 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             />
                         </motion.div>
 
-                        <motion.div className="grid gap-2" variants={fieldVariants}>
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fieldVariants}
+                        >
                             <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
@@ -89,7 +95,10 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             <InputError message={errors.password} />
                         </motion.div>
 
-                        <motion.div className="grid gap-2" variants={fieldVariants}>
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fieldVariants}
+                        >
                             <Label htmlFor="password_confirmation">
                                 Confirm password
                             </Label>

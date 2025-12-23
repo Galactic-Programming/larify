@@ -6,8 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
-import type { Conversation, ConversationType } from '@/types/chat';
 import type { SharedData } from '@/types';
+import type { Conversation, ConversationType } from '@/types/chat';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -32,7 +32,8 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isActive }: ConversationItemProps) {
-    const lastMessagePreview = conversation.last_message?.content ?? 'No messages yet';
+    const lastMessagePreview =
+        conversation.last_message?.content ?? 'No messages yet';
     const hasUnread = conversation.unread_count > 0;
 
     return (
@@ -46,27 +47,37 @@ function ConversationItem({ conversation, isActive }: ConversationItemProps) {
             )}
         >
             <Avatar className="h-10 w-10 shrink-0">
-                <AvatarImage src={conversation.avatar} alt={conversation.name} />
+                <AvatarImage
+                    src={conversation.avatar}
+                    alt={conversation.name}
+                />
                 <AvatarFallback className="text-sm">
                     {conversation.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 overflow-hidden">
                 <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium">{conversation.name}</span>
+                    <span className="truncate text-sm font-medium">
+                        {conversation.name}
+                    </span>
                     {conversation.last_message_at && (
-                        <span className="text-muted-foreground shrink-0 text-[10px]">
+                        <span className="shrink-0 text-[10px] text-muted-foreground">
                             {formatTime(conversation.last_message_at)}
                         </span>
                     )}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                    <p className="text-muted-foreground line-clamp-1 text-xs">
+                    <p className="line-clamp-1 text-xs text-muted-foreground">
                         {lastMessagePreview}
                     </p>
                     {hasUnread && (
-                        <Badge variant="default" className="h-5 shrink-0 rounded-full px-1.5 text-[10px]">
-                            {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
+                        <Badge
+                            variant="default"
+                            className="h-5 shrink-0 rounded-full px-1.5 text-[10px]"
+                        >
+                            {conversation.unread_count > 9
+                                ? '9+'
+                                : conversation.unread_count}
                         </Badge>
                     )}
                 </div>
@@ -75,25 +86,33 @@ function ConversationItem({ conversation, isActive }: ConversationItemProps) {
     );
 }
 
-function EmptyState({ type, searchQuery }: { type: ConversationType | 'all'; searchQuery: string }) {
+function EmptyState({
+    type,
+    searchQuery,
+}: {
+    type: ConversationType | 'all';
+    searchQuery: string;
+}) {
     if (searchQuery) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Search className="text-muted-foreground mb-3 h-8 w-8" />
-                <p className="text-muted-foreground text-sm">No results for "{searchQuery}"</p>
+                <Search className="mb-3 h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                    No results for "{searchQuery}"
+                </p>
             </div>
         );
     }
 
     return (
         <div className="flex flex-col items-center justify-center py-8 text-center">
-            <MessagesSquare className="text-muted-foreground mb-3 h-8 w-8" />
-            <p className="text-muted-foreground text-sm">
+            <MessagesSquare className="mb-3 h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
                 {type === 'direct'
                     ? 'No direct messages'
                     : type === 'group'
-                        ? 'No group chats'
-                        : 'No conversations yet'}
+                      ? 'No group chats'
+                      : 'No conversations yet'}
             </p>
         </div>
     );
@@ -105,7 +124,8 @@ export function ChatSidebar({
     className,
 }: ChatSidebarProps) {
     const { auth } = usePage<SharedData>().props;
-    const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+    const [conversations, setConversations] =
+        useState<Conversation[]>(initialConversations);
     const [activeTab, setActiveTab] = useState<'all' | ConversationType>('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -124,18 +144,22 @@ export function ChatSidebar({
     useEcho(
         `user.${auth.user.id}.conversations`,
         '.message.sent',
-        (data: { conversation_id: number; message: Conversation['last_message'] }) => {
+        (data: {
+            conversation_id: number;
+            message: Conversation['last_message'];
+        }) => {
             setConversations((prev) =>
                 prev.map((conv) =>
                     conv.id === data.conversation_id
                         ? {
-                            ...conv,
-                            last_message: data.message,
-                            last_message_at: data.message?.created_at,
-                            unread_count: conv.id === activeConversationId
-                                ? conv.unread_count
-                                : conv.unread_count + 1,
-                        }
+                              ...conv,
+                              last_message: data.message,
+                              last_message_at: data.message?.created_at,
+                              unread_count:
+                                  conv.id === activeConversationId
+                                      ? conv.unread_count
+                                      : conv.unread_count + 1,
+                          }
                         : conv,
                 ),
             );
@@ -150,17 +174,22 @@ export function ChatSidebar({
                 return false;
             }
             if (searchQuery) {
-                return conversation.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return conversation.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase());
             }
             return true;
         });
     }, [conversations, activeTab, searchQuery]);
 
-    const counts = useMemo(() => ({
-        all: conversations.length,
-        direct: conversations.filter((c) => c.type === 'direct').length,
-        group: conversations.filter((c) => c.type === 'group').length,
-    }), [conversations]);
+    const counts = useMemo(
+        () => ({
+            all: conversations.length,
+            direct: conversations.filter((c) => c.type === 'direct').length,
+            group: conversations.filter((c) => c.type === 'group').length,
+        }),
+        [conversations],
+    );
 
     return (
         <div className={cn('flex flex-col bg-background', className)}>
@@ -173,7 +202,7 @@ export function ChatSidebar({
 
                 {/* Search */}
                 <div className="relative">
-                    <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="text"
                         placeholder="Search..."
@@ -190,24 +219,42 @@ export function ChatSidebar({
                     className="w-full"
                 >
                     <TabsList className="w-full">
-                        <TabsTrigger value="all" className="flex-1 gap-1 text-xs">
+                        <TabsTrigger
+                            value="all"
+                            className="flex-1 gap-1 text-xs"
+                        >
                             <MessagesSquare className="h-3 w-3" />
                             All
-                            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                            <Badge
+                                variant="secondary"
+                                className="ml-1 h-4 px-1 text-[10px]"
+                            >
                                 {counts.all}
                             </Badge>
                         </TabsTrigger>
-                        <TabsTrigger value="direct" className="flex-1 gap-1 text-xs">
+                        <TabsTrigger
+                            value="direct"
+                            className="flex-1 gap-1 text-xs"
+                        >
                             <User className="h-3 w-3" />
                             Direct Messages
-                            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                            <Badge
+                                variant="secondary"
+                                className="ml-1 h-4 px-1 text-[10px]"
+                            >
                                 {counts.direct}
                             </Badge>
                         </TabsTrigger>
-                        <TabsTrigger value="group" className="flex-1 gap-1 text-xs">
+                        <TabsTrigger
+                            value="group"
+                            className="flex-1 gap-1 text-xs"
+                        >
                             <Users className="h-3 w-3" />
                             Groups
-                            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                            <Badge
+                                variant="secondary"
+                                className="ml-1 h-4 px-1 text-[10px]"
+                            >
                                 {counts.group}
                             </Badge>
                         </TabsTrigger>
@@ -223,11 +270,16 @@ export function ChatSidebar({
                             <ConversationItem
                                 key={conversation.id}
                                 conversation={conversation}
-                                isActive={conversation.id === activeConversationId}
+                                isActive={
+                                    conversation.id === activeConversationId
+                                }
                             />
                         ))
                     ) : (
-                        <EmptyState type={activeTab} searchQuery={searchQuery} />
+                        <EmptyState
+                            type={activeTab}
+                            searchQuery={searchQuery}
+                        />
                     )}
                 </div>
             </ScrollArea>

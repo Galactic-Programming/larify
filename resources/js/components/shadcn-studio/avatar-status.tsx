@@ -1,27 +1,30 @@
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva, type VariantProps } from 'class-variance-authority';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
-const statusIndicatorVariants = cva('border-background absolute rounded-full border-2', {
-    variants: {
-        status: {
-            online: 'bg-green-500',
-            offline: 'bg-gray-400',
-            busy: 'bg-destructive',
-            away: 'bg-amber-500',
+const statusIndicatorVariants = cva(
+    'border-background absolute rounded-full border-2',
+    {
+        variants: {
+            status: {
+                online: 'bg-green-500',
+                offline: 'bg-gray-400',
+                busy: 'bg-destructive',
+                away: 'bg-amber-500',
+            },
+            size: {
+                sm: 'size-2 -right-0 -bottom-0',
+                md: 'size-3 -right-0.5 -bottom-0.5',
+                lg: 'size-4 -right-1 -bottom-1',
+            },
         },
-        size: {
-            sm: 'size-2 -right-0 -bottom-0',
-            md: 'size-3 -right-0.5 -bottom-0.5',
-            lg: 'size-4 -right-1 -bottom-1',
+        defaultVariants: {
+            status: 'online',
+            size: 'md',
         },
     },
-    defaultVariants: {
-        status: 'online',
-        size: 'md',
-    },
-})
+);
 
 const avatarSizeVariants = cva('', {
     variants: {
@@ -34,17 +37,18 @@ const avatarSizeVariants = cva('', {
     defaultVariants: {
         size: 'md',
     },
-})
+});
 
-export type AvatarStatusType = 'online' | 'offline' | 'busy' | 'away'
+export type AvatarStatusType = 'online' | 'offline' | 'busy' | 'away';
 
-export interface AvatarStatusProps extends VariantProps<typeof statusIndicatorVariants> {
-    src?: string
-    alt?: string
-    fallback?: string
-    status?: AvatarStatusType
-    showStatus?: boolean
-    className?: string
+export interface AvatarStatusProps
+    extends VariantProps<typeof statusIndicatorVariants> {
+    src?: string;
+    alt?: string;
+    fallback?: string;
+    status?: AvatarStatusType;
+    showStatus?: boolean;
+    className?: string;
 }
 
 const statusLabels: Record<AvatarStatusType, string> = {
@@ -52,7 +56,7 @@ const statusLabels: Record<AvatarStatusType, string> = {
     offline: 'Offline',
     busy: 'Busy',
     away: 'Away',
-}
+};
 
 const AvatarStatus = ({
     src,
@@ -75,8 +79,8 @@ const AvatarStatus = ({
                 </span>
             )}
         </div>
-    )
-}
+    );
+};
 
-export { AvatarStatus, statusIndicatorVariants, avatarSizeVariants }
-export default AvatarStatus
+export { avatarSizeVariants, AvatarStatus, statusIndicatorVariants };
+export default AvatarStatus;

@@ -1,3 +1,5 @@
+import { setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
+import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -6,10 +8,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
-import { setDoneList } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { router } from '@inertiajs/react';
-import { CheckCircle2, Circle, MoreHorizontal, Pencil, Settings2, Trash2 } from 'lucide-react';
+import {
+    CheckCircle2,
+    Circle,
+    MoreHorizontal,
+    Pencil,
+    Settings2,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { Permissions, Project, TaskList } from '../lib/types';
 import { EditStatusesDialog } from './edit-statuses-dialog';
@@ -38,7 +45,9 @@ export function ListDropdownMenu({
     const [editStatusesOpen, setEditStatusesOpen] = useState(false);
 
     // Check if another list is already the done list
-    const hasDoneListElsewhere = project.lists.some((l) => l.is_done_list && l.id !== list.id);
+    const hasDoneListElsewhere = project.lists.some(
+        (l) => l.is_done_list && l.id !== list.id,
+    );
 
     // If user has no edit permission, don't render menu at all
     if (!permissions.canEdit) {
@@ -60,44 +69,55 @@ export function ListDropdownMenu({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     {/* Show done list option only for owners */}
-                    {permissions.canSetDoneList && (list.is_done_list || !hasDoneListElsewhere) && (
-                        <>
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    const isCurrentlyDone = list.is_done_list;
-                                    router.patch(setDoneList.url({ project: project.id, list: list.id }), {}, {
-                                        onSuccess: () => {
-                                            softToastSuccess(
-                                                isCurrentlyDone
-                                                    ? 'Done list unset successfully'
-                                                    : 'Done list set successfully'
-                                            );
-                                        },
-                                    });
-                                }}
-                            >
-                                {list.is_done_list ? (
-                                    <>
-                                        <Circle className="mr-2 size-4" />
-                                        Unset as Done List
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="mr-2 size-4" />
-                                        Set as Done List
-                                    </>
-                                )}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                        </>
-                    )}
+                    {permissions.canSetDoneList &&
+                        (list.is_done_list || !hasDoneListElsewhere) && (
+                            <>
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        const isCurrentlyDone =
+                                            list.is_done_list;
+                                        router.patch(
+                                            setDoneList.url({
+                                                project: project.id,
+                                                list: list.id,
+                                            }),
+                                            {},
+                                            {
+                                                onSuccess: () => {
+                                                    softToastSuccess(
+                                                        isCurrentlyDone
+                                                            ? 'Done list unset successfully'
+                                                            : 'Done list set successfully',
+                                                    );
+                                                },
+                                            },
+                                        );
+                                    }}
+                                >
+                                    {list.is_done_list ? (
+                                        <>
+                                            <Circle className="mr-2 size-4" />
+                                            Unset as Done List
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle2 className="mr-2 size-4" />
+                                            Set as Done List
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                            </>
+                        )}
                     <DropdownMenuItem onClick={() => onEdit(list)}>
                         <Pencil className="mr-2 size-4" />
                         Edit List
                     </DropdownMenuItem>
                     {/* Edit Statuses - Only for project owners/managers */}
                     {permissions.canManageSettings && (
-                        <DropdownMenuItem onClick={() => setEditStatusesOpen(true)}>
+                        <DropdownMenuItem
+                            onClick={() => setEditStatusesOpen(true)}
+                        >
                             <Settings2 className="mr-2 size-4" />
                             Edit Statuses
                         </DropdownMenuItem>

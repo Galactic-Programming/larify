@@ -28,7 +28,8 @@ function BackgroundLayer() {
             <div
                 className="pointer-events-none absolute inset-0 z-0 bg-black/20 dark:bg-transparent"
                 style={{
-                    opacity: config.opacity > 30 ? (config.opacity - 30) / 100 : 0,
+                    opacity:
+                        config.opacity > 30 ? (config.opacity - 30) / 100 : 0,
                 }}
             />
         </>
@@ -42,7 +43,10 @@ export function AppContent({
 }: AppContentProps) {
     if (variant === 'sidebar') {
         return (
-            <SidebarInset {...props} className={cn('relative', props.className)}>
+            <SidebarInset
+                {...props}
+                className={cn('relative', props.className)}
+            >
                 <BackgroundLayer />
                 <div className="relative z-10 flex flex-1 flex-col">
                     {children}

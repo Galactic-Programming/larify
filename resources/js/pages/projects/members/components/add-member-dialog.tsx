@@ -1,6 +1,6 @@
+import { search } from '@/actions/App/Http/Controllers/Api/UserSearchController';
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
-import { Spinner } from '@/components/ui/spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -19,14 +20,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { store } from '@/routes/projects/members';
-import { search } from '@/actions/App/Http/Controllers/Api/UserSearchController';
 import { router } from '@inertiajs/react';
-import { Search, UserPlus, Shield, Eye } from 'lucide-react';
-import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { Eye, Search, Shield, UserPlus } from 'lucide-react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { ProjectRole, ProjectWithMembers, User } from '../lib/types';
 
 interface AddMemberDialogProps {
@@ -38,7 +38,11 @@ interface AddMemberDialogProps {
 const MIN_SEARCH_LENGTH = 2;
 const DEBOUNCE_DELAY = 300;
 
-export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialogProps) {
+export function AddMemberDialog({
+    project,
+    open,
+    onOpenChange,
+}: AddMemberDialogProps) {
     const getInitials = useInitials();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -49,26 +53,31 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Debounced search function
-    const searchUsers = useCallback(async (query: string) => {
-        if (query.length < MIN_SEARCH_LENGTH) {
-            setSearchResults([]);
-            return;
-        }
-
-        setIsSearching(true);
-        try {
-            const response = await fetch(search.url(project, { query: { query } }));
-            if (response.ok) {
-                const users = await response.json();
-                setSearchResults(users);
+    const searchUsers = useCallback(
+        async (query: string) => {
+            if (query.length < MIN_SEARCH_LENGTH) {
+                setSearchResults([]);
+                return;
             }
-        } catch (error) {
-            console.error('Failed to search users:', error);
-            setSearchResults([]);
-        } finally {
-            setIsSearching(false);
-        }
-    }, [project]);
+
+            setIsSearching(true);
+            try {
+                const response = await fetch(
+                    search.url(project, { query: { query } }),
+                );
+                if (response.ok) {
+                    const users = await response.json();
+                    setSearchResults(users);
+                }
+            } catch (error) {
+                console.error('Failed to search users:', error);
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        },
+        [project],
+    );
 
     // Debounce search
     useEffect(() => {
@@ -113,7 +122,7 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
-            }
+            },
         );
     };
 
@@ -124,7 +133,8 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                     <DialogHeader>
                         <DialogTitle>Add Member</DialogTitle>
                         <DialogDescription>
-                            Invite a user to join &quot;{project.name}&quot; as a collaborator.
+                            Invite a user to join &quot;{project.name}&quot; as
+                            a collaborator.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -132,7 +142,7 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                     <div className="space-y-2">
                         <Label htmlFor="user-search">Search Users</Label>
                         <div className="relative">
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 id="user-search"
                                 type="text"
@@ -143,13 +153,13 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                                     // Clear selection when search changes
                                     setSelectedUserId(null);
                                 }}
-                                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 pr-4 pl-10 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                className="w-full rounded-md border border-input bg-background py-2 pr-4 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                             />
                             {isSearching && (
                                 <Spinner className="absolute top-1/2 right-3 size-4 -translate-y-1/2" />
                             )}
                         </div>
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-xs text-muted-foreground">
                             Search by name or email address
                         </p>
                     </div>
@@ -159,23 +169,26 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                         <Label>Select User</Label>
                         <ScrollArea className="h-48 rounded-md border">
                             {searchQuery.length < MIN_SEARCH_LENGTH ? (
-                                <div className="text-muted-foreground flex h-full items-center justify-center py-8 text-center text-sm">
+                                <div className="flex h-full items-center justify-center py-8 text-center text-sm text-muted-foreground">
                                     <div className="px-4">
                                         <Search className="mx-auto mb-2 size-8 opacity-50" />
                                         <p>Type to search for users</p>
                                     </div>
                                 </div>
                             ) : isSearching ? (
-                                <div className="text-muted-foreground flex h-full items-center justify-center py-8 text-center text-sm">
+                                <div className="flex h-full items-center justify-center py-8 text-center text-sm text-muted-foreground">
                                     <div className="px-4">
                                         <Spinner className="mx-auto mb-2 size-6" />
                                         <p>Searching...</p>
                                     </div>
                                 </div>
                             ) : searchResults.length === 0 ? (
-                                <div className="text-muted-foreground flex h-full items-center justify-center py-8 text-center text-sm">
+                                <div className="flex h-full items-center justify-center py-8 text-center text-sm text-muted-foreground">
                                     <div className="px-4">
-                                        <p>No users found matching "{searchQuery}"</p>
+                                        <p>
+                                            No users found matching "
+                                            {searchQuery}"
+                                        </p>
                                     </div>
                                 </div>
                             ) : (
@@ -184,23 +197,34 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                                         <button
                                             key={user.id}
                                             type="button"
-                                            onClick={() => setSelectedUserId(user.id)}
+                                            onClick={() =>
+                                                setSelectedUserId(user.id)
+                                            }
                                             className={cn(
                                                 'flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors',
                                                 selectedUserId === user.id
-                                                    ? 'bg-primary/10 ring-primary ring-1'
-                                                    : 'hover:bg-muted'
+                                                    ? 'bg-primary/10 ring-1 ring-primary'
+                                                    : 'hover:bg-muted',
                                             )}
                                         >
                                             <Avatar className="size-9">
-                                                <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
+                                                <AvatarImage
+                                                    src={
+                                                        user.avatar ?? undefined
+                                                    }
+                                                    alt={user.name}
+                                                />
                                                 <AvatarFallback className="text-xs">
                                                     {getInitials(user.name)}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium">{user.name}</p>
-                                                <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+                                                <p className="truncate text-sm font-medium">
+                                                    {user.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {user.email}
+                                                </p>
                                             </div>
                                         </button>
                                     ))}
@@ -213,10 +237,14 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                     {/* Role Selection */}
                     {selectedUser && (
                         <div className="space-y-2">
-                            <Label htmlFor="role-select">Role for {selectedUser.name}</Label>
+                            <Label htmlFor="role-select">
+                                Role for {selectedUser.name}
+                            </Label>
                             <Select
                                 value={selectedRole}
-                                onValueChange={(value: ProjectRole) => setSelectedRole(value)}
+                                onValueChange={(value: ProjectRole) =>
+                                    setSelectedRole(value)
+                                }
                             >
                                 <SelectTrigger id="role-select">
                                     <SelectValue placeholder="Select a role" />
@@ -226,14 +254,18 @@ export function AddMemberDialog({ project, open, onOpenChange }: AddMemberDialog
                                         <div className="flex items-center gap-2">
                                             <Shield className="size-4 text-blue-500" />
                                             <span>Editor</span>
-                                            <span className="text-muted-foreground text-xs">- Can edit tasks</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                - Can edit tasks
+                                            </span>
                                         </div>
                                     </SelectItem>
                                     <SelectItem value="viewer">
                                         <div className="flex items-center gap-2">
                                             <Eye className="size-4 text-gray-500" />
                                             <span>Viewer</span>
-                                            <span className="text-muted-foreground text-xs">- Can only view</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                - Can only view
+                                            </span>
                                         </div>
                                     </SelectItem>
                                 </SelectContent>

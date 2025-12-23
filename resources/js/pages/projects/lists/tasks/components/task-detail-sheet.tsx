@@ -1,8 +1,18 @@
+import {
+    complete,
+    move,
+} from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Sheet,
     SheetContent,
@@ -10,11 +20,20 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { complete, move } from '@/actions/App/Http/Controllers/Tasks/TaskController';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { format, parseISO, differenceInSeconds, formatDistanceToNow } from 'date-fns';
+import {
+    differenceInSeconds,
+    format,
+    formatDistanceToNow,
+    parseISO,
+} from 'date-fns';
 import {
     AlertTriangle,
     ArrowDown,
@@ -28,9 +47,9 @@ import {
     Pencil,
     Trash2,
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Permissions, Project, Task, TaskPriority } from '../../lib/types';
-import { isCompletedLate, getTaskDeadline } from '../../lib/utils';
+import { getTaskDeadline, isCompletedLate } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { ReopenTaskDialog } from './reopen-task-dialog';
@@ -43,15 +62,49 @@ interface TaskDetailSheetProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const PRIORITY_CONFIG: Record<TaskPriority, { label: string; icon: typeof Minus; color: string; bgColor: string }> = {
-    none: { label: 'None', icon: Minus, color: 'text-muted-foreground', bgColor: 'bg-muted/50' },
-    low: { label: 'Low', icon: ArrowDown, color: 'text-emerald-600', bgColor: 'bg-emerald-500/10' },
-    medium: { label: 'Medium', icon: ArrowRight, color: 'text-amber-600', bgColor: 'bg-amber-500/10' },
-    high: { label: 'High', icon: ArrowUp, color: 'text-orange-600', bgColor: 'bg-orange-500/10' },
-    urgent: { label: 'Urgent', icon: AlertTriangle, color: 'text-red-600', bgColor: 'bg-red-500/10' },
+const PRIORITY_CONFIG: Record<
+    TaskPriority,
+    { label: string; icon: typeof Minus; color: string; bgColor: string }
+> = {
+    none: {
+        label: 'None',
+        icon: Minus,
+        color: 'text-muted-foreground',
+        bgColor: 'bg-muted/50',
+    },
+    low: {
+        label: 'Low',
+        icon: ArrowDown,
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-500/10',
+    },
+    medium: {
+        label: 'Medium',
+        icon: ArrowRight,
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-500/10',
+    },
+    high: {
+        label: 'High',
+        icon: ArrowUp,
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-500/10',
+    },
+    urgent: {
+        label: 'Urgent',
+        icon: AlertTriangle,
+        color: 'text-red-600',
+        bgColor: 'bg-red-500/10',
+    },
 };
 
-export function TaskDetailSheet({ task, project, permissions, open, onOpenChange }: TaskDetailSheetProps) {
+export function TaskDetailSheet({
+    task,
+    project,
+    permissions,
+    open,
+    onOpenChange,
+}: TaskDetailSheetProps) {
     const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -60,7 +113,8 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
     const [timeRemaining, setTimeRemaining] = useState(0);
 
     // Check if user can update deadline
-    const canUpdateDeadline = permissions.role === 'owner' || (task?.created_by === auth.user.id);
+    const canUpdateDeadline =
+        permissions.role === 'owner' || task?.created_by === auth.user.id;
 
     // Real-time countdown to deadline
     useEffect(() => {
@@ -109,7 +163,8 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
         const parts: string[] = [];
         if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
         if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-        if (minutes > 0 && days === 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+        if (minutes > 0 && days === 0)
+            parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
 
         if (parts.length === 0) {
             if (absSeconds < 60) {
@@ -291,33 +346,53 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                         <div className="flex items-start gap-4">
                             <div className="min-w-0 flex-1 space-y-1">
                                 <SheetTitle
-                                    className={`text-lg font-semibold leading-tight sm:text-xl ${isCompleted ? 'text-muted-foreground line-through' : ''
-                                        }`}
+                                    className={`text-lg leading-tight font-semibold sm:text-xl ${
+                                        isCompleted
+                                            ? 'text-muted-foreground line-through'
+                                            : ''
+                                    }`}
                                 >
                                     {task.title}
                                 </SheetTitle>
                                 <SheetDescription className="flex flex-wrap items-center gap-1.5 text-sm sm:gap-2">
-                                    <Badge variant="outline" className="max-w-[18ch] gap-1 font-normal" title={currentList?.name}>
+                                    <Badge
+                                        variant="outline"
+                                        className="max-w-[18ch] gap-1 font-normal"
+                                        title={currentList?.name}
+                                    >
                                         <div
                                             className="size-2 shrink-0 rounded-full"
-                                            style={{ backgroundColor: project.color }}
+                                            style={{
+                                                backgroundColor: project.color,
+                                            }}
                                         />
-                                        <span className="truncate">{currentList?.name}</span>
+                                        <span className="truncate">
+                                            {currentList?.name}
+                                        </span>
                                     </Badge>
                                     {isCompleted && !completedLate && (
-                                        <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                                        <Badge
+                                            variant="secondary"
+                                            className="gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                        >
                                             <CheckCircle2 className="size-3" />
                                             Completed
                                         </Badge>
                                     )}
                                     {completedLate && (
-                                        <Badge variant="secondary" className="gap-1 bg-orange-500/10 text-orange-700 dark:text-orange-400">
+                                        <Badge
+                                            variant="secondary"
+                                            className="gap-1 bg-orange-500/10 text-orange-700 dark:text-orange-400"
+                                        >
                                             <CircleAlert className="size-3" />
                                             Completed Late
                                         </Badge>
                                     )}
                                     {isOverdue && (
-                                        <Badge variant="destructive" className="gap-1">
+                                        <Badge
+                                            variant="destructive"
+                                            className="gap-1"
+                                        >
                                             <AlertTriangle className="size-3" />
                                             Overdue
                                         </Badge>
@@ -330,15 +405,21 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                     <ScrollArea className="flex-1">
                         <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
                             {/* Countdown Section */}
-                            <div className={`overflow-hidden rounded-xl ${countdownStyles.bg}`}>
+                            <div
+                                className={`overflow-hidden rounded-xl ${countdownStyles.bg}`}
+                            >
                                 <div className="p-3 sm:p-4">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="relative">
-                                                {!isCompleted && urgencyLevel === 'urgent' && (
-                                                    <div className="absolute inset-0 animate-ping rounded-full bg-red-500/30" />
-                                                )}
-                                                <div className={`relative flex size-10 items-center justify-center rounded-full ${countdownStyles.iconBg} text-white`}>
+                                                {!isCompleted &&
+                                                    urgencyLevel ===
+                                                        'urgent' && (
+                                                        <div className="absolute inset-0 animate-ping rounded-full bg-red-500/30" />
+                                                    )}
+                                                <div
+                                                    className={`relative flex size-10 items-center justify-center rounded-full ${countdownStyles.iconBg} text-white`}
+                                                >
                                                     {isCompleted ? (
                                                         completedLate ? (
                                                             <CircleAlert className="size-5" />
@@ -351,72 +432,112 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                                 </div>
                                             </div>
                                             <div>
-                                                <p className={`text-xs font-medium uppercase tracking-wider ${countdownStyles.textSecondary}`}>
+                                                <p
+                                                    className={`text-xs font-medium tracking-wider uppercase ${countdownStyles.textSecondary}`}
+                                                >
                                                     {isCompleted
-                                                        ? (completedLate ? 'Completed Late' : 'Completed On Time')
+                                                        ? completedLate
+                                                            ? 'Completed Late'
+                                                            : 'Completed On Time'
                                                         : isOverdue
-                                                            ? 'Overdue'
-                                                            : 'Time Remaining'}
+                                                          ? 'Overdue'
+                                                          : 'Time Remaining'}
                                                 </p>
                                                 {isCompleted ? (
                                                     <>
-                                                        <p className={`text-lg font-semibold ${countdownStyles.textPrimary}`}>
-                                                            {format(parseISO(task.completed_at!), 'MMM d, yyyy • HH:mm')}
+                                                        <p
+                                                            className={`text-lg font-semibold ${countdownStyles.textPrimary}`}
+                                                        >
+                                                            {format(
+                                                                parseISO(
+                                                                    task.completed_at!,
+                                                                ),
+                                                                'MMM d, yyyy • HH:mm',
+                                                            )}
                                                         </p>
                                                         {completedLate && (
-                                                            <p className={`text-sm ${countdownStyles.textSecondary}`}>
-                                                                {formatTimeHumanReadable(-lateBySeconds).replace(' left', ' late')}
+                                                            <p
+                                                                className={`text-sm ${countdownStyles.textSecondary}`}
+                                                            >
+                                                                {formatTimeHumanReadable(
+                                                                    -lateBySeconds,
+                                                                ).replace(
+                                                                    ' left',
+                                                                    ' late',
+                                                                )}
                                                             </p>
                                                         )}
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <p className={`text-2xl font-bold tabular-nums ${countdownStyles.textPrimary}`}>
-                                                            {formatTimeHHMMSS(timeRemaining)}
+                                                        <p
+                                                            className={`text-2xl font-bold tabular-nums ${countdownStyles.textPrimary}`}
+                                                        >
+                                                            {formatTimeHHMMSS(
+                                                                timeRemaining,
+                                                            )}
                                                         </p>
-                                                        <p className={`text-sm ${countdownStyles.textSecondary}`}>
-                                                            {formatTimeHumanReadable(timeRemaining)}
+                                                        <p
+                                                            className={`text-sm ${countdownStyles.textSecondary}`}
+                                                        >
+                                                            {formatTimeHumanReadable(
+                                                                timeRemaining,
+                                                            )}
                                                         </p>
                                                     </>
                                                 )}
                                             </div>
                                         </div>
                                         {/* Complete button - Only for users with edit permission */}
-                                        {!isCompleted && permissions.canEdit && (
-                                            <Button
-                                                size="sm"
-                                                className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
-                                                onClick={handleToggleComplete}
-                                                disabled={isProcessing}
-                                            >
-                                                <CheckCircle2 className="size-3.5" />
-                                                Complete
-                                            </Button>
-                                        )}
+                                        {!isCompleted &&
+                                            permissions.canEdit && (
+                                                <Button
+                                                    size="sm"
+                                                    className="gap-1.5 bg-emerald-500 text-white hover:bg-emerald-600"
+                                                    onClick={
+                                                        handleToggleComplete
+                                                    }
+                                                    disabled={isProcessing}
+                                                >
+                                                    <CheckCircle2 className="size-3.5" />
+                                                    Complete
+                                                </Button>
+                                            )}
                                         {/* Reopen button - Only for owners (canReopen) */}
-                                        {isCompleted && permissions.canReopen && (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="gap-1.5"
-                                                onClick={handleToggleComplete}
-                                                disabled={isProcessing}
-                                            >
-                                                Reopen
-                                            </Button>
-                                        )}
+                                        {isCompleted &&
+                                            permissions.canReopen && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="gap-1.5"
+                                                    onClick={
+                                                        handleToggleComplete
+                                                    }
+                                                    disabled={isProcessing}
+                                                >
+                                                    Reopen
+                                                </Button>
+                                            )}
                                     </div>
 
                                     {/* Deadline info */}
                                     <div className="mt-3 flex flex-col gap-1 border-t border-current/10 pt-3 text-xs text-muted-foreground sm:flex-row sm:gap-4">
                                         <div>
-                                            <span className="font-medium">Deadline:</span>{' '}
-                                            {deadlineDisplay.date} at {deadlineDisplay.time}
+                                            <span className="font-medium">
+                                                Deadline:
+                                            </span>{' '}
+                                            {deadlineDisplay.date} at{' '}
+                                            {deadlineDisplay.time}
                                         </div>
                                         {task.completed_at && (
                                             <div>
-                                                <span className="font-medium">Completed:</span>{' '}
-                                                {format(parseISO(task.completed_at), 'MMM d, HH:mm')}
+                                                <span className="font-medium">
+                                                    Completed:
+                                                </span>{' '}
+                                                {format(
+                                                    parseISO(task.completed_at),
+                                                    'MMM d, HH:mm',
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -426,11 +547,11 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                             {/* Description - Only if exists */}
                             {task.description && (
                                 <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                         Description
                                     </h4>
-                                    <div className="rounded-lg bg-muted/30 p-3 overflow-hidden sm:p-4">
-                                        <p className="whitespace-pre-wrap break-all text-sm leading-relaxed text-foreground/80">
+                                    <div className="overflow-hidden rounded-lg bg-muted/30 p-3 sm:p-4">
+                                        <p className="text-sm leading-relaxed break-all whitespace-pre-wrap text-foreground/80">
                                             {task.description}
                                         </p>
                                     </div>
@@ -439,13 +560,15 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
 
                             {/* Details - Bordio style: Clean list layout */}
                             <div className="space-y-1">
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                     Details
                                 </h4>
                                 <div className="divide-y rounded-lg border bg-card">
                                     {/* Priority */}
                                     <div className="flex items-center justify-between p-3">
-                                        <span className="text-sm text-muted-foreground">Priority</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            Priority
+                                        </span>
                                         <Badge
                                             variant="secondary"
                                             className={`gap-1.5 ${priorityConfig.bgColor} ${priorityConfig.color}`}
@@ -457,51 +580,83 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
 
                                     {/* Due Date */}
                                     <div className="flex items-center justify-between p-3">
-                                        <span className="text-sm text-muted-foreground">Due Date</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            Due Date
+                                        </span>
                                         <Badge
-                                            variant={isOverdue ? 'destructive' : 'secondary'}
+                                            variant={
+                                                isOverdue
+                                                    ? 'destructive'
+                                                    : 'secondary'
+                                            }
                                             className={
-                                                !isOverdue && urgencyLevel === 'warning'
+                                                !isOverdue &&
+                                                urgencyLevel === 'warning'
                                                     ? 'border-amber-500 bg-amber-500/10 text-amber-700'
                                                     : ''
                                             }
                                         >
                                             <Calendar className="mr-1.5 size-3" />
                                             {deadlineDisplay.date}
-                                            <span className="ml-1 opacity-70">• {deadlineDisplay.time}</span>
+                                            <span className="ml-1 opacity-70">
+                                                • {deadlineDisplay.time}
+                                            </span>
                                         </Badge>
                                     </div>
 
                                     {/* Assignee */}
                                     <div className="flex items-center justify-between p-3">
-                                        <span className="text-sm text-muted-foreground">Assignee</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            Assignee
+                                        </span>
                                         {task.assignee ? (
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="flex items-center gap-2">
                                                             <Avatar className="size-6 border">
-                                                                <AvatarImage src={task.assignee.avatar || undefined} />
+                                                                <AvatarImage
+                                                                    src={
+                                                                        task
+                                                                            .assignee
+                                                                            .avatar ||
+                                                                        undefined
+                                                                    }
+                                                                />
                                                                 <AvatarFallback className="text-xs font-medium">
-                                                                    {task.assignee.name.charAt(0).toUpperCase()}
+                                                                    {task.assignee.name
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase()}
                                                                 </AvatarFallback>
                                                             </Avatar>
                                                             <span className="text-sm font-medium">
-                                                                {task.assignee.name}
+                                                                {
+                                                                    task
+                                                                        .assignee
+                                                                        .name
+                                                                }
                                                             </span>
                                                         </div>
                                                     </TooltipTrigger>
-                                                    <TooltipContent>{task.assignee.email}</TooltipContent>
+                                                    <TooltipContent>
+                                                        {task.assignee.email}
+                                                    </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
                                         ) : (
-                                            <span className="text-sm text-muted-foreground/60">Unassigned</span>
+                                            <span className="text-sm text-muted-foreground/60">
+                                                Unassigned
+                                            </span>
                                         )}
                                     </div>
 
                                     {/* List/Status - Editable only for editors */}
                                     <div className="flex items-center justify-between p-3">
-                                        <span className="text-sm text-muted-foreground">List</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            List
+                                        </span>
                                         {permissions.canEdit ? (
                                             <Select
                                                 value={task.list_id.toString()}
@@ -512,15 +667,30 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {project.lists.map((list) => (
-                                                        <SelectItem key={list.id} value={list.id.toString()} title={list.name}>
-                                                            <span className="max-w-[14ch] truncate">{list.name}</span>
-                                                        </SelectItem>
-                                                    ))}
+                                                    {project.lists.map(
+                                                        (list) => (
+                                                            <SelectItem
+                                                                key={list.id}
+                                                                value={list.id.toString()}
+                                                                title={
+                                                                    list.name
+                                                                }
+                                                            >
+                                                                <span className="max-w-[14ch] truncate">
+                                                                    {list.name}
+                                                                </span>
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         ) : (
-                                            <span className="max-w-[16ch] truncate text-sm font-medium" title={currentList?.name}>{currentList?.name}</span>
+                                            <span
+                                                className="max-w-[16ch] truncate text-sm font-medium"
+                                                title={currentList?.name}
+                                            >
+                                                {currentList?.name}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -528,18 +698,26 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
 
                             {/* Activity/Metadata - Minimal */}
                             <div className="space-y-1">
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                     Activity
                                 </h4>
                                 <div className="space-y-2 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-2">
                                         <div className="size-1.5 rounded-full bg-muted-foreground/30" />
-                                        Created {formatDistanceToNow(parseISO(task.created_at), { addSuffix: true })}
+                                        Created{' '}
+                                        {formatDistanceToNow(
+                                            parseISO(task.created_at),
+                                            { addSuffix: true },
+                                        )}
                                     </div>
                                     {task.updated_at !== task.created_at && (
                                         <div className="flex items-center gap-2">
                                             <div className="size-1.5 rounded-full bg-muted-foreground/30" />
-                                            Updated {formatDistanceToNow(parseISO(task.updated_at), { addSuffix: true })}
+                                            Updated{' '}
+                                            {formatDistanceToNow(
+                                                parseISO(task.updated_at),
+                                                { addSuffix: true },
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -557,14 +735,16 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                                     onClick={() => setEditOpen(true)}
                                 >
                                     <Pencil className="size-4" />
-                                    <span className="hidden sm:inline">Edit Task</span>
+                                    <span className="hidden sm:inline">
+                                        Edit Task
+                                    </span>
                                     <span className="sm:hidden">Edit</span>
                                 </Button>
                                 {permissions.canDelete && (
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="text-destructive hover:bg-destructive/10 hover:text-background-foreground"
+                                        className="hover:text-background-foreground text-destructive hover:bg-destructive/10"
                                         onClick={() => setDeleteOpen(true)}
                                     >
                                         <Trash2 className="size-4" />

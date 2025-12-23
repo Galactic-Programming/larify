@@ -1,3 +1,4 @@
+import { store } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +15,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import {
     Select,
     SelectContent,
@@ -23,9 +28,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { SharedData } from '@/types';
-import { store } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { Form, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -50,12 +58,32 @@ interface CreateTaskDialogProps {
     canAssignTask?: boolean;
 }
 
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string; icon: typeof Minus; color: string }[] = [
-    { value: 'none', label: 'None', icon: Minus, color: 'text-muted-foreground' },
+const PRIORITY_OPTIONS: {
+    value: TaskPriority;
+    label: string;
+    icon: typeof Minus;
+    color: string;
+}[] = [
+    {
+        value: 'none',
+        label: 'None',
+        icon: Minus,
+        color: 'text-muted-foreground',
+    },
     { value: 'low', label: 'Low', icon: ArrowDown, color: 'text-green-500' },
-    { value: 'medium', label: 'Medium', icon: ArrowRight, color: 'text-yellow-500' },
+    {
+        value: 'medium',
+        label: 'Medium',
+        icon: ArrowRight,
+        color: 'text-yellow-500',
+    },
     { value: 'high', label: 'High', icon: ArrowUp, color: 'text-orange-500' },
-    { value: 'urgent', label: 'Urgent', icon: AlertTriangle, color: 'text-red-500' },
+    {
+        value: 'urgent',
+        label: 'Urgent',
+        icon: AlertTriangle,
+        color: 'text-red-500',
+    },
 ];
 
 function getInitials(name: string): string {
@@ -67,7 +95,12 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function CreateTaskDialog({ project, list, trigger, canAssignTask = false }: CreateTaskDialogProps) {
+export function CreateTaskDialog({
+    project,
+    list,
+    trigger,
+    canAssignTask = false,
+}: CreateTaskDialogProps) {
     const { auth } = usePage<SharedData>().props;
     const [open, setOpen] = useState(false);
     const [priority, setPriority] = useState<TaskPriority>('none');
@@ -99,13 +132,17 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
     // - Solo project: assign to current user
     // - Editor (cannot assign): assign to current user (themselves)
     // - Owner (can assign): use selected assignee from dropdown
-    const effectiveAssigneeId = isSoloProject || !canAssignTask ? auth.user.id : assigneeId;
+    const effectiveAssigneeId =
+        isSoloProject || !canAssignTask ? auth.user.id : assigneeId;
 
     // Get the selected assignee for display
-    const selectedAssignee = allMembers.find((m) => m.id === effectiveAssigneeId);
+    const selectedAssignee = allMembers.find(
+        (m) => m.id === effectiveAssigneeId,
+    );
 
     // For editors, get their info for read-only display
-    const currentUserInfo = allMembers.find((m) => m.id === auth.user.id) ?? auth.user;
+    const currentUserInfo =
+        allMembers.find((m) => m.id === auth.user.id) ?? auth.user;
 
     const resetForm = () => {
         setPriority('none');
@@ -147,14 +184,27 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="flex size-10 items-center justify-center rounded-lg"
-                                        style={{ backgroundColor: `${project.color}20` }}
+                                        style={{
+                                            backgroundColor: `${project.color}20`,
+                                        }}
                                     >
-                                        <ListTodo className="size-5" style={{ color: project.color }} />
+                                        <ListTodo
+                                            className="size-5"
+                                            style={{ color: project.color }}
+                                        />
                                     </div>
                                     <div>
-                                        <DialogTitle>Create New Task</DialogTitle>
+                                        <DialogTitle>
+                                            Create New Task
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            Add a new task to <span className="max-w-[16ch] inline-block truncate align-bottom font-medium" title={list.name}>{list.name}</span>
+                                            Add a new task to{' '}
+                                            <span
+                                                className="inline-block max-w-[16ch] truncate align-bottom font-medium"
+                                                title={list.name}
+                                            >
+                                                {list.name}
+                                            </span>
                                         </DialogDescription>
                                     </div>
                                 </div>
@@ -178,7 +228,9 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                 <div className="grid gap-2">
                                     <Label htmlFor="description">
                                         Description{' '}
-                                        <span className="font-normal text-muted-foreground">(optional)</span>
+                                        <span className="font-normal text-muted-foreground">
+                                            (optional)
+                                        </span>
                                     </Label>
                                     <Textarea
                                         id="description"
@@ -194,25 +246,50 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                     {/* Priority */}
                                     <div className="grid gap-2">
                                         <Label>Priority</Label>
-                                        <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
+                                        <Select
+                                            value={priority}
+                                            onValueChange={(v) =>
+                                                setPriority(v as TaskPriority)
+                                            }
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select priority" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {PRIORITY_OPTIONS.map((option) => {
-                                                    const Icon = option.icon;
-                                                    return (
-                                                        <SelectItem key={option.value} value={option.value}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Icon className={`size-4 ${option.color}`} />
-                                                                <span>{option.label}</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {PRIORITY_OPTIONS.map(
+                                                    (option) => {
+                                                        const Icon =
+                                                            option.icon;
+                                                        return (
+                                                            <SelectItem
+                                                                key={
+                                                                    option.value
+                                                                }
+                                                                value={
+                                                                    option.value
+                                                                }
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <Icon
+                                                                        className={`size-4 ${option.color}`}
+                                                                    />
+                                                                    <span>
+                                                                        {
+                                                                            option.label
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    },
+                                                )}
                                             </SelectContent>
                                         </Select>
-                                        <input type="hidden" name="priority" value={priority} />
+                                        <input
+                                            type="hidden"
+                                            name="priority"
+                                            value={priority}
+                                        />
                                         <InputError message={errors.priority} />
                                     </div>
 
@@ -220,47 +297,81 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                     <div className="grid gap-2">
                                         <Label>Assignee</Label>
                                         {/* Solo project or Editor: show read-only current user */}
-                                        {(isSoloProject || !canAssignTask) ? (
+                                        {isSoloProject || !canAssignTask ? (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
                                                         <Avatar className="size-5">
-                                                            <AvatarImage src={currentUserInfo?.avatar ?? undefined} />
+                                                            <AvatarImage
+                                                                src={
+                                                                    currentUserInfo?.avatar ??
+                                                                    undefined
+                                                                }
+                                                            />
                                                             <AvatarFallback className="text-[10px]">
-                                                                {currentUserInfo ? getInitials(currentUserInfo.name) : '?'}
+                                                                {currentUserInfo
+                                                                    ? getInitials(
+                                                                          currentUserInfo.name,
+                                                                      )
+                                                                    : '?'}
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <span className="truncate text-sm">
-                                                            {currentUserInfo?.name ?? 'You'}
+                                                            {currentUserInfo?.name ??
+                                                                'You'}
                                                         </span>
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    {isSoloProject ? 'Auto-assigned to you' : 'Tasks you create are assigned to you'}
+                                                    {isSoloProject
+                                                        ? 'Auto-assigned to you'
+                                                        : 'Tasks you create are assigned to you'}
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (
                                             /* Owner: show dropdown to select assignee */
                                             <Select
-                                                value={assigneeId?.toString() ?? 'unassigned'}
-                                                onValueChange={(v) => setAssigneeId(v === 'unassigned' ? null : parseInt(v, 10))}
+                                                value={
+                                                    assigneeId?.toString() ??
+                                                    'unassigned'
+                                                }
+                                                onValueChange={(v) =>
+                                                    setAssigneeId(
+                                                        v === 'unassigned'
+                                                            ? null
+                                                            : parseInt(v, 10),
+                                                    )
+                                                }
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select assignee">
                                                         {selectedAssignee ? (
                                                             <div className="flex items-center gap-2">
                                                                 <Avatar className="size-5">
-                                                                    <AvatarImage src={selectedAssignee.avatar ?? undefined} />
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            selectedAssignee.avatar ??
+                                                                            undefined
+                                                                        }
+                                                                    />
                                                                     <AvatarFallback className="text-[10px]">
-                                                                        {getInitials(selectedAssignee.name)}
+                                                                        {getInitials(
+                                                                            selectedAssignee.name,
+                                                                        )}
                                                                     </AvatarFallback>
                                                                 </Avatar>
-                                                                <span className="truncate">{selectedAssignee.name}</span>
+                                                                <span className="truncate">
+                                                                    {
+                                                                        selectedAssignee.name
+                                                                    }
+                                                                </span>
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center gap-2">
                                                                 <UserCircle className="size-5 text-muted-foreground" />
-                                                                <span>Unassigned</span>
+                                                                <span>
+                                                                    Unassigned
+                                                                </span>
                                                             </div>
                                                         )}
                                                     </SelectValue>
@@ -269,30 +380,57 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                                     <SelectItem value="unassigned">
                                                         <div className="flex items-center gap-2">
                                                             <UserCircle className="size-5 text-muted-foreground" />
-                                                            <span>Unassigned</span>
+                                                            <span>
+                                                                Unassigned
+                                                            </span>
                                                         </div>
                                                     </SelectItem>
-                                                    {allMembers.map((member) => (
-                                                        <SelectItem key={member.id} value={member.id.toString()}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="size-5">
-                                                                    <AvatarImage src={member.avatar ?? undefined} />
-                                                                    <AvatarFallback className="text-[10px]">
-                                                                        {getInitials(member.name)}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                <span>{member.name}</span>
-                                                                {member.id === project.user_id && (
-                                                                    <span className="text-xs text-muted-foreground">(Owner)</span>
-                                                                )}
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
+                                                    {allMembers.map(
+                                                        (member) => (
+                                                            <SelectItem
+                                                                key={member.id}
+                                                                value={member.id.toString()}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <Avatar className="size-5">
+                                                                        <AvatarImage
+                                                                            src={
+                                                                                member.avatar ??
+                                                                                undefined
+                                                                            }
+                                                                        />
+                                                                        <AvatarFallback className="text-[10px]">
+                                                                            {getInitials(
+                                                                                member.name,
+                                                                            )}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                    <span>
+                                                                        {
+                                                                            member.name
+                                                                        }
+                                                                    </span>
+                                                                    {member.id ===
+                                                                        project.user_id && (
+                                                                        <span className="text-xs text-muted-foreground">
+                                                                            (Owner)
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
-                                        <input type="hidden" name="assigned_to" value={effectiveAssigneeId ?? ''} />
-                                        <InputError message={errors.assigned_to} />
+                                        <input
+                                            type="hidden"
+                                            name="assigned_to"
+                                            value={effectiveAssigneeId ?? ''}
+                                        />
+                                        <InputError
+                                            message={errors.assigned_to}
+                                        />
                                     </div>
                                 </div>
 
@@ -300,7 +438,10 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="grid gap-2">
                                         <Label>Due Date</Label>
-                                        <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                                        <Popover
+                                            open={datePickerOpen}
+                                            onOpenChange={setDatePickerOpen}
+                                        >
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     variant="outline"
@@ -308,20 +449,40 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                                 >
                                                     <span className="flex items-center gap-2">
                                                         <CalendarIcon className="size-4 text-muted-foreground" />
-                                                        {dueDate ? format(dueDate, 'MMM d, yyyy') : 'Select date'}
+                                                        {dueDate
+                                                            ? format(
+                                                                  dueDate,
+                                                                  'MMM d, yyyy',
+                                                              )
+                                                            : 'Select date'}
                                                     </span>
                                                     <ChevronDownIcon className="size-4 text-muted-foreground" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                            <PopoverContent
+                                                className="w-auto overflow-hidden p-0"
+                                                align="start"
+                                            >
                                                 <Calendar
                                                     mode="single"
                                                     selected={dueDate}
                                                     captionLayout="dropdown"
-                                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                    disabled={(date) =>
+                                                        date <
+                                                        new Date(
+                                                            new Date().setHours(
+                                                                0,
+                                                                0,
+                                                                0,
+                                                                0,
+                                                            ),
+                                                        )
+                                                    }
                                                     onSelect={(date) => {
                                                         setDueDate(date);
-                                                        setDatePickerOpen(false);
+                                                        setDatePickerOpen(
+                                                            false,
+                                                        );
                                                     }}
                                                 />
                                             </PopoverContent>
@@ -329,7 +490,14 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                         <input
                                             type="hidden"
                                             name="due_date"
-                                            value={dueDate ? format(dueDate, 'yyyy-MM-dd') : ''}
+                                            value={
+                                                dueDate
+                                                    ? format(
+                                                          dueDate,
+                                                          'yyyy-MM-dd',
+                                                      )
+                                                    : ''
+                                            }
                                         />
                                         <InputError message={errors.due_date} />
                                     </div>
@@ -338,10 +506,16 @@ export function CreateTaskDialog({ project, list, trigger, canAssignTask = false
                                         <Input
                                             type="time"
                                             value={dueTime}
-                                            onChange={(e) => setDueTime(e.target.value)}
-                                            className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                                            onChange={(e) =>
+                                                setDueTime(e.target.value)
+                                            }
+                                            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                         />
-                                        <input type="hidden" name="due_time" value={dueTime} />
+                                        <input
+                                            type="hidden"
+                                            name="due_time"
+                                            value={dueTime}
+                                        />
                                         <InputError message={errors.due_time} />
                                     </div>
                                 </div>

@@ -51,7 +51,10 @@ export function ProjectsFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     Active
-                    <Badge variant={filter === 'active' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <Badge
+                        variant={filter === 'active' ? 'secondary' : 'outline'}
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {activeCount}
                     </Badge>
                 </Button>
@@ -62,7 +65,12 @@ export function ProjectsFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     Archived
-                    <Badge variant={filter === 'archived' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <Badge
+                        variant={
+                            filter === 'archived' ? 'secondary' : 'outline'
+                        }
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {archivedCount}
                     </Badge>
                 </Button>
@@ -73,7 +81,10 @@ export function ProjectsFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     All
-                    <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <Badge
+                        variant={filter === 'all' ? 'secondary' : 'outline'}
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {totalCount}
                     </Badge>
                 </Button>
@@ -81,7 +92,10 @@ export function ProjectsFilters({
 
             {/* Sort & Search */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <Select value={sortBy} onValueChange={(v) => onSortChange(v as SortType)}>
+                <Select
+                    value={sortBy}
+                    onValueChange={(v) => onSortChange(v as SortType)}
+                >
                     <SelectTrigger className="h-9 w-full sm:w-44">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>

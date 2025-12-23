@@ -29,7 +29,12 @@ interface MembersHeaderProps {
     onAddMember: () => void;
 }
 
-export function MembersHeader({ project, membersCount, canManageMembers, onAddMember }: MembersHeaderProps) {
+export function MembersHeader({
+    project,
+    membersCount,
+    canManageMembers,
+    onAddMember,
+}: MembersHeaderProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -39,7 +44,12 @@ export function MembersHeader({ project, membersCount, canManageMembers, onAddMe
         >
             {/* Project Info */}
             <div className="flex items-center gap-3 sm:gap-4">
-                <Button variant="ghost" size="icon" asChild className="shrink-0">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    asChild
+                    className="shrink-0"
+                >
                     <Link href={listsIndex(project).url}>
                         <ArrowLeft className="size-4" />
                     </Link>
@@ -47,11 +57,19 @@ export function MembersHeader({ project, membersCount, canManageMembers, onAddMe
                 <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
+                    transition={{
+                        duration: 0.5,
+                        type: 'spring',
+                        stiffness: 200,
+                    }}
                     className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-lg sm:size-14 sm:rounded-xl"
                     style={{ backgroundColor: `${project.color}20` }}
                 >
-                    <ProjectIconDisplay iconName={project.icon} className="size-5 sm:size-7" style={{ color: project.color }} />
+                    <ProjectIconDisplay
+                        iconName={project.icon}
+                        className="size-5 sm:size-7"
+                        style={{ color: project.color }}
+                    />
                 </motion.div>
                 <div className="min-w-0">
                     <motion.h1
@@ -70,7 +88,12 @@ export function MembersHeader({ project, membersCount, canManageMembers, onAddMe
                     >
                         <Users className="size-3.5 shrink-0 sm:size-4" />
                         <span className="truncate">
-                            {membersCount} {membersCount === 1 ? 'member' : 'members'} in <span className="hidden sm:inline">{project.name}</span><span className="sm:hidden">project</span>
+                            {membersCount}{' '}
+                            {membersCount === 1 ? 'member' : 'members'} in{' '}
+                            <span className="hidden sm:inline">
+                                {project.name}
+                            </span>
+                            <span className="sm:hidden">project</span>
                         </span>
                     </motion.div>
                 </div>

@@ -35,28 +35,28 @@ export const BACKGROUND_OPTIONS: {
     label: string;
     thumbnail: string | null;
 }[] = [
-        { value: 'none', label: 'None', thumbnail: null },
-        {
-            value: 'planet-space',
-            label: 'Planet Space',
-            thumbnail: BACKGROUND_IMAGES['planet-space'],
-        },
-        {
-            value: 'cosmic-nebula-1',
-            label: 'Cosmic Nebula 1',
-            thumbnail: BACKGROUND_IMAGES['cosmic-nebula-1'],
-        },
-        {
-            value: 'cosmic-nebula-2',
-            label: 'Cosmic Nebula 2',
-            thumbnail: BACKGROUND_IMAGES['cosmic-nebula-2'],
-        },
-        {
-            value: 'space-sun-planets',
-            label: 'Space Sun Planets',
-            thumbnail: BACKGROUND_IMAGES['space-sun-planets'],
-        },
-    ];
+    { value: 'none', label: 'None', thumbnail: null },
+    {
+        value: 'planet-space',
+        label: 'Planet Space',
+        thumbnail: BACKGROUND_IMAGES['planet-space'],
+    },
+    {
+        value: 'cosmic-nebula-1',
+        label: 'Cosmic Nebula 1',
+        thumbnail: BACKGROUND_IMAGES['cosmic-nebula-1'],
+    },
+    {
+        value: 'cosmic-nebula-2',
+        label: 'Cosmic Nebula 2',
+        thumbnail: BACKGROUND_IMAGES['cosmic-nebula-2'],
+    },
+    {
+        value: 'space-sun-planets',
+        label: 'Space Sun Planets',
+        thumbnail: BACKGROUND_IMAGES['space-sun-planets'],
+    },
+];
 
 const DEFAULT_CONFIG: BackgroundConfig = {
     image: 'none',
@@ -95,19 +95,22 @@ function getInitialConfig(): BackgroundConfig {
 export function useBackground() {
     const [config, setConfig] = useState<BackgroundConfig>(getInitialConfig);
 
-    const updateBackground = useCallback((newConfig: Partial<BackgroundConfig>) => {
-        setConfig((prev) => {
-            const updated = { ...prev, ...newConfig };
+    const updateBackground = useCallback(
+        (newConfig: Partial<BackgroundConfig>) => {
+            setConfig((prev) => {
+                const updated = { ...prev, ...newConfig };
 
-            // Store in localStorage for client-side persistence...
-            localStorage.setItem('background', JSON.stringify(updated));
+                // Store in localStorage for client-side persistence...
+                localStorage.setItem('background', JSON.stringify(updated));
 
-            // Store in cookie for SSR...
-            setCookie('background', JSON.stringify(updated));
+                // Store in cookie for SSR...
+                setCookie('background', JSON.stringify(updated));
 
-            return updated;
-        });
-    }, []);
+                return updated;
+            });
+        },
+        [],
+    );
 
     return {
         config,

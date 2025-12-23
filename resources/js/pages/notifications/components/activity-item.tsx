@@ -27,7 +27,10 @@ interface ActivityItemProps {
 }
 
 // Map activity type icons and colors
-const ACTIVITY_STYLES: Record<string, { icon: React.ReactNode; bgColor: string; textColor: string }> = {
+const ACTIVITY_STYLES: Record<
+    string,
+    { icon: React.ReactNode; bgColor: string; textColor: string }
+> = {
     'task.created': {
         icon: <PlusCircle className="size-4" />,
         bgColor: 'bg-green-500/10',
@@ -148,7 +151,9 @@ export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
             className="group relative flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50"
         >
             {/* Icon */}
-            <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${style.bgColor} ${style.textColor}`}>
+            <div
+                className={`flex size-10 shrink-0 items-center justify-center rounded-full ${style.bgColor} ${style.textColor}`}
+            >
                 {style.icon}
             </div>
 
@@ -158,7 +163,10 @@ export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
                     {activity.user && (
                         <Avatar className="size-6 border border-background">
                             {activity.user.avatar && (
-                                <AvatarImage src={activity.user.avatar} alt={activity.user.name} />
+                                <AvatarImage
+                                    src={activity.user.avatar}
+                                    alt={activity.user.name}
+                                />
                             )}
                             <AvatarFallback className="text-xs">
                                 {getInitials(activity.user.name)}
@@ -174,7 +182,7 @@ export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
                 </div>
 
                 {/* Description */}
-                <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {activity.description}
                 </p>
 
@@ -185,16 +193,23 @@ export function ActivityItem({ activity, index = 0 }: ActivityItemProps) {
                             href={`/projects/${activity.project.id}/lists`}
                             className="inline-flex items-center gap-1.5"
                         >
-                            <Badge variant="secondary" className="text-xs hover:bg-accent">
+                            <Badge
+                                variant="secondary"
+                                className="text-xs hover:bg-accent"
+                            >
                                 <span
                                     className="mr-1 size-2 rounded-full"
-                                    style={{ backgroundColor: activity.project.color }}
+                                    style={{
+                                        backgroundColor: activity.project.color,
+                                    }}
                                 />
                                 {activity.project.name}
                             </Badge>
                         </Link>
                     )}
-                    <span className="text-xs text-muted-foreground">{activity.created_at_human}</span>
+                    <span className="text-xs text-muted-foreground">
+                        {activity.created_at_human}
+                    </span>
                 </div>
             </div>
         </motion.div>

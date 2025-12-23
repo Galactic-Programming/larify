@@ -1,12 +1,16 @@
-import { GoogleIcon, GitHubIcon } from '@/components/logo-cloud';
-import { SettingsCard } from '@/components/settings';
 import AlertError from '@/components/alert-error';
+import { GitHubIcon, GoogleIcon } from '@/components/logo-cloud';
+import { SettingsCard } from '@/components/settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { staggerContainer, cardVariants, listItemVariants } from '@/lib/motion';
-import { type BreadcrumbItem, type SocialConnections, type SocialProvider } from '@/types';
+import { cardVariants, listItemVariants, staggerContainer } from '@/lib/motion';
+import {
+    type BreadcrumbItem,
+    type SocialConnections,
+    type SocialProvider,
+} from '@/types';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { Link2, Link2Off } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -55,11 +59,16 @@ function ConnectionItem({
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <h4 className="font-medium">{name}</h4>
-                        <Badge variant={isConnected ? 'default' : 'secondary'} className="text-xs">
+                        <Badge
+                            variant={isConnected ? 'default' : 'secondary'}
+                            className="text-xs"
+                        >
                             {isConnected ? 'Connected' : 'Not connected'}
                         </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground sm:text-sm">{description}</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                        {description}
+                    </p>
                 </div>
             </div>
             <div className="shrink-0">
@@ -82,7 +91,12 @@ function ConnectionItem({
                         )}
                     </Form>
                 ) : (
-                    <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="w-full sm:w-auto"
+                    >
                         <a href={linkUrl}>
                             <Link2 className="mr-2 size-4" />
                             Connect
@@ -99,8 +113,10 @@ function ConnectionItem({
 // =============================================================================
 
 export default function Connections({ connections, status }: ConnectionsProps) {
-    const linkUrl = (provider: SocialProvider) => `/auth/${provider}/redirect` as const;
-    const unlinkAction = (provider: SocialProvider) => `/settings/connections/${provider}` as const;
+    const linkUrl = (provider: SocialProvider) =>
+        `/auth/${provider}/redirect` as const;
+    const unlinkAction = (provider: SocialProvider) =>
+        `/settings/connections/${provider}` as const;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {

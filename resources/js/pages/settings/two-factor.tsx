@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { staggerContainer, cardVariants } from '@/lib/motion';
+import { cardVariants, staggerContainer } from '@/lib/motion';
 import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/react';
@@ -61,10 +61,11 @@ export default function TwoFactor({
                                 <div className="flex flex-col items-start justify-start space-y-4">
                                     <Badge variant="default">Enabled</Badge>
                                     <p className="text-muted-foreground">
-                                        With two-factor authentication enabled, you will
-                                        be prompted for a secure, random pin during
-                                        login, which you can retrieve from the
-                                        TOTP-supported application on your phone.
+                                        With two-factor authentication enabled,
+                                        you will be prompted for a secure,
+                                        random pin during login, which you can
+                                        retrieve from the TOTP-supported
+                                        application on your phone.
                                     </p>
 
                                     <TwoFactorRecoveryCodes
@@ -89,18 +90,23 @@ export default function TwoFactor({
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-start justify-start space-y-4">
-                                    <Badge variant="destructive">Disabled</Badge>
+                                    <Badge variant="destructive">
+                                        Disabled
+                                    </Badge>
                                     <p className="text-muted-foreground">
-                                        When you enable two-factor authentication, you
-                                        will be prompted for a secure pin during login.
-                                        This pin can be retrieved from a TOTP-supported
+                                        When you enable two-factor
+                                        authentication, you will be prompted for
+                                        a secure pin during login. This pin can
+                                        be retrieved from a TOTP-supported
                                         application on your phone.
                                     </p>
 
                                     <div>
                                         {hasSetupData ? (
                                             <Button
-                                                onClick={() => setShowSetupModal(true)}
+                                                onClick={() =>
+                                                    setShowSetupModal(true)
+                                                }
                                             >
                                                 <ShieldCheck />
                                                 Continue Setup

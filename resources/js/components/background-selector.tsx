@@ -57,7 +57,7 @@ export default function BackgroundSelector({
 
                             {/* Selected indicator */}
                             {config.image === option.value && (
-                                <div className="bg-primary absolute right-1 top-1 rounded-full p-0.5">
+                                <div className="absolute top-1 right-1 rounded-full bg-primary p-0.5">
                                     <Check className="h-3 w-3 text-white" />
                                 </div>
                             )}

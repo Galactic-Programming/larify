@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { staggerContainer, cardVariants } from '@/lib/motion';
+import { cardVariants, staggerContainer } from '@/lib/motion';
 import { edit } from '@/routes/profile';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -60,7 +60,6 @@ export default function Profile({
                             title="Profile information"
                             description="Update your name and email address"
                         >
-
                             <Form
                                 {...ProfileController.update.form()}
                                 options={{
@@ -68,7 +67,11 @@ export default function Profile({
                                 }}
                                 className="space-y-6"
                             >
-                                {({ processing, recentlySuccessful, errors }) => (
+                                {({
+                                    processing,
+                                    recentlySuccessful,
+                                    errors,
+                                }) => (
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="name">Name</Label>
@@ -89,7 +92,9 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="email">Email address</Label>
+                                            <Label htmlFor="email">
+                                                Email address
+                                            </Label>
 
                                             <Input
                                                 id="email"
@@ -108,7 +113,8 @@ export default function Profile({
                                         </div>
 
                                         {mustVerifyEmail &&
-                                            auth.user.email_verified_at === null && (
+                                            auth.user.email_verified_at ===
+                                                null && (
                                                 <div>
                                                     <p className="-mt-4 text-sm text-muted-foreground">
                                                         Your email address is
@@ -118,19 +124,21 @@ export default function Profile({
                                                             as="button"
                                                             className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                                         >
-                                                            Click here to resend the
-                                                            verification email.
+                                                            Click here to resend
+                                                            the verification
+                                                            email.
                                                         </Link>
                                                     </p>
 
                                                     {status ===
                                                         'verification-link-sent' && (
-                                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                                A new verification link has
-                                                                been sent to your email
-                                                                address.
-                                                            </div>
-                                                        )}
+                                                        <div className="mt-2 text-sm font-medium text-green-600">
+                                                            A new verification
+                                                            link has been sent
+                                                            to your email
+                                                            address.
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
 

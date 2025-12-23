@@ -83,7 +83,11 @@ export function ActivityList({
         >
             <AnimatePresence mode="popLayout">
                 {activities.map((activity, index) => (
-                    <ActivityItem key={activity.id} activity={activity} index={index} />
+                    <ActivityItem
+                        key={activity.id}
+                        activity={activity}
+                        index={index}
+                    />
                 ))}
             </AnimatePresence>
 
@@ -94,7 +98,11 @@ export function ActivityList({
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <Button variant="outline" onClick={onLoadMore} disabled={isLoading}>
+                    <Button
+                        variant="outline"
+                        onClick={onLoadMore}
+                        disabled={isLoading}
+                    >
                         {isLoading ? 'Loading...' : 'Load more'}
                     </Button>
                 </motion.div>

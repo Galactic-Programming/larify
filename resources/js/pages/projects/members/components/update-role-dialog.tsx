@@ -1,5 +1,5 @@
-import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { RadioGroupCard } from '@/components/shadcn-studio/radio-group-card-radio';
+import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +37,12 @@ const ROLE_OPTIONS = [
     },
 ];
 
-export function UpdateRoleDialog({ project, member, open, onOpenChange }: UpdateRoleDialogProps) {
+export function UpdateRoleDialog({
+    project,
+    member,
+    open,
+    onOpenChange,
+}: UpdateRoleDialogProps) {
     const getInitials = useInitials();
     const [selectedRole, setSelectedRole] = useState<ProjectRole>(member.role);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -61,7 +66,7 @@ export function UpdateRoleDialog({ project, member, open, onOpenChange }: Update
                 onFinish: () => {
                     setIsUpdating(false);
                 },
-            }
+            },
         );
     };
 
@@ -86,7 +91,9 @@ export function UpdateRoleDialog({ project, member, open, onOpenChange }: Update
                         </Avatar>
                         <div>
                             <p className="font-medium">{member.name}</p>
-                            <p className="text-sm text-muted-foreground">{member.email}</p>
+                            <p className="text-sm text-muted-foreground">
+                                {member.email}
+                            </p>
                         </div>
                     </div>
 
@@ -96,7 +103,9 @@ export function UpdateRoleDialog({ project, member, open, onOpenChange }: Update
                         <RadioGroupCard
                             options={ROLE_OPTIONS}
                             value={selectedRole}
-                            onChange={(value) => setSelectedRole(value as ProjectRole)}
+                            onChange={(value) =>
+                                setSelectedRole(value as ProjectRole)
+                            }
                         />
                     </div>
                 </div>

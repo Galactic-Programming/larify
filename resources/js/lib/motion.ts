@@ -418,7 +418,7 @@ export const buttonTap = {
  */
 export function createStaggerContainer(
     staggerChildren: number = 0.1,
-    delayChildren: number = 0.1
+    delayChildren: number = 0.1,
 ): Variants {
     const transition = {
         staggerChildren,
@@ -442,7 +442,7 @@ export function createStaggerContainer(
  */
 export function createFadeIn(
     direction: 'up' | 'down' | 'left' | 'right' = 'up',
-    distance: number = 20
+    distance: number = 20,
 ): Variants {
     const transition = {
         type: 'spring' as const,
@@ -451,7 +451,8 @@ export function createFadeIn(
     };
 
     const isVertical = direction === 'up' || direction === 'down';
-    const value = direction === 'up' || direction === 'left' ? distance : -distance;
+    const value =
+        direction === 'up' || direction === 'left' ? distance : -distance;
 
     if (isVertical) {
         return {

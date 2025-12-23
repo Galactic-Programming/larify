@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Card, CardContent } from "@/components/ui/card";
-import { ChartContainer } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
-import { Area, AreaChart, XAxis } from "recharts";
+import { Card, CardContent } from '@/components/ui/card';
+import { ChartContainer } from '@/components/ui/chart';
+import { cn } from '@/lib/utils';
+import { Area, AreaChart, XAxis } from 'recharts';
 
 export interface StatItem {
     id: string;
@@ -12,7 +12,7 @@ export interface StatItem {
     value: string;
     change: string;
     percentageChange: string;
-    changeType: "positive" | "negative";
+    changeType: 'positive' | 'negative';
 }
 
 export interface StatDataPoint {
@@ -38,16 +38,16 @@ export interface StatsProps {
 }
 
 const columnClasses = {
-    1: "grid-cols-1",
-    2: "grid-cols-1 sm:grid-cols-2",
-    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-    4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+    1: 'grid-cols-1',
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
 };
 
 const sanitizeName = (name: string) => {
     return name
-        .replace(/\\s+/g, "-")
-        .replace(/[^a-zA-Z0-9-]/g, "_")
+        .replace(/\\s+/g, '-')
+        .replace(/[^a-zA-Z0-9-]/g, '_')
         .toLowerCase();
 };
 
@@ -55,25 +55,33 @@ export default function Stats({
     items,
     data,
     columns = 3,
-    positiveColor = "hsl(142.1 76.2% 36.3%)",
-    negativeColor = "hsl(0 72.2% 50.6%)",
+    positiveColor = 'hsl(142.1 76.2% 36.3%)',
+    negativeColor = 'hsl(0 72.2% 50.6%)',
     className,
-    chartHeight = "h-16",
+    chartHeight = 'h-16',
 }: StatsProps) {
     return (
-        <div className={cn("flex items-center justify-center p-10 w-full", className)}>
-            <dl className={cn("grid gap-6 w-full", columnClasses[columns])}>
+        <div
+            className={cn(
+                'flex w-full items-center justify-center p-10',
+                className,
+            )}
+        >
+            <dl className={cn('grid w-full gap-6', columnClasses[columns])}>
                 {items.map((item) => {
                     const sanitizedName = sanitizeName(item.name);
                     const gradientId = `gradient-${sanitizedName}`;
-                    const color = item.changeType === "positive" ? positiveColor : negativeColor;
+                    const color =
+                        item.changeType === 'positive'
+                            ? positiveColor
+                            : negativeColor;
 
                     return (
                         <Card key={item.id} className="p-0">
                             <CardContent className="p-4 pb-0">
                                 <div>
                                     <dt className="text-sm font-medium text-foreground">
-                                        {item.name}{" "}
+                                        {item.name}{' '}
                                         {item.tickerSymbol && (
                                             <span className="font-normal text-muted-foreground">
                                                 ({item.tickerSymbol})
@@ -83,10 +91,10 @@ export default function Stats({
                                     <div className="flex items-baseline justify-between">
                                         <dd
                                             className={cn(
-                                                item.changeType === "positive"
-                                                    ? "text-green-600 dark:text-green-500"
-                                                    : "text-red-600 dark:text-red-500",
-                                                "text-lg font-semibold"
+                                                item.changeType === 'positive'
+                                                    ? 'text-green-600 dark:text-green-500'
+                                                    : 'text-red-600 dark:text-red-500',
+                                                'text-lg font-semibold',
                                             )}
                                         >
                                             {item.value}
@@ -97,9 +105,10 @@ export default function Stats({
                                             </span>
                                             <span
                                                 className={cn(
-                                                    item.changeType === "positive"
-                                                        ? "text-green-600 dark:text-green-500"
-                                                        : "text-red-600 dark:text-red-500"
+                                                    item.changeType ===
+                                                        'positive'
+                                                        ? 'text-green-600 dark:text-green-500'
+                                                        : 'text-red-600 dark:text-red-500',
                                                 )}
                                             >
                                                 ({item.percentageChange})
@@ -108,9 +117,14 @@ export default function Stats({
                                     </div>
                                 </div>
 
-                                <div className={cn("mt-2 overflow-hidden", chartHeight)}>
+                                <div
+                                    className={cn(
+                                        'mt-2 overflow-hidden',
+                                        chartHeight,
+                                    )}
+                                >
                                     <ChartContainer
-                                        className="w-full h-full"
+                                        className="h-full w-full"
                                         config={{
                                             [item.name]: {
                                                 label: item.name,

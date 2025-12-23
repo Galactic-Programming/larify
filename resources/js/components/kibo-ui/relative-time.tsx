@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import { cn } from '@/lib/utils';
+import { useControllableState } from '@radix-ui/react-use-controllable-state';
 import {
     createContext,
     type HTMLAttributes,
     useContext,
     useEffect,
-} from "react";
-import { cn } from "@/lib/utils";
+} from 'react';
 
 const formatDate = (
     date: Date,
     timeZone: string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
 ) =>
     new Intl.DateTimeFormat(
-        "en-US",
+        'en-US',
         options ?? {
-            dateStyle: "long",
+            dateStyle: 'long',
             timeZone,
-        }
+        },
     ).format(date);
 
 const formatTime = (
     date: Date,
     timeZone: string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
 ) =>
     new Intl.DateTimeFormat(
-        "en-US",
+        'en-US',
         options ?? {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
             timeZone,
-        }
+        },
     ).format(date);
 
 type RelativeTimeContextType = {
@@ -46,11 +46,11 @@ type RelativeTimeContextType = {
 const RelativeTimeContext = createContext<RelativeTimeContextType>({
     time: new Date(),
     dateFormatOptions: {
-        dateStyle: "long",
+        dateStyle: 'long',
     },
     timeFormatOptions: {
-        hour: "2-digit",
-        minute: "2-digit",
+        hour: '2-digit',
+        minute: '2-digit',
     },
 });
 
@@ -97,7 +97,7 @@ export const RelativeTime = ({
                 timeFormatOptions,
             }}
         >
-            <div className={cn("grid gap-2", className)} {...props} />
+            <div className={cn('grid gap-2', className)} {...props} />
         </RelativeTimeContext.Provider>
     );
 };
@@ -113,7 +113,7 @@ export type RelativeTimeZoneContextType = {
 };
 
 const RelativeTimeZoneContext = createContext<RelativeTimeZoneContextType>({
-    zone: "UTC",
+    zone: 'UTC',
 });
 
 export const RelativeTimeZone = ({
@@ -124,8 +124,8 @@ export const RelativeTimeZone = ({
     <RelativeTimeZoneContext.Provider value={{ zone }}>
         <div
             className={cn(
-                "flex items-center justify-between gap-1.5 text-xs",
-                className
+                'flex items-center justify-between gap-1.5 text-xs',
+                className,
             )}
             {...props}
         />
@@ -144,7 +144,7 @@ export const RelativeTimeZoneDisplay = ({
 
     return (
         <div
-            className={cn("pl-8 text-muted-foreground tabular-nums", className)}
+            className={cn('pl-8 text-muted-foreground tabular-nums', className)}
             {...props}
         >
             {display}
@@ -172,8 +172,8 @@ export const RelativeTimeZoneLabel = ({
 }: RelativeTimeZoneLabelProps) => (
     <div
         className={cn(
-            "flex h-4 items-center justify-center rounded-xs bg-secondary px-1.5 font-mono",
-            className
+            'flex h-4 items-center justify-center rounded-xs bg-secondary px-1.5 font-mono',
+            className,
         )}
         {...props}
     />

@@ -1,3 +1,4 @@
+import { destroy } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import {
     AlertDialog,
@@ -10,7 +11,6 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { destroy } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -65,10 +65,16 @@ export function DeleteTaskDialog({
 
     return (
         <AlertDialog open={open} onOpenChange={handleOpenChange}>
-            {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
+            {trigger && (
+                <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+            )}
             {!trigger && !isControlled && (
                 <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-destructive hover:text-destructive"
+                    >
                         <Trash2 className="size-4" />
                     </Button>
                 </AlertDialogTrigger>
@@ -78,13 +84,21 @@ export function DeleteTaskDialog({
                     <AlertDialogTitle>Delete Task</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to delete{' '}
-                        <span className="font-medium text-foreground">"{task.title}"</span>? This action cannot be
-                        undone.
+                        <span className="font-medium text-foreground">
+                            "{task.title}"
+                        </span>
+                        ? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                    <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                    <AlertDialogCancel disabled={isDeleting}>
+                        Cancel
+                    </AlertDialogCancel>
+                    <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                    >
                         {isDeleting ? 'Deleting...' : 'Delete'}
                     </Button>
                 </AlertDialogFooter>

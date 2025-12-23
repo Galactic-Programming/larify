@@ -1,4 +1,10 @@
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/components/ui/empty';
 import { Activity } from 'lucide-react';
 import { motion, type Variants } from 'motion/react';
 
@@ -60,7 +66,9 @@ export function ActivityEmpty() {
                     </motion.div>
                     <motion.div variants={itemVariants}>
                         <EmptyDescription>
-                            When you or your team members make changes to projects, tasks, or lists, the activity will appear here.
+                            When you or your team members make changes to
+                            projects, tasks, or lists, the activity will appear
+                            here.
                         </EmptyDescription>
                     </motion.div>
                 </EmptyHeader>

@@ -1,10 +1,27 @@
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
 import { index as listsIndex } from '@/routes/projects/lists';
 import { Link } from '@inertiajs/react';
-import { Archive, CheckSquare, Crown, LayoutList, Shield, Eye, Users } from 'lucide-react';
+import {
+    Archive,
+    CheckSquare,
+    Eye,
+    LayoutList,
+    Shield,
+    Users,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { createElement, memo } from 'react';
 import type { Project } from '../lib/types';
@@ -59,7 +76,7 @@ export function ProjectCard({
                 {/* Shine effect on hover */}
                 <div className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-linear-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
 
-                <CardHeader className="pb-3 pt-4">
+                <CardHeader className="pt-4 pb-3">
                     <div className="flex items-start justify-between gap-2">
                         <Link
                             href={listsIndex(project).url}
@@ -67,7 +84,9 @@ export function ProjectCard({
                         >
                             <div
                                 className="flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
-                                style={{ backgroundColor: `${project.color}20` }}
+                                style={{
+                                    backgroundColor: `${project.color}20`,
+                                }}
                             >
                                 <ProjectIconDisplay
                                     iconName={project.icon}
@@ -76,10 +95,15 @@ export function ProjectCard({
                                 />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <CardTitle className="truncate text-base">{project.name}</CardTitle>
+                                <CardTitle className="truncate text-base">
+                                    {project.name}
+                                </CardTitle>
                                 <div className="mt-1 flex items-center gap-1.5">
                                     {project.is_archived && (
-                                        <Badge variant="secondary" className="text-xs">
+                                        <Badge
+                                            variant="secondary"
+                                            className="text-xs"
+                                        >
                                             <Archive className="mr-1 size-3" />
                                             Archived
                                         </Badge>
@@ -90,21 +114,28 @@ export function ProjectCard({
                                                 <Badge
                                                     variant="outline"
                                                     className={
-                                                        project.my_role === 'editor'
+                                                        project.my_role ===
+                                                        'editor'
                                                             ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
                                                             : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400'
                                                     }
                                                 >
-                                                    {project.my_role === 'editor' ? (
+                                                    {project.my_role ===
+                                                    'editor' ? (
                                                         <Shield className="mr-1 size-3" />
                                                     ) : (
                                                         <Eye className="mr-1 size-3" />
                                                     )}
-                                                    {project.my_role === 'editor' ? 'Editor' : 'Viewer'}
+                                                    {project.my_role ===
+                                                    'editor'
+                                                        ? 'Editor'
+                                                        : 'Viewer'}
                                                 </Badge>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                Shared by {project.user?.name ?? 'Unknown'}
+                                                Shared by{' '}
+                                                {project.user?.name ??
+                                                    'Unknown'}
                                             </TooltipContent>
                                         </Tooltip>
                                     )}
@@ -120,7 +151,9 @@ export function ProjectCard({
                         />
                     </div>
                     <CardDescription className="line-clamp-2 min-h-10 pt-2">
-                        {project.description || <span className="text-transparent">-</span>}
+                        {project.description || (
+                            <span className="text-transparent">-</span>
+                        )}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

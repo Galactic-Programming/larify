@@ -1,3 +1,4 @@
+import { store } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
@@ -12,8 +13,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { store } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Form } from '@inertiajs/react';
 import { LayoutList, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -62,14 +66,22 @@ export function CreateListDialog({ project, trigger }: CreateListDialogProps) {
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="flex size-10 items-center justify-center rounded-lg"
-                                        style={{ backgroundColor: `${project.color}20` }}
+                                        style={{
+                                            backgroundColor: `${project.color}20`,
+                                        }}
                                     >
-                                        <LayoutList className="size-5" style={{ color: project.color }} />
+                                        <LayoutList
+                                            className="size-5"
+                                            style={{ color: project.color }}
+                                        />
                                     </div>
                                     <div>
-                                        <DialogTitle>Create New List</DialogTitle>
+                                        <DialogTitle>
+                                            Create New List
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            Add a new list to organize tasks in {project.name}.
+                                            Add a new list to organize tasks in{' '}
+                                            {project.name}.
                                         </DialogDescription>
                                     </div>
                                 </div>

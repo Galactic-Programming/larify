@@ -21,7 +21,12 @@ interface TrashItemListProps {
     processingIds: Set<number>;
 }
 
-export function TrashItemList({ items, onRestore, onForceDelete, processingIds }: TrashItemListProps) {
+export function TrashItemList({
+    items,
+    onRestore,
+    onForceDelete,
+    processingIds,
+}: TrashItemListProps) {
     return (
         <motion.div
             variants={containerVariants}

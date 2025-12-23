@@ -65,19 +65,22 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full lg:w-48 lg:shrink-0">
-                    <nav className="flex flex-row gap-1 overflow-x-auto pb-2 scrollbar-none lg:flex-col lg:gap-0 lg:space-y-1 lg:overflow-visible lg:pb-0">
+                    <nav className="scrollbar-none flex flex-row gap-1 overflow-x-auto pb-2 lg:flex-col lg:gap-0 lg:space-y-1 lg:overflow-visible lg:pb-0">
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${resolveUrl(item.href)}-${index}`}
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('shrink-0 justify-start whitespace-nowrap lg:w-full', {
-                                    'bg-muted': isSameUrl(
-                                        currentPath,
-                                        item.href,
-                                    ),
-                                })}
+                                className={cn(
+                                    'shrink-0 justify-start whitespace-nowrap lg:w-full',
+                                    {
+                                        'bg-muted': isSameUrl(
+                                            currentPath,
+                                            item.href,
+                                        ),
+                                    },
+                                )}
                             >
                                 <Link href={item.href}>
                                     {item.icon && (

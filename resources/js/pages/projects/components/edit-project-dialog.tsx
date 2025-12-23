@@ -27,9 +27,15 @@ interface EditProjectDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDialogProps) {
+export function EditProjectDialog({
+    project,
+    open,
+    onOpenChange,
+}: EditProjectDialogProps) {
     const [selectedColor, setSelectedColor] = useState(project.color);
-    const [selectedIcon, setSelectedIcon] = useState(project.icon ?? PROJECT_ICONS[0].name);
+    const [selectedIcon, setSelectedIcon] = useState(
+        project.icon ?? PROJECT_ICONS[0].name,
+    );
 
     const handleOpenChange = (isOpen: boolean) => {
         onOpenChange(isOpen);
@@ -55,13 +61,17 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                         <>
                             <DialogHeader>
                                 <DialogTitle>Edit Project</DialogTitle>
-                                <DialogDescription>Update project details and settings.</DialogDescription>
+                                <DialogDescription>
+                                    Update project details and settings.
+                                </DialogDescription>
                             </DialogHeader>
 
                             <div className="space-y-4">
                                 {/* Project Name */}
                                 <div className="grid gap-2">
-                                    <Label htmlFor="edit-name">Project Name</Label>
+                                    <Label htmlFor="edit-name">
+                                        Project Name
+                                    </Label>
                                     <Input
                                         id="edit-name"
                                         name="name"
@@ -77,7 +87,9 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                 <div className="grid gap-2">
                                     <Label htmlFor="edit-description">
                                         Description{' '}
-                                        <span className="font-normal text-muted-foreground">(optional)</span>
+                                        <span className="font-normal text-muted-foreground">
+                                            (optional)
+                                        </span>
                                     </Label>
                                     <Textarea
                                         id="edit-description"
@@ -97,21 +109,29 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                             <button
                                                 key={color.value}
                                                 type="button"
-                                                onClick={() => setSelectedColor(color.value)}
+                                                onClick={() =>
+                                                    setSelectedColor(
+                                                        color.value,
+                                                    )
+                                                }
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full transition-all hover:scale-110',
-                                                    selectedColor.toLowerCase() === color.value.toLowerCase() &&
-                                                    'ring-2 ring-offset-2 ring-offset-background',
+                                                    selectedColor.toLowerCase() ===
+                                                        color.value.toLowerCase() &&
+                                                        'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
                                                 style={
                                                     {
-                                                        backgroundColor: color.value,
-                                                        '--tw-ring-color': color.value,
+                                                        backgroundColor:
+                                                            color.value,
+                                                        '--tw-ring-color':
+                                                            color.value,
                                                     } as React.CSSProperties
                                                 }
                                                 title={color.name}
                                             >
-                                                {selectedColor.toLowerCase() === color.value.toLowerCase() && (
+                                                {selectedColor.toLowerCase() ===
+                                                    color.value.toLowerCase() && (
                                                     <Check className="size-4 text-white" />
                                                 )}
                                             </button>
@@ -121,26 +141,38 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                             <input
                                                 type="color"
                                                 value={selectedColor}
-                                                onChange={(e) => setSelectedColor(e.target.value)}
+                                                onChange={(e) =>
+                                                    setSelectedColor(
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 className="absolute inset-0 size-8 cursor-pointer opacity-0"
                                                 title="Pick custom color"
                                             />
                                             <div
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-foreground',
-                                                    !isPresetColor(selectedColor) &&
-                                                    'ring-2 ring-offset-2 ring-offset-background',
+                                                    !isPresetColor(
+                                                        selectedColor,
+                                                    ) &&
+                                                        'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
                                                 style={
                                                     {
-                                                        backgroundColor: !isPresetColor(selectedColor)
-                                                            ? selectedColor
-                                                            : 'transparent',
-                                                        '--tw-ring-color': selectedColor,
+                                                        backgroundColor:
+                                                            !isPresetColor(
+                                                                selectedColor,
+                                                            )
+                                                                ? selectedColor
+                                                                : 'transparent',
+                                                        '--tw-ring-color':
+                                                            selectedColor,
                                                     } as React.CSSProperties
                                                 }
                                             >
-                                                {isPresetColor(selectedColor) ? (
+                                                {isPresetColor(
+                                                    selectedColor,
+                                                ) ? (
                                                     <Palette className="size-4 text-muted-foreground" />
                                                 ) : (
                                                     <Check className="size-4 text-white" />
@@ -148,7 +180,11 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                             </div>
                                         </div>
                                     </div>
-                                    <input type="hidden" name="color" value={selectedColor} />
+                                    <input
+                                        type="hidden"
+                                        name="color"
+                                        value={selectedColor}
+                                    />
                                     <InputError message={errors.color} />
                                 </div>
 
@@ -158,12 +194,17 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                     <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-10">
                                         {PROJECT_ICONS.map((icon) => {
                                             const IconComponent = icon.icon;
-                                            const isSelected = selectedIcon === icon.name;
+                                            const isSelected =
+                                                selectedIcon === icon.name;
                                             return (
                                                 <button
                                                     key={icon.name}
                                                     type="button"
-                                                    onClick={() => setSelectedIcon(icon.name)}
+                                                    onClick={() =>
+                                                        setSelectedIcon(
+                                                            icon.name,
+                                                        )
+                                                    }
                                                     className={cn(
                                                         'group relative flex size-8 items-center justify-center rounded-lg transition-all duration-200',
                                                         isSelected
@@ -175,7 +216,8 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                                     <IconComponent
                                                         className={cn(
                                                             'size-4 transition-transform duration-200',
-                                                            !isSelected && 'group-hover:scale-110',
+                                                            !isSelected &&
+                                                                'group-hover:scale-110',
                                                         )}
                                                     />
                                                     {isSelected && (
@@ -187,12 +229,20 @@ export function EditProjectDialog({ project, open, onOpenChange }: EditProjectDi
                                             );
                                         })}
                                     </div>
-                                    <input type="hidden" name="icon" value={selectedIcon} />
+                                    <input
+                                        type="hidden"
+                                        name="icon"
+                                        value={selectedIcon}
+                                    />
                                 </div>
                             </div>
 
                             <DialogFooter className="gap-3">
-                                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => handleOpenChange(false)}
+                                >
                                     Cancel
                                 </Button>
                                 <Button type="submit" disabled={processing}>

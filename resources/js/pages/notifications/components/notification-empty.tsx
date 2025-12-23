@@ -1,4 +1,10 @@
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/components/ui/empty';
 import { Bell, Inbox } from 'lucide-react';
 import { motion, type Variants } from 'motion/react';
 
@@ -51,7 +57,8 @@ export function NotificationEmpty({ filter = 'all' }: NotificationEmptyProps) {
             case 'unread':
                 return {
                     title: 'All caught up!',
-                    description: "You've read all your notifications. Great job staying on top of things!",
+                    description:
+                        "You've read all your notifications. Great job staying on top of things!",
                 };
             case 'read':
                 return {
@@ -61,7 +68,8 @@ export function NotificationEmpty({ filter = 'all' }: NotificationEmptyProps) {
             default:
                 return {
                     title: 'No notifications yet',
-                    description: "When something happens in your projects, you'll see it here.",
+                    description:
+                        "When something happens in your projects, you'll see it here.",
                 };
         }
     };

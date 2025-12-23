@@ -1,7 +1,7 @@
+import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import AppLogoIcon from './app-logo-icon';
 import { Badge } from './ui/badge';
-import type { SharedData } from '@/types';
 
 export default function AppLogo() {
     const { auth } = usePage<SharedData>().props;
@@ -19,7 +19,7 @@ export default function AppLogo() {
                     </span>
                     <Badge
                         variant={plan === 'pro' ? 'default' : 'secondary'}
-                        className="text-[10px] px-1.5 py-0 h-4"
+                        className="h-4 px-1.5 py-0 text-[10px]"
                     >
                         {plan === 'pro' ? 'Pro' : 'Free'}
                     </Badge>

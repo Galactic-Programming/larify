@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import AppearanceTabs from '@/components/appearance-tabs';
 // import BackgroundSelector from '@/components/background-selector';
 import { SettingsCard } from '@/components/settings';
-import { staggerContainer, cardVariants } from '@/lib/motion';
+import { cardVariants, staggerContainer } from '@/lib/motion';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';

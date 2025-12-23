@@ -1,7 +1,13 @@
 import AppLayout from '@/layouts/app-layout';
 import { index as notificationsIndex } from '@/routes/notifications';
 import type { BreadcrumbItem } from '@/types';
-import type { Activity, Notification, NotificationFilter, NotificationSortBy, PaginationMeta } from '@/types/notifications.d';
+import type {
+    Activity,
+    Notification,
+    NotificationFilter,
+    NotificationSortBy,
+    PaginationMeta,
+} from '@/types/notifications.d';
 import { Head } from '@inertiajs/react';
 import { motion } from 'motion/react';
 import { useCallback, useMemo, useState } from 'react';
@@ -37,11 +43,15 @@ export default function NotificationsIndex({
     unreadCount: initialUnreadCount,
     tab = 'notifications',
 }: Props) {
-    const [activeTab, setActiveTab] = useState<'notifications' | 'activities'>(tab);
+    const [activeTab, setActiveTab] = useState<'notifications' | 'activities'>(
+        tab,
+    );
     const [filter, setFilter] = useState<NotificationFilter>('all');
     const [sortBy, setSortBy] = useState<NotificationSortBy>('recent');
     const [searchQuery, setSearchQuery] = useState('');
-    const [notifications, setNotifications] = useState(initialNotifications.data);
+    const [notifications, setNotifications] = useState(
+        initialNotifications.data,
+    );
     const [activities, setActivities] = useState(initialActivities?.data || []);
     const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
     const [isLoading, setIsLoading] = useState(false);
@@ -60,10 +70,11 @@ export default function NotificationsIndex({
         // Filter by search
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            items = items.filter((n) =>
-                n.data.message?.toLowerCase().includes(query) ||
-                n.data.project_name?.toLowerCase().includes(query) ||
-                n.type.toLowerCase().includes(query)
+            items = items.filter(
+                (n) =>
+                    n.data.message?.toLowerCase().includes(query) ||
+                    n.data.project_name?.toLowerCase().includes(query) ||
+                    n.type.toLowerCase().includes(query),
             );
         }
 
@@ -71,9 +82,15 @@ export default function NotificationsIndex({
         items = [...items].sort((a, b) => {
             switch (sortBy) {
                 case 'recent':
-                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    return (
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                    );
                 case 'oldest':
-                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                    return (
+                        new Date(a.created_at).getTime() -
+                        new Date(b.created_at).getTime()
+                    );
                 case 'type':
                     return a.type.localeCompare(b.type);
                 default:
@@ -89,21 +106,25 @@ export default function NotificationsIndex({
         if (!searchQuery) return activities;
 
         const query = searchQuery.toLowerCase();
-        return activities.filter((a) =>
-            a.description?.toLowerCase().includes(query) ||
-            a.project?.name?.toLowerCase().includes(query) ||
-            a.user?.name?.toLowerCase().includes(query) ||
-            a.type_label?.toLowerCase().includes(query)
+        return activities.filter(
+            (a) =>
+                a.description?.toLowerCase().includes(query) ||
+                a.project?.name?.toLowerCase().includes(query) ||
+                a.user?.name?.toLowerCase().includes(query) ||
+                a.type_label?.toLowerCase().includes(query),
         );
     }, [activities, searchQuery]);
 
     // Counts
-    const counts = useMemo(() => ({
-        notifications: notifications.length,
-        activities: activities.length,
-        unread: notifications.filter((n) => !n.is_read).length,
-        read: notifications.filter((n) => n.is_read).length,
-    }), [notifications, activities]);
+    const counts = useMemo(
+        () => ({
+            notifications: notifications.length,
+            activities: activities.length,
+            unread: notifications.filter((n) => !n.is_read).length,
+            read: notifications.filter((n) => n.is_read).length,
+        }),
+        [notifications, activities],
+    );
 
     // Mark single notification as read
     const handleMarkAsRead = useCallback(async (id: string) => {
@@ -119,7 +140,7 @@ export default function NotificationsIndex({
                         document.cookie
                             .split('; ')
                             .find((row) => row.startsWith('XSRF-TOKEN='))
-                            ?.split('=')[1] || ''
+                            ?.split('=')[1] || '',
                     ),
                 },
             });
@@ -127,7 +148,15 @@ export default function NotificationsIndex({
             if (response.ok) {
                 const data = await response.json();
                 setNotifications((prev) =>
-                    prev.map((n) => (n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n))
+                    prev.map((n) =>
+                        n.id === id
+                            ? {
+                                  ...n,
+                                  is_read: true,
+                                  read_at: new Date().toISOString(),
+                              }
+                            : n,
+                    ),
                 );
                 setUnreadCount(data.unread_count);
             }
@@ -150,14 +179,18 @@ export default function NotificationsIndex({
                         document.cookie
                             .split('; ')
                             .find((row) => row.startsWith('XSRF-TOKEN='))
-                            ?.split('=')[1] || ''
+                            ?.split('=')[1] || '',
                     ),
                 },
             });
 
             if (response.ok) {
                 setNotifications((prev) =>
-                    prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
+                    prev.map((n) => ({
+                        ...n,
+                        is_read: true,
+                        read_at: new Date().toISOString(),
+                    })),
                 );
                 setUnreadCount(0);
                 toast.success('All notifications marked as read');
@@ -180,7 +213,7 @@ export default function NotificationsIndex({
                         document.cookie
                             .split('; ')
                             .find((row) => row.startsWith('XSRF-TOKEN='))
-                            ?.split('=')[1] || ''
+                            ?.split('=')[1] || '',
                     ),
                 },
             });
@@ -209,7 +242,7 @@ export default function NotificationsIndex({
                         document.cookie
                             .split('; ')
                             .find((row) => row.startsWith('XSRF-TOKEN='))
-                            ?.split('=')[1] || ''
+                            ?.split('=')[1] || '',
                     ),
                 },
             });
@@ -219,7 +252,9 @@ export default function NotificationsIndex({
                 toast.success('Read notifications deleted');
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                toast.error(errorData.message || 'Failed to delete read notifications');
+                toast.error(
+                    errorData.message || 'Failed to delete read notifications',
+                );
             }
         } catch {
             toast.error('Failed to delete read notifications');
@@ -255,10 +290,13 @@ export default function NotificationsIndex({
     }, [activities.length]);
 
     // Clear search when switching tabs
-    const handleTabChange = useCallback((newTab: 'notifications' | 'activities') => {
-        setActiveTab(newTab);
-        setSearchQuery('');
-    }, []);
+    const handleTabChange = useCallback(
+        (newTab: 'notifications' | 'activities') => {
+            setActiveTab(newTab);
+            setSearchQuery('');
+        },
+        [],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -303,17 +341,18 @@ export default function NotificationsIndex({
                                 onDelete={handleDelete}
                             />
                         )
+                    ) : filteredActivities.length === 0 ? (
+                        <ActivityEmpty />
                     ) : (
-                        filteredActivities.length === 0 ? (
-                            <ActivityEmpty />
-                        ) : (
-                            <ActivityList
-                                activities={filteredActivities}
-                                isLoading={isLoading}
-                                hasMore={(initialActivities?.meta?.current_page || 1) < (initialActivities?.meta?.last_page || 1)}
-                                onLoadMore={handleLoadMoreActivities}
-                            />
-                        )
+                        <ActivityList
+                            activities={filteredActivities}
+                            isLoading={isLoading}
+                            hasMore={
+                                (initialActivities?.meta?.current_page || 1) <
+                                (initialActivities?.meta?.last_page || 1)
+                            }
+                            onLoadMore={handleLoadMoreActivities}
+                        />
                     )}
                 </motion.div>
             </div>

@@ -1,6 +1,5 @@
-"use client";
+'use client';
 
-import { type ReactNode, useCallback, useEffect, useState } from "react";
 import {
     Command,
     CommandEmpty,
@@ -8,15 +7,16 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/components/ui/command";
+} from '@/components/ui/command';
 import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
-import { Kbd, KbdGroup } from "@/components/ui/kbd";
+} from '@/components/ui/dialog';
+import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 
 export interface CommandMenuItem {
     id: string;
@@ -64,30 +64,31 @@ export function CommandMenu({
     defaultOpen = false,
     onOpenChange,
     groups,
-    placeholder = "What do you need?",
-    emptyMessage = "No results found.",
-    title = "Command Menu",
-    description = "Use the command menu to navigate through the app.",
+    placeholder = 'What do you need?',
+    emptyMessage = 'No results found.',
+    title = 'Command Menu',
+    description = 'Use the command menu to navigate through the app.',
     enableKeyboardShortcut = true,
-    shortcutKey = "k",
+    shortcutKey = 'k',
     onItemSelect,
     className,
 }: CommandMenuProps) {
     const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
-    const [inputValue, setInputValue] = useState("");
+    const [inputValue, setInputValue] = useState('');
 
     const isControlled = controlledOpen !== undefined;
     const isOpen = isControlled ? controlledOpen : uncontrolledOpen;
 
     const setOpen = useCallback(
         (value: boolean | ((prev: boolean) => boolean)) => {
-            const newValue = typeof value === "function" ? value(isOpen) : value;
+            const newValue =
+                typeof value === 'function' ? value(isOpen) : value;
             if (!isControlled) {
                 setUncontrolledOpen(newValue);
             }
             onOpenChange?.(newValue);
         },
-        [isControlled, isOpen, onOpenChange]
+        [isControlled, isOpen, onOpenChange],
     );
 
     useEffect(() => {
@@ -100,8 +101,8 @@ export function CommandMenu({
             }
         };
 
-        document.addEventListener("keydown", down);
-        return () => document.removeEventListener("keydown", down);
+        document.addEventListener('keydown', down);
+        return () => document.removeEventListener('keydown', down);
     }, [enableKeyboardShortcut, shortcutKey, setOpen]);
 
     const handleSelect = useCallback(
@@ -110,7 +111,7 @@ export function CommandMenu({
             onItemSelect?.(item);
             setOpen(false);
         },
-        [onItemSelect, setOpen]
+        [onItemSelect, setOpen],
     );
 
     return (
@@ -120,11 +121,11 @@ export function CommandMenu({
                 <DialogDescription>{description}</DialogDescription>
             </DialogHeader>
             <DialogContent
-                className={`gap-0 overflow-hidden rounded-xl border-border/50 p-0 shadow-lg sm:max-w-lg ${className ?? ""}`}
+                className={`gap-0 overflow-hidden rounded-xl border-border/50 p-0 shadow-lg sm:max-w-lg ${className ?? ''}`}
                 showCloseButton={false}
             >
                 <Command className="flex h-full w-full flex-col overflow-hidden bg-popover **:data-[slot=command-input-wrapper]:h-auto **:data-[slot=command-input-wrapper]:grow **:data-[slot=command-input-wrapper]:border-0 **:data-[slot=command-input-wrapper]:px-0">
-                    <div className="flex h-12 items-center gap-2 border-border/50 border-b px-4">
+                    <div className="flex h-12 items-center gap-2 border-b border-border/50 px-4">
                         <CommandInput
                             className="h-10 text-[15px]"
                             onValueChange={setInputValue}
@@ -156,18 +157,23 @@ export function CommandMenu({
                                         disabled={item.disabled}
                                     >
                                         {item.icon}
-                                        {typeof item.label === "string" ? (
+                                        {typeof item.label === 'string' ? (
                                             <span>{item.label}</span>
                                         ) : (
                                             item.label
                                         )}
-                                        {item.shortcut && item.shortcut.length > 0 && (
-                                            <KbdGroup className="ml-auto">
-                                                {item.shortcut.map((key, index) => (
-                                                    <Kbd key={index}>{key}</Kbd>
-                                                ))}
-                                            </KbdGroup>
-                                        )}
+                                        {item.shortcut &&
+                                            item.shortcut.length > 0 && (
+                                                <KbdGroup className="ml-auto">
+                                                    {item.shortcut.map(
+                                                        (key, index) => (
+                                                            <Kbd key={index}>
+                                                                {key}
+                                                            </Kbd>
+                                                        ),
+                                                    )}
+                                                </KbdGroup>
+                                            )}
                                     </CommandItem>
                                 ))}
                             </CommandGroup>

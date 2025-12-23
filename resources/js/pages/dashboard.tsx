@@ -52,7 +52,9 @@ export default function Dashboard() {
                                 transition={{ delay: 0.3, duration: 0.4 }}
                                 className="text-2xl font-bold tracking-tight md:text-3xl"
                             >
-                                <SparklesText className="inline-block">{firstName}</SparklesText>
+                                <SparklesText className="inline-block">
+                                    {firstName}
+                                </SparklesText>
                             </motion.h1>
                             <motion.p
                                 initial={{ opacity: 0 }}
@@ -60,11 +62,12 @@ export default function Dashboard() {
                                 transition={{ delay: 0.5, duration: 0.4 }}
                                 className="mt-2 text-muted-foreground"
                             >
-                                Welcome back to Larify. Here's what's happening today.
+                                Welcome back to Larify. Here's what's happening
+                                today.
                             </motion.p>
                         </div>
                         {/* Decorative gradient circles */}
-                        <div className="absolute -right-10 -top-10 size-40 rounded-full bg-primary/10 blur-3xl" />
+                        <div className="absolute -top-10 -right-10 size-40 rounded-full bg-primary/10 blur-3xl" />
                         <div className="absolute -bottom-10 -left-10 size-32 rounded-full bg-primary/5 blur-2xl" />
                     </motion.div>
                 </div>
@@ -75,10 +78,18 @@ export default function Dashboard() {
                             key={index}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 + index * 0.1, duration: 0.4, ease: 'easeOut' }}
-                            whileHover={{ scale: 1.02, y: -4, transition: { duration: 0.2 } }}
+                            transition={{
+                                delay: 0.6 + index * 0.1,
+                                duration: 0.4,
+                                ease: 'easeOut',
+                            }}
+                            whileHover={{
+                                scale: 1.02,
+                                y: -4,
+                                transition: { duration: 0.2 },
+                            }}
                             whileTap={{ scale: 0.98 }}
-                            className="bg-card relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg dark:border-sidebar-border"
+                            className="relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 bg-card transition-shadow hover:shadow-lg dark:border-sidebar-border"
                         >
                             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                         </motion.div>
@@ -90,7 +101,7 @@ export default function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.9, duration: 0.5, ease: 'easeOut' }}
                     whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
-                    className="bg-card relative min-h-[50vh] flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 transition-shadow hover:shadow-lg sm:min-h-[60vh] md:min-h-min dark:border-sidebar-border"
+                    className="relative min-h-[50vh] flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 bg-card transition-shadow hover:shadow-lg sm:min-h-[60vh] md:min-h-min dark:border-sidebar-border"
                 >
                     <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </motion.div>

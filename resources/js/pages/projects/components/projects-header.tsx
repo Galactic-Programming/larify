@@ -15,7 +15,11 @@ export function ProjectsHeader() {
                 <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
+                    transition={{
+                        duration: 0.5,
+                        type: 'spring',
+                        stiffness: 200,
+                    }}
                     className="flex size-14 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-lg shadow-primary/25"
                 >
                     <FolderKanban className="size-7" />

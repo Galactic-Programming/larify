@@ -1,3 +1,4 @@
+import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -8,7 +9,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import type { Project } from '@/pages/projects/lib/types';
 import { destroy } from '@/routes/projects';
 import { router } from '@inertiajs/react';
@@ -20,7 +20,11 @@ interface DeleteProjectDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function DeleteProjectDialog({ project, open, onOpenChange }: DeleteProjectDialogProps) {
+export function DeleteProjectDialog({
+    project,
+    open,
+    onOpenChange,
+}: DeleteProjectDialogProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = () => {
@@ -43,12 +47,18 @@ export function DeleteProjectDialog({ project, open, onOpenChange }: DeleteProje
                 <AlertDialogHeader>
                     <AlertDialogTitle>Delete Project</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete <span className="font-semibold text-foreground">"{project.name}"</span>?
-                        This will permanently remove the project and all its lists and tasks. This action cannot be undone.
+                        Are you sure you want to delete{' '}
+                        <span className="font-semibold text-foreground">
+                            "{project.name}"
+                        </span>
+                        ? This will permanently remove the project and all its
+                        lists and tasks. This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isDeleting}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
                         disabled={isDeleting}

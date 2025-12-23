@@ -19,7 +19,13 @@ interface ForceDeleteDialogProps {
     isLoading?: boolean;
 }
 
-export function ForceDeleteDialog({ item, open, onOpenChange, onConfirm, isLoading }: ForceDeleteDialogProps) {
+export function ForceDeleteDialog({
+    item,
+    open,
+    onOpenChange,
+    onConfirm,
+    isLoading,
+}: ForceDeleteDialogProps) {
     if (!item) return null;
 
     const getItemTypeLabel = () => {
@@ -49,14 +55,21 @@ export function ForceDeleteDialog({ item, open, onOpenChange, onConfirm, isLoadi
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Permanently delete {getItemTypeLabel()}</AlertDialogTitle>
+                    <AlertDialogTitle>
+                        Permanently delete {getItemTypeLabel()}
+                    </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-2">
                         <span>
                             Are you sure you want to permanently delete{' '}
-                            <span className="font-semibold text-foreground">"{item.title}"</span>?
+                            <span className="font-semibold text-foreground">
+                                "{item.title}"
+                            </span>
+                            ?
                         </span>
                         {deleteInfo && (
-                            <span className="block font-medium text-destructive">{deleteInfo}</span>
+                            <span className="block font-medium text-destructive">
+                                {deleteInfo}
+                            </span>
                         )}
                         <span className="block font-semibold text-destructive">
                             This action cannot be undone.
@@ -64,7 +77,9 @@ export function ForceDeleteDialog({ item, open, onOpenChange, onConfirm, isLoadi
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isLoading}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
                         disabled={isLoading}

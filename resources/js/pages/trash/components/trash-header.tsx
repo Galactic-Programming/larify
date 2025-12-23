@@ -9,7 +9,12 @@ interface TrashHeaderProps {
     isEmptyDisabled: boolean;
 }
 
-export function TrashHeader({ totalCount, retentionDays, onEmptyTrash, isEmptyDisabled }: TrashHeaderProps) {
+export function TrashHeader({
+    totalCount,
+    retentionDays,
+    onEmptyTrash,
+    isEmptyDisabled,
+}: TrashHeaderProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -21,7 +26,11 @@ export function TrashHeader({ totalCount, retentionDays, onEmptyTrash, isEmptyDi
                 <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
+                    transition={{
+                        duration: 0.5,
+                        type: 'spring',
+                        stiffness: 200,
+                    }}
                     className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-lg shadow-primary/25 sm:size-14"
                 >
                     <Trash2 className="size-6 sm:size-7" />
@@ -43,10 +52,13 @@ export function TrashHeader({ totalCount, retentionDays, onEmptyTrash, isEmptyDi
                     >
                         {totalCount > 0 ? (
                             <>
-                                {totalCount} item{totalCount !== 1 ? 's' : ''} • Auto-deleted after {retentionDays} days
+                                {totalCount} item{totalCount !== 1 ? 's' : ''} •
+                                Auto-deleted after {retentionDays} days
                             </>
                         ) : (
-                            'Items will be permanently deleted after ' + retentionDays + ' days'
+                            'Items will be permanently deleted after ' +
+                            retentionDays +
+                            ' days'
                         )}
                     </motion.p>
                 </div>

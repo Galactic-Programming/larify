@@ -2,7 +2,7 @@ import PasswordController from '@/actions/App/Http/Controllers/Settings/Password
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { staggerContainer, cardVariants } from '@/lib/motion';
+import { cardVariants, staggerContainer } from '@/lib/motion';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
@@ -64,7 +64,11 @@ export default function Password() {
                                 }}
                                 className="space-y-6"
                             >
-                                {({ errors, processing, recentlySuccessful }) => (
+                                {({
+                                    errors,
+                                    processing,
+                                    recentlySuccessful,
+                                }) => (
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="current_password">
@@ -82,7 +86,9 @@ export default function Password() {
                                             />
 
                                             <InputError
-                                                message={errors.current_password}
+                                                message={
+                                                    errors.current_password
+                                                }
                                             />
                                         </div>
 
@@ -101,7 +107,9 @@ export default function Password() {
                                                 placeholder="New password"
                                             />
 
-                                            <InputError message={errors.password} />
+                                            <InputError
+                                                message={errors.password}
+                                            />
                                         </div>
 
                                         <div className="grid gap-2">
@@ -119,7 +127,9 @@ export default function Password() {
                                             />
 
                                             <InputError
-                                                message={errors.password_confirmation}
+                                                message={
+                                                    errors.password_confirmation
+                                                }
                                             />
                                         </div>
 

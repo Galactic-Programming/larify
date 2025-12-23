@@ -1,6 +1,13 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { cardVariants, staggerContainer } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
@@ -29,7 +36,11 @@ interface PricingProps {
     currentSubscription: string | null;
 }
 
-export default function Pricing({ plans, isAuthenticated, currentSubscription }: PricingProps) {
+export default function Pricing({
+    plans,
+    isAuthenticated,
+    currentSubscription,
+}: PricingProps) {
     const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
     const formatPrice = (price: number, currency: string) => {
@@ -54,7 +65,11 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
     const monthlyPlan = paidPlans.find((p) => p.interval === 'month');
     const yearlyPlan = paidPlans.find((p) => p.interval === 'year');
     const yearlySavings =
-        monthlyPlan && yearlyPlan ? Math.round((1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100) : 0;
+        monthlyPlan && yearlyPlan
+            ? Math.round(
+                  (1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100,
+              )
+            : 0;
 
     return (
         <>
@@ -66,12 +81,16 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                     <div className="container mx-auto flex h-16 items-center justify-between px-4">
                         <Link href="/" className="flex items-center gap-2">
                             <AppLogoIcon className="size-8" />
-                            <span className="text-lg font-semibold">Larify</span>
+                            <span className="text-lg font-semibold">
+                                Larify
+                            </span>
                         </Link>
                         <div className="flex items-center gap-4">
                             {isAuthenticated ? (
                                 <Button asChild>
-                                    <Link href="/dashboard">Go to Dashboard</Link>
+                                    <Link href="/dashboard">
+                                        Go to Dashboard
+                                    </Link>
                                 </Button>
                             ) : (
                                 <>
@@ -79,7 +98,9 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                         <Link href="/login">Sign in</Link>
                                     </Button>
                                     <Button asChild>
-                                        <Link href="/register">Get started</Link>
+                                        <Link href="/register">
+                                            Get started
+                                        </Link>
                                     </Button>
                                 </>
                             )}
@@ -101,8 +122,8 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                 Simple, transparent pricing
                             </h1>
                             <p className="text-lg text-muted-foreground">
-                                Choose the plan that's right for you. Start free and upgrade when you need team
-                                collaboration.
+                                Choose the plan that's right for you. Start free
+                                and upgrade when you need team collaboration.
                             </p>
                         </motion.div>
 
@@ -125,23 +146,34 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                             </div>
                                             <CardTitle className="text-3xl">
                                                 $0
-                                                <span className="text-lg font-normal text-muted-foreground">/month</span>
+                                                <span className="text-lg font-normal text-muted-foreground">
+                                                    /month
+                                                </span>
                                             </CardTitle>
-                                            <CardDescription>Perfect for personal use</CardDescription>
+                                            <CardDescription>
+                                                Perfect for personal use
+                                            </CardDescription>
                                         </CardHeader>
                                         <CardContent className="flex-1">
                                             <ul className="space-y-3">
-                                                {(freePlan.features || [
-                                                    'Unlimited projects',
-                                                    'Unlimited tasks',
-                                                    'Task priorities & due dates',
-                                                    'Activity history',
-                                                    'Email notifications',
-                                                    'Personal use only',
-                                                ]).map((feature, i) => (
-                                                    <li key={i} className="flex items-start gap-2">
+                                                {(
+                                                    freePlan.features || [
+                                                        'Unlimited projects',
+                                                        'Unlimited tasks',
+                                                        'Task priorities & due dates',
+                                                        'Activity history',
+                                                        'Email notifications',
+                                                        'Personal use only',
+                                                    ]
+                                                ).map((feature, i) => (
+                                                    <li
+                                                        key={i}
+                                                        className="flex items-start gap-2"
+                                                    >
                                                         <CheckIcon className="mt-0.5 size-5 shrink-0 text-primary" />
-                                                        <span className="text-sm">{feature}</span>
+                                                        <span className="text-sm">
+                                                            {feature}
+                                                        </span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -149,17 +181,33 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                         <CardFooter>
                                             {isAuthenticated ? (
                                                 currentSubscription ? (
-                                                    <Button variant="outline" className="w-full" asChild>
-                                                        <Link href="/settings/subscription">Manage Subscription</Link>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full"
+                                                        asChild
+                                                    >
+                                                        <Link href="/settings/subscription">
+                                                            Manage Subscription
+                                                        </Link>
                                                     </Button>
                                                 ) : (
-                                                    <Button variant="outline" className="w-full" disabled>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full"
+                                                        disabled
+                                                    >
                                                         Current Plan
                                                     </Button>
                                                 )
                                             ) : (
-                                                <Button variant="outline" className="w-full" asChild>
-                                                    <Link href="/register">Get started free</Link>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                    asChild
+                                                >
+                                                    <Link href="/register">
+                                                        Get started free
+                                                    </Link>
                                                 </Button>
                                             )}
                                         </CardFooter>
@@ -169,19 +217,24 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
 
                             {/* Paid Plans */}
                             {paidPlans.map((plan) => {
-                                const isCurrentPlan = currentSubscription === plan.stripe_id;
+                                const isCurrentPlan =
+                                    currentSubscription === plan.stripe_id;
                                 const isPopular = plan.interval === 'month';
 
                                 return (
-                                    <motion.div key={plan.stripe_id} variants={cardVariants}>
+                                    <motion.div
+                                        key={plan.stripe_id}
+                                        variants={cardVariants}
+                                    >
                                         <Card
                                             className={cn(
                                                 'relative flex h-full flex-col overflow-hidden transition-all hover:shadow-xl',
-                                                isPopular && 'border-2 border-primary shadow-lg',
+                                                isPopular &&
+                                                    'border-2 border-primary shadow-lg',
                                             )}
                                         >
                                             {/* Badge */}
-                                            <div className="absolute right-4 top-4">
+                                            <div className="absolute top-4 right-4">
                                                 {isPopular ? (
                                                     <span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
                                                         Popular
@@ -202,42 +255,75 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                                                 : 'bg-secondary',
                                                         )}
                                                     >
-                                                        {plan.name} {plan.interval === 'year' ? 'Yearly' : 'Monthly'}
+                                                        {plan.name}{' '}
+                                                        {plan.interval ===
+                                                        'year'
+                                                            ? 'Yearly'
+                                                            : 'Monthly'}
                                                     </span>
                                                 </div>
                                                 <CardTitle className="text-3xl">
-                                                    {formatPrice(plan.price, plan.currency)}
+                                                    {formatPrice(
+                                                        plan.price,
+                                                        plan.currency,
+                                                    )}
                                                     <span className="text-lg font-normal text-muted-foreground">
-                                                        /{plan.interval === 'month' ? 'mo' : 'yr'}
+                                                        /
+                                                        {plan.interval ===
+                                                        'month'
+                                                            ? 'mo'
+                                                            : 'yr'}
                                                     </span>
                                                 </CardTitle>
                                                 <CardDescription>
-                                                    {plan.description || 'For teams and professionals'}
+                                                    {plan.description ||
+                                                        'For teams and professionals'}
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-3">
-                                                    {(plan.features || []).map((feature, i) => (
-                                                        <li key={i} className="flex items-start gap-2">
-                                                            <CheckIcon className="mt-0.5 size-5 shrink-0 text-primary" />
-                                                            <span className="text-sm">{feature}</span>
-                                                        </li>
-                                                    ))}
+                                                    {(plan.features || []).map(
+                                                        (feature, i) => (
+                                                            <li
+                                                                key={i}
+                                                                className="flex items-start gap-2"
+                                                            >
+                                                                <CheckIcon className="mt-0.5 size-5 shrink-0 text-primary" />
+                                                                <span className="text-sm">
+                                                                    {feature}
+                                                                </span>
+                                                            </li>
+                                                        ),
+                                                    )}
                                                 </ul>
                                             </CardContent>
                                             <CardFooter>
                                                 {isCurrentPlan ? (
-                                                    <Button className="w-full" disabled>
+                                                    <Button
+                                                        className="w-full"
+                                                        disabled
+                                                    >
                                                         Current Plan
                                                     </Button>
                                                 ) : isAuthenticated ? (
                                                     <Button
                                                         className="w-full"
-                                                        variant={isPopular ? 'default' : 'outline'}
-                                                        onClick={() => handleCheckout(plan.stripe_id)}
-                                                        disabled={!!loadingPlanId}
+                                                        variant={
+                                                            isPopular
+                                                                ? 'default'
+                                                                : 'outline'
+                                                        }
+                                                        onClick={() =>
+                                                            handleCheckout(
+                                                                plan.stripe_id,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !!loadingPlanId
+                                                        }
                                                     >
-                                                        {loadingPlanId === plan.stripe_id ? (
+                                                        {loadingPlanId ===
+                                                        plan.stripe_id ? (
                                                             <>
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                                 Processing...
@@ -251,10 +337,16 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                                                 ) : (
                                                     <Button
                                                         className="w-full"
-                                                        variant={isPopular ? 'default' : 'outline'}
+                                                        variant={
+                                                            isPopular
+                                                                ? 'default'
+                                                                : 'outline'
+                                                        }
                                                         asChild
                                                     >
-                                                        <Link href="/register">Get started</Link>
+                                                        <Link href="/register">
+                                                            Get started
+                                                        </Link>
                                                     </Button>
                                                 )}
                                             </CardFooter>
@@ -272,10 +364,14 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                             className="mx-auto mt-16 max-w-2xl text-center"
                         >
                             <p className="text-muted-foreground">
-                                All plans include a 14-day free trial. No credit card required for free plan.
+                                All plans include a 14-day free trial. No credit
+                                card required for free plan.
                                 <br />
                                 Need a custom plan?{' '}
-                                <Link href="/contact" className="text-primary hover:underline">
+                                <Link
+                                    href="/contact"
+                                    className="text-primary hover:underline"
+                                >
                                     Contact us
                                 </Link>
                             </p>
@@ -286,7 +382,10 @@ export default function Pricing({ plans, isAuthenticated, currentSubscription }:
                 {/* Footer */}
                 <footer className="border-t py-8">
                     <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-                        <p>© {new Date().getFullYear()} Larify. All rights reserved.</p>
+                        <p>
+                            © {new Date().getFullYear()} Larify. All rights
+                            reserved.
+                        </p>
                     </div>
                 </footer>
             </div>

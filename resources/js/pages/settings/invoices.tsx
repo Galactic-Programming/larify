@@ -1,13 +1,31 @@
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { DownloadIcon, ExternalLinkIcon, FileTextIcon, ReceiptIcon } from 'lucide-react';
+import {
+    DownloadIcon,
+    ExternalLinkIcon,
+    FileTextIcon,
+    ReceiptIcon,
+} from 'lucide-react';
 
 interface Invoice {
     id: string;
@@ -59,7 +77,10 @@ export default function Invoices({ invoices }: InvoicesPageProps) {
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading title="Invoices" description="View and download your billing history" />
+                    <Heading
+                        title="Invoices"
+                        description="View and download your billing history"
+                    />
 
                     <Card>
                         <CardHeader>
@@ -67,15 +88,20 @@ export default function Invoices({ invoices }: InvoicesPageProps) {
                                 <ReceiptIcon className="size-5 text-primary" />
                                 <CardTitle>Billing History</CardTitle>
                             </div>
-                            <CardDescription>A list of all your invoices and payments</CardDescription>
+                            <CardDescription>
+                                A list of all your invoices and payments
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {invoices.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <FileTextIcon className="mb-4 size-12 text-muted-foreground/50" />
-                                    <h3 className="mb-2 text-lg font-medium">No invoices yet</h3>
+                                    <h3 className="mb-2 text-lg font-medium">
+                                        No invoices yet
+                                    </h3>
                                     <p className="mb-4 max-w-sm text-sm text-muted-foreground">
-                                        When you subscribe to a paid plan, your invoices will appear here.
+                                        When you subscribe to a paid plan, your
+                                        invoices will appear here.
                                     </p>
                                     <Button asChild>
                                         <Link href="/pricing">View Plans</Link>
@@ -89,23 +115,39 @@ export default function Invoices({ invoices }: InvoicesPageProps) {
                                                 <TableHead>Date</TableHead>
                                                 <TableHead>Amount</TableHead>
                                                 <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Actions</TableHead>
+                                                <TableHead className="text-right">
+                                                    Actions
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {invoices.map((invoice) => (
                                                 <TableRow key={invoice.id}>
                                                     <TableCell className="font-medium">
-                                                        {formatDate(invoice.date)}
+                                                        {formatDate(
+                                                            invoice.date,
+                                                        )}
                                                     </TableCell>
-                                                    <TableCell>{invoice.total}</TableCell>
-                                                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                                                    <TableCell>
+                                                        {invoice.total}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {getStatusBadge(
+                                                            invoice.status,
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex items-center justify-end gap-2">
                                                             {invoice.invoice_pdf && (
-                                                                <Button variant="ghost" size="sm" asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
                                                                     <a
-                                                                        href={invoice.invoice_pdf}
+                                                                        href={
+                                                                            invoice.invoice_pdf
+                                                                        }
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                     >
@@ -115,9 +157,15 @@ export default function Invoices({ invoices }: InvoicesPageProps) {
                                                                 </Button>
                                                             )}
                                                             {invoice.hosted_invoice_url && (
-                                                                <Button variant="ghost" size="sm" asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
                                                                     <a
-                                                                        href={invoice.hosted_invoice_url}
+                                                                        href={
+                                                                            invoice.hosted_invoice_url
+                                                                        }
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                     >
@@ -139,9 +187,12 @@ export default function Invoices({ invoices }: InvoicesPageProps) {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Need a custom invoice?</CardTitle>
+                            <CardTitle className="text-base">
+                                Need a custom invoice?
+                            </CardTitle>
                             <CardDescription>
-                                If you need a custom invoice or have billing questions, please contact our support team.
+                                If you need a custom invoice or have billing
+                                questions, please contact our support team.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

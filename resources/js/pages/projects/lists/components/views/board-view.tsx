@@ -1,10 +1,14 @@
+import {
+    move,
+    reorder,
+} from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
-import { move, reorder } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import {
+    type CollisionDetection,
     DndContext,
     type DragEndEvent,
     type DragOverEvent,
@@ -16,13 +20,17 @@ import {
     rectIntersection,
     useSensor,
     useSensors,
-    type CollisionDetection,
 } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { router } from '@inertiajs/react';
 import { Circle, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { SortableTaskCard } from '../../tasks/components/sortable-task-card';
@@ -39,7 +47,12 @@ interface BoardViewProps {
     onDeleteList: (list: TaskList) => void;
 }
 
-export function BoardView({ project, permissions, onEditList, onDeleteList }: BoardViewProps) {
+export function BoardView({
+    project,
+    permissions,
+    onEditList,
+    onDeleteList,
+}: BoardViewProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [originalListId, setOriginalListId] = useState<number | null>(null); // Track original list when drag starts
@@ -51,11 +64,14 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
     }, [project.lists]);
 
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
-    const handleTaskDeleted = useCallback((taskId: number) => {
-        if (selectedTask?.id === taskId) {
-            setSelectedTask(null);
-        }
-    }, [selectedTask?.id]);
+    const handleTaskDeleted = useCallback(
+        (taskId: number) => {
+            if (selectedTask?.id === taskId) {
+                setSelectedTask(null);
+            }
+        },
+        [selectedTask?.id],
+    );
 
     // Real-time updates with task deletion handler
     useTaskRealtime({
@@ -83,7 +99,7 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
         if (pointerCollisions.length > 0) {
             // Filter to only task collisions (not list containers)
             const taskCollisions = pointerCollisions.filter(
-                (collision) => !String(collision.id).startsWith('list-')
+                (collision) => !String(collision.id).startsWith('list-'),
             );
             if (taskCollisions.length > 0) {
                 return taskCollisions;
@@ -96,20 +112,28 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
     }, []);
 
     // Find which list contains a task
-    const findListByTaskId = useCallback((taskId: number): TaskList | undefined => {
-        return localLists.find((list) => list.tasks.some((task) => task.id === taskId));
-    }, [localLists]);
+    const findListByTaskId = useCallback(
+        (taskId: number): TaskList | undefined => {
+            return localLists.find((list) =>
+                list.tasks.some((task) => task.id === taskId),
+            );
+        },
+        [localLists],
+    );
 
     // Extract list ID from droppable ID (handles both "list-123" and task IDs)
-    const getListIdFromDroppableId = useCallback((droppableId: string | number): number | null => {
-        const id = String(droppableId);
-        if (id.startsWith('list-')) {
-            return parseInt(id.replace('list-', ''), 10);
-        }
-        // It's a task ID, find its list
-        const list = findListByTaskId(Number(droppableId));
-        return list?.id ?? null;
-    }, [findListByTaskId]);
+    const getListIdFromDroppableId = useCallback(
+        (droppableId: string | number): number | null => {
+            const id = String(droppableId);
+            if (id.startsWith('list-')) {
+                return parseInt(id.replace('list-', ''), 10);
+            }
+            // It's a task ID, find its list
+            const list = findListByTaskId(Number(droppableId));
+            return list?.id ?? null;
+        },
+        [findListByTaskId],
+    );
 
     // Handle drag start
     const handleDragStart = (event: DragStartEvent) => {
@@ -147,16 +171,22 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
 
         // Check if dropping over a specific task
         const isOverTask = !String(overId).startsWith('list-');
-        const overTask = isOverTask ? overList.tasks.find((t) => t.id === overId) : undefined;
+        const overTask = isOverTask
+            ? overList.tasks.find((t) => t.id === overId)
+            : undefined;
 
         // Moving to a different list - update local state optimistically
         setLocalLists((lists) => {
-            const activeListIndex = lists.findIndex((l) => l.id === activeList.id);
+            const activeListIndex = lists.findIndex(
+                (l) => l.id === activeList.id,
+            );
             const overListIndex = lists.findIndex((l) => l.id === overList.id);
 
             if (activeListIndex === -1 || overListIndex === -1) return lists;
 
-            const activeTaskIndex = lists[activeListIndex].tasks.findIndex((t) => t.id === activeId);
+            const activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+                (t) => t.id === activeId,
+            );
             if (activeTaskIndex === -1) return lists;
 
             const task = lists[activeListIndex].tasks[activeTaskIndex];
@@ -164,7 +194,9 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
             // Calculate new position
             let newPosition = lists[overListIndex].tasks.length; // Default: end of list
             if (overTask) {
-                const overTaskIndex = lists[overListIndex].tasks.findIndex((t) => t.id === overTask.id);
+                const overTaskIndex = lists[overListIndex].tasks.findIndex(
+                    (t) => t.id === overTask.id,
+                );
                 newPosition = overTaskIndex;
             }
 
@@ -174,7 +206,9 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
             // Remove from source
             newLists[activeListIndex] = {
                 ...newLists[activeListIndex],
-                tasks: newLists[activeListIndex].tasks.filter((t) => t.id !== activeId),
+                tasks: newLists[activeListIndex].tasks.filter(
+                    (t) => t.id !== activeId,
+                ),
             };
 
             // Add to destination
@@ -222,7 +256,9 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
             const isOverTask = !String(overId).startsWith('list-');
             if (!isOverTask) return;
 
-            const listIndex = localLists.findIndex((l) => l.id === currentList.id);
+            const listIndex = localLists.findIndex(
+                (l) => l.id === currentList.id,
+            );
             const tasks = localLists[listIndex].tasks;
             const activeTaskIndex = tasks.findIndex((t) => t.id === activeId);
             const overTaskIndex = tasks.findIndex((t) => t.id === overId);
@@ -230,13 +266,24 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
             if (activeTaskIndex !== overTaskIndex && overTaskIndex !== -1) {
                 setLocalLists((lists) => {
                     const newLists = [...lists];
-                    const newTasks = arrayMove(newLists[listIndex].tasks, activeTaskIndex, overTaskIndex);
-                    newLists[listIndex] = { ...newLists[listIndex], tasks: newTasks };
+                    const newTasks = arrayMove(
+                        newLists[listIndex].tasks,
+                        activeTaskIndex,
+                        overTaskIndex,
+                    );
+                    newLists[listIndex] = {
+                        ...newLists[listIndex],
+                        tasks: newTasks,
+                    };
                     return newLists;
                 });
 
                 // Send reorder API
-                const reorderedTasks = arrayMove(tasks, activeTaskIndex, overTaskIndex);
+                const reorderedTasks = arrayMove(
+                    tasks,
+                    activeTaskIndex,
+                    overTaskIndex,
+                );
                 const reorderData = reorderedTasks.map((task, index) => ({
                     id: task.id,
                     position: index,
@@ -251,9 +298,14 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
         } else {
             // Moving to different list - task was already moved optimistically in handleDragOver
             // Find the new position from localLists (where task is now)
-            const currentListIndex = localLists.findIndex((l) => l.id === currentList.id);
-            const taskPositionInNewList = localLists[currentListIndex].tasks.findIndex((t) => t.id === activeId);
-            const newPosition = taskPositionInNewList !== -1 ? taskPositionInNewList : 0;
+            const currentListIndex = localLists.findIndex(
+                (l) => l.id === currentList.id,
+            );
+            const taskPositionInNewList = localLists[
+                currentListIndex
+            ].tasks.findIndex((t) => t.id === activeId);
+            const newPosition =
+                taskPositionInNewList !== -1 ? taskPositionInNewList : 0;
 
             // Call move API with position
             router.patch(
@@ -283,7 +335,10 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                 key={list.id}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: listIdx * 0.1 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: listIdx * 0.1,
+                                }}
                                 className="w-72 shrink-0 sm:w-80"
                             >
                                 <Card className="flex h-fit max-h-[calc(100vh-320px)] flex-col bg-muted/30 sm:max-h-[calc(100vh-280px)]">
@@ -292,10 +347,21 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                         <div className="flex items-center gap-2">
                                             <div
                                                 className="size-3 rounded-full"
-                                                style={{ backgroundColor: project.color }}
+                                                style={{
+                                                    backgroundColor:
+                                                        project.color,
+                                                }}
                                             />
-                                            <CardTitle className="max-w-[16ch] truncate text-base font-semibold" title={list.name}>{list.name}</CardTitle>
-                                            <Badge variant="secondary" className="ml-1">
+                                            <CardTitle
+                                                className="max-w-[16ch] truncate text-base font-semibold"
+                                                title={list.name}
+                                            >
+                                                {list.name}
+                                            </CardTitle>
+                                            <Badge
+                                                variant="secondary"
+                                                className="ml-1"
+                                            >
                                                 {list.tasks.length}
                                             </Badge>
                                         </div>
@@ -309,34 +375,63 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                     </CardHeader>
 
                                     {/* Tasks - Droppable Area */}
-                                    <CardContent className="flex-1 overflow-y-auto overscroll-contain scroll-smooth px-3 pb-3 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                    <CardContent className="scrollbar-none flex-1 overflow-y-auto overscroll-contain scroll-smooth px-3 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                                         <DroppableList listId={list.id}>
-                                            <SortableContext items={getTaskIds(list)} strategy={verticalListSortingStrategy}>
+                                            <SortableContext
+                                                items={getTaskIds(list)}
+                                                strategy={
+                                                    verticalListSortingStrategy
+                                                }
+                                            >
                                                 {list.tasks.length > 0 ? (
                                                     <div className="space-y-2">
-                                                        {list.tasks.map((task, taskIdx) => (
-                                                            <SortableTaskCard
-                                                                key={task.id}
-                                                                task={task}
-                                                                project={project}
-                                                                index={taskIdx}
-                                                                onClick={setSelectedTask}
-                                                                disabled={!permissions.canEdit}
-                                                                permissions={permissions}
-                                                            />
-                                                        ))}
+                                                        {list.tasks.map(
+                                                            (task, taskIdx) => (
+                                                                <SortableTaskCard
+                                                                    key={
+                                                                        task.id
+                                                                    }
+                                                                    task={task}
+                                                                    project={
+                                                                        project
+                                                                    }
+                                                                    index={
+                                                                        taskIdx
+                                                                    }
+                                                                    onClick={
+                                                                        setSelectedTask
+                                                                    }
+                                                                    disabled={
+                                                                        !permissions.canEdit
+                                                                    }
+                                                                    permissions={
+                                                                        permissions
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
                                                         <Circle className="mb-2 size-8 text-muted-foreground/50" />
-                                                        <p className="text-sm text-muted-foreground">No tasks yet</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            No tasks yet
+                                                        </p>
                                                         {permissions.canEdit && (
                                                             <CreateTaskDialog
-                                                                project={project}
+                                                                project={
+                                                                    project
+                                                                }
                                                                 list={list}
-                                                                canAssignTask={permissions.canAssignTask}
+                                                                canAssignTask={
+                                                                    permissions.canAssignTask
+                                                                }
                                                                 trigger={
-                                                                    <Button variant="ghost" size="sm" className="mt-2 gap-1">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="mt-2 gap-1"
+                                                                    >
                                                                         <Plus className="size-3" />
                                                                         Add task
                                                                     </Button>
@@ -349,22 +444,25 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                         </DroppableList>
 
                                         {/* Add Task Button - Only for editors and owners */}
-                                        {list.tasks.length > 0 && permissions.canEdit && (
-                                            <CreateTaskDialog
-                                                project={project}
-                                                list={list}
-                                                canAssignTask={permissions.canAssignTask}
-                                                trigger={
-                                                    <Button
-                                                        variant="ghost"
-                                                        className="mt-2 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-                                                    >
-                                                        <Plus className="size-4" />
-                                                        Add task
-                                                    </Button>
-                                                }
-                                            />
-                                        )}
+                                        {list.tasks.length > 0 &&
+                                            permissions.canEdit && (
+                                                <CreateTaskDialog
+                                                    project={project}
+                                                    list={list}
+                                                    canAssignTask={
+                                                        permissions.canAssignTask
+                                                    }
+                                                    trigger={
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="mt-2 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                                                        >
+                                                            <Plus className="size-4" />
+                                                            Add task
+                                                        </Button>
+                                                    }
+                                                />
+                                            )}
                                     </CardContent>
                                 </Card>
                             </motion.div>
@@ -375,7 +473,10 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: localLists.length * 0.1 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: localLists.length * 0.1,
+                                }}
                                 className="w-72 shrink-0 sm:w-80"
                             >
                                 <CreateListDialog
@@ -384,7 +485,9 @@ export function BoardView({ project, permissions, onEditList, onDeleteList }: Bo
                                         <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
                                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                                 <Plus className="size-8" />
-                                                <span className="font-medium">Add new list</span>
+                                                <span className="font-medium">
+                                                    Add new list
+                                                </span>
                                             </div>
                                         </Card>
                                     }

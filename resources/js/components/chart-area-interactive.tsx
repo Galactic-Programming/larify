@@ -1,9 +1,8 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import * as React from 'react';
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import {
     Card,
     CardAction,
@@ -11,102 +10,104 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from '@/components/ui/card';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart"
+} from '@/components/ui/chart';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import {
-    ToggleGroup,
-    ToggleGroupItem,
-} from "@/components/ui/toggle-group"
+} from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
     type ChartAreaConfig,
     type ChartDataPoint,
     type TimeRangeOption,
-} from "@/types"
+} from '@/types';
 
 export interface ChartAreaInteractiveProps {
-    data: ChartDataPoint[]
-    areas: ChartAreaConfig[]
-    title?: string
-    description?: string
-    referenceDate?: Date
-    timeRanges?: TimeRangeOption[]
-    defaultTimeRange?: string
-    className?: string
+    data: ChartDataPoint[];
+    areas: ChartAreaConfig[];
+    title?: string;
+    description?: string;
+    referenceDate?: Date;
+    timeRanges?: TimeRangeOption[];
+    defaultTimeRange?: string;
+    className?: string;
 }
 
 const defaultTimeRanges: TimeRangeOption[] = [
-    { value: "90d", label: "Last 3 months", days: 90 },
-    { value: "30d", label: "Last 30 days", days: 30 },
-    { value: "7d", label: "Last 7 days", days: 7 },
-]
+    { value: '90d', label: 'Last 3 months', days: 90 },
+    { value: '30d', label: 'Last 30 days', days: 30 },
+    { value: '7d', label: 'Last 7 days', days: 7 },
+];
 
 export function ChartAreaInteractive({
     data,
     areas,
-    title = "Total Visitors",
+    title = 'Total Visitors',
     description,
     referenceDate = new Date(),
     timeRanges = defaultTimeRanges,
-    defaultTimeRange = "90d",
+    defaultTimeRange = '90d',
     className,
 }: ChartAreaInteractiveProps) {
-    const isMobile = useIsMobile()
-    const [timeRange, setTimeRange] = React.useState(defaultTimeRange)
+    const isMobile = useIsMobile();
+    const [timeRange, setTimeRange] = React.useState(defaultTimeRange);
 
     React.useEffect(() => {
         if (isMobile) {
-            setTimeRange("7d")
+            setTimeRange('7d');
         }
-    }, [isMobile])
+    }, [isMobile]);
 
     const chartConfig = React.useMemo(() => {
         const config: ChartConfig = {
-            visitors: { label: "Visitors" },
-        }
+            visitors: { label: 'Visitors' },
+        };
         areas.forEach((area) => {
             config[area.dataKey] = {
                 label: area.label,
                 color: area.color,
-            }
-        })
-        return config
-    }, [areas])
+            };
+        });
+        return config;
+    }, [areas]);
 
     const filteredData = React.useMemo(() => {
-        const selectedRange = timeRanges.find((r) => r.value === timeRange)
-        const daysToSubtract = selectedRange?.days ?? 90
+        const selectedRange = timeRanges.find((r) => r.value === timeRange);
+        const daysToSubtract = selectedRange?.days ?? 90;
 
         return data.filter((item) => {
-            const date = new Date(item.date)
-            const startDate = new Date(referenceDate)
-            startDate.setDate(startDate.getDate() - daysToSubtract)
-            return date >= startDate
-        })
-    }, [data, timeRange, timeRanges, referenceDate])
+            const date = new Date(item.date);
+            const startDate = new Date(referenceDate);
+            startDate.setDate(startDate.getDate() - daysToSubtract);
+            return date >= startDate;
+        });
+    }, [data, timeRange, timeRanges, referenceDate]);
 
-    const currentRangeLabel = timeRanges.find((r) => r.value === timeRange)?.label ?? "Last 3 months"
+    const currentRangeLabel =
+        timeRanges.find((r) => r.value === timeRange)?.label ?? 'Last 3 months';
 
     return (
-        <Card className={`@container/card ${className ?? ""}`}>
+        <Card className={`@container/card ${className ?? ''}`}>
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>
                     <span className="hidden @[540px]/card:block">
-                        {description ?? `Total for the ${currentRangeLabel.toLowerCase()}`}
+                        {description ??
+                            `Total for the ${currentRangeLabel.toLowerCase()}`}
                     </span>
-                    <span className="@[540px]/card:hidden">{currentRangeLabel}</span>
+                    <span className="@[540px]/card:hidden">
+                        {currentRangeLabel}
+                    </span>
                 </CardDescription>
                 <CardAction>
                     <ToggleGroup
@@ -117,7 +118,10 @@ export function ChartAreaInteractive({
                         className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
                     >
                         {timeRanges.map((range) => (
-                            <ToggleGroupItem key={range.value} value={range.value}>
+                            <ToggleGroupItem
+                                key={range.value}
+                                value={range.value}
+                            >
                                 {range.label}
                             </ToggleGroupItem>
                         ))}
@@ -132,7 +136,11 @@ export function ChartAreaInteractive({
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                             {timeRanges.map((range) => (
-                                <SelectItem key={range.value} value={range.value} className="rounded-lg">
+                                <SelectItem
+                                    key={range.value}
+                                    value={range.value}
+                                    className="rounded-lg"
+                                >
                                     {range.label}
                                 </SelectItem>
                             ))}
@@ -177,11 +185,11 @@ export function ChartAreaInteractive({
                             tickMargin={8}
                             minTickGap={32}
                             tickFormatter={(value) => {
-                                const date = new Date(value)
-                                return date.toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                })
+                                const date = new Date(value);
+                                return date.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                });
                             }}
                         />
                         <ChartTooltip
@@ -189,10 +197,12 @@ export function ChartAreaInteractive({
                             content={
                                 <ChartTooltipContent
                                     labelFormatter={(value) => {
-                                        return new Date(value).toLocaleDateString("en-US", {
-                                            month: "short",
-                                            day: "numeric",
-                                        })
+                                        return new Date(
+                                            value,
+                                        ).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                        });
                                     }}
                                     indicator="dot"
                                 />
@@ -212,5 +222,5 @@ export function ChartAreaInteractive({
                 </ChartContainer>
             </CardContent>
         </Card>
-    )
+    );
 }

@@ -1,3 +1,4 @@
+import { destroy } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import {
     AlertDialog,
@@ -9,7 +10,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { destroy } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { router } from '@inertiajs/react';
 import { AlertTriangle, LayoutList } from 'lucide-react';
 import { useState } from 'react';
@@ -35,7 +35,12 @@ interface DeleteListDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function DeleteListDialog({ project, list, open, onOpenChange }: DeleteListDialogProps) {
+export function DeleteListDialog({
+    project,
+    list,
+    open,
+    onOpenChange,
+}: DeleteListDialogProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const tasksCount = list.tasks_count ?? list.tasks?.length ?? 0;
@@ -63,7 +68,14 @@ export function DeleteListDialog({ project, list, open, onOpenChange }: DeleteLi
                         <div>
                             <AlertDialogTitle>Delete List</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Are you sure you want to delete "<span className="max-w-[16ch] inline-block truncate align-bottom" title={list.name}>{list.name}</span>"?
+                                Are you sure you want to delete "
+                                <span
+                                    className="inline-block max-w-[16ch] truncate align-bottom"
+                                    title={list.name}
+                                >
+                                    {list.name}
+                                </span>
+                                "?
                             </AlertDialogDescription>
                         </div>
                     </div>
@@ -75,10 +87,12 @@ export function DeleteListDialog({ project, list, open, onOpenChange }: DeleteLi
                             <LayoutList className="mt-0.5 size-4 text-destructive" />
                             <div className="text-sm">
                                 <p className="font-medium text-destructive">
-                                    This list contains {tasksCount} task{tasksCount > 1 ? 's' : ''}
+                                    This list contains {tasksCount} task
+                                    {tasksCount > 1 ? 's' : ''}
                                 </p>
                                 <p className="text-muted-foreground">
-                                    All tasks in this list will be permanently deleted.
+                                    All tasks in this list will be permanently
+                                    deleted.
                                 </p>
                             </div>
                         </div>
@@ -86,7 +100,9 @@ export function DeleteListDialog({ project, list, open, onOpenChange }: DeleteLi
                 )}
 
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isDeleting}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
                         disabled={isDeleting}

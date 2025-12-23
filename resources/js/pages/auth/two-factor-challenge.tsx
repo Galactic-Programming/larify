@@ -8,11 +8,11 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import AuthLayout from '@/layouts/auth-layout';
-import { staggerContainer, fadeInUp } from '@/lib/motion';
+import { fadeInUp, staggerContainer } from '@/lib/motion';
 import { store } from '@/routes/two-factor/login';
 import { Form, Head } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 
 export default function TwoFactorChallenge() {
@@ -101,13 +101,17 @@ export default function TwoFactorChallenge() {
                                                 name="code"
                                                 maxLength={OTP_MAX_LENGTH}
                                                 value={code}
-                                                onChange={(value) => setCode(value)}
+                                                onChange={(value) =>
+                                                    setCode(value)
+                                                }
                                                 disabled={processing}
                                                 pattern={REGEXP_ONLY_DIGITS}
                                             >
                                                 <InputOTPGroup>
                                                     {Array.from(
-                                                        { length: OTP_MAX_LENGTH },
+                                                        {
+                                                            length: OTP_MAX_LENGTH,
+                                                        },
                                                         (_, index) => (
                                                             <InputOTPSlot
                                                                 key={index}

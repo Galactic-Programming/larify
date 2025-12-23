@@ -8,13 +8,25 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useNotificationRealtime, useUnreadCount } from '@/hooks/use-notifications';
+import {
+    useNotificationRealtime,
+    useUnreadCount,
+} from '@/hooks/use-notifications';
 import { cn } from '@/lib/utils';
 import { index as notificationsIndex } from '@/routes/notifications';
 import type { Notification } from '@/types/notifications.d';
 import { Link, router } from '@inertiajs/react';
-import { Bell, CheckCircle, Clock, FolderPlus, Shield, UserMinus, UserPlus, AlertTriangle } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import {
+    AlertTriangle,
+    Bell,
+    CheckCircle,
+    Clock,
+    FolderPlus,
+    Shield,
+    UserMinus,
+    UserPlus,
+} from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 interface NotificationBellProps {
@@ -58,21 +70,26 @@ export function NotificationBell({
     variant = 'icon',
     className,
 }: NotificationBellProps) {
-    const [previewNotifications, setPreviewNotifications] = useState<PreviewNotification[]>([]);
+    const [previewNotifications, setPreviewNotifications] = useState<
+        PreviewNotification[]
+    >([]);
     const [isLoadingPreview, setIsLoadingPreview] = useState(false);
     const { count, setCount, refetch } = useUnreadCount(initialCount);
 
     // Real-time updates
-    const handleNewNotification = useCallback((notification: Notification) => {
-        toast.info(notification.data.message || 'New notification', {
-            description: notification.data.project_name || undefined,
-            action: {
-                label: 'View',
-                onClick: () => router.visit(notificationsIndex().url),
-            },
-        });
-        refetch();
-    }, [refetch]);
+    const handleNewNotification = useCallback(
+        (notification: Notification) => {
+            toast.info(notification.data.message || 'New notification', {
+                description: notification.data.project_name || undefined,
+                action: {
+                    label: 'View',
+                    onClick: () => router.visit(notificationsIndex().url),
+                },
+            });
+            refetch();
+        },
+        [refetch],
+    );
 
     useNotificationRealtime({
         onNotificationReceived: handleNewNotification,
@@ -83,23 +100,28 @@ export function NotificationBell({
         if (open && previewNotifications.length === 0) {
             setIsLoadingPreview(true);
             try {
-                const response = await fetch('/api/notifications?filter=unread', {
-                    credentials: 'same-origin',
-                    headers: {
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
+                const response = await fetch(
+                    '/api/notifications?filter=unread',
+                    {
+                        credentials: 'same-origin',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
                     },
-                });
+                );
                 if (response.ok) {
                     const data = await response.json();
                     setPreviewNotifications(
-                        data.notifications.data.slice(0, 5).map((n: Notification) => ({
-                            id: n.id,
-                            type: n.type,
-                            message: n.data.message || 'New notification',
-                            created_at_human: n.created_at_human,
-                            is_read: n.is_read,
-                        }))
+                        data.notifications.data
+                            .slice(0, 5)
+                            .map((n: Notification) => ({
+                                id: n.id,
+                                type: n.type,
+                                message: n.data.message || 'New notification',
+                                created_at_human: n.created_at_human,
+                                is_read: n.is_read,
+                            })),
                     );
                 }
             } catch {
@@ -117,13 +139,13 @@ export function NotificationBell({
                 href={notificationsIndex().url}
                 className={cn(
                     'group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent',
-                    className
+                    className,
                 )}
             >
                 <div className="relative">
                     <Bell className="size-4" />
                     {count > 0 && (
-                        <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
                             {count > 9 ? '9+' : count}
                         </span>
                     )}
@@ -142,10 +164,14 @@ export function NotificationBell({
     return (
         <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn('relative', className)}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('relative', className)}
+                >
                     <Bell className="size-5" />
                     {count > 0 && (
-                        <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
+                        <span className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
                             {count > 99 ? '99+' : count}
                         </span>
                     )}

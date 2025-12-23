@@ -1,8 +1,19 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { AlertCircleIcon, ArrowLeftIcon, HomeIcon, RefreshCwIcon } from 'lucide-react';
+import {
+    AlertCircleIcon,
+    ArrowLeftIcon,
+    HomeIcon,
+    RefreshCwIcon,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ErrorPageProps {
@@ -11,7 +22,10 @@ interface ErrorPageProps {
 
 export default function ErrorPage({ error }: ErrorPageProps) {
     const { props } = usePage();
-    const errorMessage = error || (props.flash as { error?: string })?.error || 'Something went wrong. Please try again.';
+    const errorMessage =
+        error ||
+        (props.flash as { error?: string })?.error ||
+        'Something went wrong. Please try again.';
 
     const refreshPage = () => {
         window.location.reload();
@@ -37,24 +51,36 @@ export default function ErrorPage({ error }: ErrorPageProps) {
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                                transition={{
+                                    delay: 0.2,
+                                    type: 'spring',
+                                    stiffness: 200,
+                                }}
                                 className="mx-auto mb-4"
                             >
                                 <div className="inline-flex size-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                                     <AlertCircleIcon className="size-10 text-red-600 dark:text-red-400" />
                                 </div>
                             </motion.div>
-                            <CardTitle className="text-2xl">Something Went Wrong</CardTitle>
+                            <CardTitle className="text-2xl">
+                                Something Went Wrong
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p className="text-muted-foreground">{errorMessage}</p>
+                            <p className="text-muted-foreground">
+                                {errorMessage}
+                            </p>
                         </CardContent>
                         <CardFooter className="flex flex-col gap-2">
                             <Button className="w-full" onClick={refreshPage}>
                                 <RefreshCwIcon className="mr-2 size-4" />
                                 Refresh Page
                             </Button>
-                            <Button variant="outline" className="w-full" onClick={goBack}>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={goBack}
+                            >
                                 <ArrowLeftIcon className="mr-2 size-4" />
                                 Go Back
                             </Button>
@@ -90,7 +116,10 @@ export default function ErrorPage({ error }: ErrorPageProps) {
                     className="mt-4 text-center text-sm text-muted-foreground"
                 >
                     If this problem persists, please{' '}
-                    <Link href="/contact" className="text-primary hover:underline">
+                    <Link
+                        href="/contact"
+                        className="text-primary hover:underline"
+                    >
                         contact support
                     </Link>
                 </motion.p>

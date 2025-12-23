@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
-import type { Conversation } from '@/types/chat';
 import type { BreadcrumbItem } from '@/types';
+import type { Conversation } from '@/types/chat';
 import { Head } from '@inertiajs/react';
 import { MessageSquarePlus, MessagesSquare } from 'lucide-react';
 
@@ -20,12 +20,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 function EmptyConversation() {
     return (
         <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-            <div className="bg-muted mb-4 rounded-full p-4">
-                <MessagesSquare className="text-muted-foreground h-12 w-12" />
+            <div className="mb-4 rounded-full bg-muted p-4">
+                <MessagesSquare className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h2 className="mb-2 text-xl font-semibold">Welcome to Conversations</h2>
-            <p className="text-muted-foreground mb-6 max-w-sm">
-                Select a conversation from the sidebar to start chatting, or create a new one.
+            <h2 className="mb-2 text-xl font-semibold">
+                Welcome to Conversations
+            </h2>
+            <p className="mb-6 max-w-sm text-muted-foreground">
+                Select a conversation from the sidebar to start chatting, or
+                create a new one.
             </p>
             <CreateConversationDialog
                 trigger={

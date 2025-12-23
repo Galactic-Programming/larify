@@ -58,7 +58,7 @@ export default function AuthSimpleLayout({
             {/* Animated background gradient */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <motion.div
-                    className="absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl"
+                    className="absolute -top-1/4 -left-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl"
                     animate={{
                         x: [0, 50, 0],
                         y: [0, 30, 0],
@@ -70,7 +70,7 @@ export default function AuthSimpleLayout({
                     }}
                 />
                 <motion.div
-                    className="absolute -bottom-1/4 -right-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-tl from-primary/15 to-transparent blur-3xl"
+                    className="absolute -right-1/4 -bottom-1/4 h-1/2 w-1/2 rounded-full bg-gradient-to-tl from-primary/15 to-transparent blur-3xl"
                     animate={{
                         x: [0, -30, 0],
                         y: [0, -50, 0],

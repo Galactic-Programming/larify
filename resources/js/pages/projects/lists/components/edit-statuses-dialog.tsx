@@ -1,3 +1,4 @@
+import { reorder } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +10,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { reorder } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import {
     closestCenter,
     DndContext,
@@ -45,7 +45,14 @@ interface SortableItemProps {
 }
 
 function SortableItem({ list, projectColor, onNameChange }: SortableItemProps) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
         id: list.id,
     });
 
@@ -72,7 +79,10 @@ function SortableItem({ list, projectColor, onNameChange }: SortableItemProps) {
                 className="flex size-8 shrink-0 items-center justify-center rounded-md"
                 style={{ backgroundColor: `${projectColor}20` }}
             >
-                <LayoutList className="size-4" style={{ color: projectColor }} />
+                <LayoutList
+                    className="size-4"
+                    style={{ color: projectColor }}
+                />
             </div>
             <Input
                 value={list.name}
@@ -87,7 +97,11 @@ function SortableItem({ list, projectColor, onNameChange }: SortableItemProps) {
     );
 }
 
-export function EditStatusesDialog({ project, open, onOpenChange }: EditStatusesDialogProps) {
+export function EditStatusesDialog({
+    project,
+    open,
+    onOpenChange,
+}: EditStatusesDialogProps) {
     const [lists, setLists] = useState<TaskList[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -101,7 +115,9 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
     // Initialize lists when dialog opens
     useEffect(() => {
         if (open) {
-            setLists([...project.lists].sort((a, b) => a.position - b.position));
+            setLists(
+                [...project.lists].sort((a, b) => a.position - b.position),
+            );
         }
     }, [open, project.lists]);
 
@@ -114,7 +130,9 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
 
         if (over && active.id !== over.id) {
             setLists((items) => {
-                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const oldIndex = items.findIndex(
+                    (item) => item.id === active.id,
+                );
                 const newIndex = items.findIndex((item) => item.id === over.id);
                 return arrayMove(items, oldIndex, newIndex);
             });
@@ -122,7 +140,9 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
     };
 
     const handleNameChange = (id: number, name: string) => {
-        setLists((items) => items.map((item) => (item.id === id ? { ...item, name } : item)));
+        setLists((items) =>
+            items.map((item) => (item.id === id ? { ...item, name } : item)),
+        );
     };
 
     const handleSave = () => {
@@ -155,7 +175,10 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
 
         return lists.some((list, index) => {
             const original = project.lists.find((l) => l.id === list.id);
-            return original && (original.position !== index || original.name !== list.name);
+            return (
+                original &&
+                (original.position !== index || original.name !== list.name)
+            );
         });
     };
 
@@ -168,12 +191,16 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
                             className="flex size-10 items-center justify-center rounded-lg"
                             style={{ backgroundColor: `${project.color}20` }}
                         >
-                            <Settings2 className="size-5" style={{ color: project.color }} />
+                            <Settings2
+                                className="size-5"
+                                style={{ color: project.color }}
+                            />
                         </div>
                         <div>
                             <DialogTitle>Edit Statuses</DialogTitle>
                             <DialogDescription>
-                                Drag to reorder or rename your workflow statuses.
+                                Drag to reorder or rename your workflow
+                                statuses.
                             </DialogDescription>
                         </div>
                     </div>
@@ -185,7 +212,10 @@ export function EditStatusesDialog({ project, open, onOpenChange }: EditStatuses
                         collisionDetection={closestCenter}
                         onDragEnd={handleDragEnd}
                     >
-                        <SortableContext items={lists.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                        <SortableContext
+                            items={lists.map((l) => l.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
                             {lists.map((list) => (
                                 <SortableItem
                                     key={list.id}

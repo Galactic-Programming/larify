@@ -1,50 +1,55 @@
-import { MenuIcon } from 'lucide-react'
+import { MenuIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     NavigationMenu,
     NavigationMenuItem,
     NavigationMenuLink,
-    NavigationMenuList
-} from '@/components/ui/navigation-menu'
+    NavigationMenuList,
+} from '@/components/ui/navigation-menu';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
-import Logo from '@/assets/svg/logo'
+import Logo from '@/assets/svg/logo';
 
 export type NavigationSection = {
-    title: string
-    href: string
-}
+    title: string;
+    href: string;
+};
 
 type HeaderProps = {
-    navigationData: NavigationSection[]
-    className?: string
-}
+    navigationData: NavigationSection[];
+    className?: string;
+};
 
 const Header = ({ navigationData, className }: HeaderProps) => {
     return (
-        <header className={cn('bg-background sticky top-0 z-50 h-16 border-b', className)}>
-            <div className='mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8'>
+        <header
+            className={cn(
+                'sticky top-0 z-50 h-16 border-b bg-background',
+                className,
+            )}
+        >
+            <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
                 {/* Logo */}
-                <a href='#'>
-                    <Logo className='gap-3' />
+                <a href="#">
+                    <Logo className="gap-3" />
                 </a>
 
                 {/* Navigation */}
-                <NavigationMenu className='max-md:hidden'>
-                    <NavigationMenuList className='flex-wrap justify-start gap-0'>
-                        {navigationData.map(navItem => (
+                <NavigationMenu className="max-md:hidden">
+                    <NavigationMenuList className="flex-wrap justify-start gap-0">
+                        {navigationData.map((navItem) => (
                             <NavigationMenuItem key={navItem.title}>
                                 <NavigationMenuLink
                                     href={navItem.href}
-                                    className='text-muted-foreground hover:text-primary px-3 py-1.5 text-base! font-medium hover:bg-transparent'
+                                    className="px-3 py-1.5 text-base! font-medium text-muted-foreground hover:bg-transparent hover:text-primary"
                                 >
                                     {navItem.title}
                                 </NavigationMenuLink>
@@ -54,24 +59,24 @@ const Header = ({ navigationData, className }: HeaderProps) => {
                 </NavigationMenu>
 
                 {/* Login Button */}
-                <Button className='rounded-lg max-md:hidden' asChild>
-                    <a href='#'>Login</a>
+                <Button className="rounded-lg max-md:hidden" asChild>
+                    <a href="#">Login</a>
                 </Button>
 
                 {/* Navigation for small screens */}
-                <div className='flex gap-4 md:hidden'>
-                    <Button className='rounded-lg' asChild>
-                        <a href='#'>Login</a>
+                <div className="flex gap-4 md:hidden">
+                    <Button className="rounded-lg" asChild>
+                        <a href="#">Login</a>
                     </Button>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant='outline' size='icon'>
+                            <Button variant="outline" size="icon">
                                 <MenuIcon />
-                                <span className='sr-only'>Menu</span>
+                                <span className="sr-only">Menu</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className='w-56' align='end'>
+                        <DropdownMenuContent className="w-56" align="end">
                             {navigationData.map((item, index) => (
                                 <DropdownMenuItem key={index}>
                                     <a href={item.href}>{item.title}</a>
@@ -82,7 +87,7 @@ const Header = ({ navigationData, className }: HeaderProps) => {
                 </div>
             </div>
         </header>
-    )
-}
+    );
+};
 
-export default Header
+export default Header;

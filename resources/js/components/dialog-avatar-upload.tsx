@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { Plus, UserRoundIcon, X } from "lucide-react";
-import { type ReactNode, useCallback, useRef, useState } from "react";
+import { Plus, UserRoundIcon, X } from 'lucide-react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface AvatarUploadData {
     name: string;
@@ -71,25 +71,27 @@ export default function DialogAvatarUpload({
     defaultValues,
     onSave,
     onCancel,
-    dialogTitle = "Add a writer",
-    nameLabel = "Author name",
+    dialogTitle = 'Add a writer',
+    nameLabel = 'Author name',
     namePlaceholder,
-    titleLabel = "Title",
+    titleLabel = 'Title',
     titlePlaceholder,
     nameRequired = true,
     maxFileSize = 1048576, // 1MB
-    acceptedFileTypes = "image/*",
-    saveButtonText = "Save Changes",
-    cancelButtonText = "Cancel",
+    acceptedFileTypes = 'image/*',
+    saveButtonText = 'Save Changes',
+    cancelButtonText = 'Cancel',
     trigger,
     showTrigger = true,
     className,
     onFileSizeError,
 }: DialogAvatarUploadProps) {
     const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
-    const [name, setName] = useState(defaultValues?.name ?? "");
-    const [title, setTitle] = useState(defaultValues?.title ?? "");
-    const [image, setImage] = useState<string | null>(defaultValues?.image ?? null);
+    const [name, setName] = useState(defaultValues?.name ?? '');
+    const [title, setTitle] = useState(defaultValues?.title ?? '');
+    const [image, setImage] = useState<string | null>(
+        defaultValues?.image ?? null,
+    );
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const isControlled = controlledOpen !== undefined;
@@ -102,7 +104,7 @@ export default function DialogAvatarUpload({
             }
             onOpenChange?.(value);
         },
-        [isControlled, onOpenChange]
+        [isControlled, onOpenChange],
     );
 
     const formatFileSize = (bytes: number) => {
@@ -118,7 +120,9 @@ export default function DialogAvatarUpload({
                 if (onFileSizeError) {
                     onFileSizeError(file.size, maxFileSize);
                 } else {
-                    alert(`File size exceeds ${formatFileSize(maxFileSize)} limit`);
+                    alert(
+                        `File size exceeds ${formatFileSize(maxFileSize)} limit`,
+                    );
                 }
                 return;
             }
@@ -148,7 +152,7 @@ export default function DialogAvatarUpload({
     const resetImage = () => {
         setImage(null);
         if (fileInputRef.current) {
-            fileInputRef.current.value = "";
+            fileInputRef.current.value = '';
         }
     };
 
@@ -159,16 +163,23 @@ export default function DialogAvatarUpload({
                     {trigger ?? <Button>Open Dialog</Button>}
                 </DialogTrigger>
             )}
-            <DialogContent className={`sm:max-w-lg p-0 rounded-3xl gap-0 ${className ?? ""}`}>
+            <DialogContent
+                className={`gap-0 rounded-3xl p-0 sm:max-w-lg ${className ?? ''}`}
+            >
                 <DialogHeader className="border-b px-6 py-4">
-                    <DialogTitle className="font-medium">{dialogTitle}</DialogTitle>
+                    <DialogTitle className="font-medium">
+                        {dialogTitle}
+                    </DialogTitle>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 px-6 pt-4 pb-6">
+                <div className="grid grid-cols-1 px-6 pt-4 pb-6 md:grid-cols-5">
                     <div className="flex flex-col items-center justify-center md:col-span-2">
                         <div className="relative mb-2">
                             <Avatar className="h-24 w-24 border-2 border-muted">
-                                <AvatarImage src={image || undefined} alt="Profile" />
+                                <AvatarImage
+                                    src={image || undefined}
+                                    alt="Profile"
+                                />
                                 <AvatarFallback>
                                     <UserRoundIcon
                                         size={52}
@@ -180,7 +191,7 @@ export default function DialogAvatarUpload({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute -top-0.5 -right-0.5 bg-accent rounded-full border-[3px] border-background h-8 w-8 hover:bg-accent"
+                                className="absolute -top-0.5 -right-0.5 h-8 w-8 rounded-full border-[3px] border-background bg-accent hover:bg-accent"
                                 onClick={() => {
                                     if (image) {
                                         resetImage();
@@ -195,7 +206,7 @@ export default function DialogAvatarUpload({
                                     <Plus className="h-3 w-3 text-muted-foreground" />
                                 )}
                                 <span className="sr-only">
-                                    {image ? "Remove image" : "Upload image"}
+                                    {image ? 'Remove image' : 'Upload image'}
                                 </span>
                             </Button>
                         </div>
@@ -224,8 +235,14 @@ export default function DialogAvatarUpload({
                     <div className="flex flex-col justify-between md:col-span-3">
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <Label htmlFor="avatar-name" className="flex items-center">
-                                    {nameLabel} {nameRequired && <span className="text-primary">*</span>}
+                                <Label
+                                    htmlFor="avatar-name"
+                                    className="flex items-center"
+                                >
+                                    {nameLabel}{' '}
+                                    {nameRequired && (
+                                        <span className="text-primary">*</span>
+                                    )}
                                 </Label>
                                 <Input
                                     id="avatar-name"
@@ -238,7 +255,9 @@ export default function DialogAvatarUpload({
 
                             <div className="space-y-1">
                                 <div className="flex items-center">
-                                    <Label htmlFor="avatar-title">{titleLabel}</Label>
+                                    <Label htmlFor="avatar-title">
+                                        {titleLabel}
+                                    </Label>
                                 </div>
                                 <Input
                                     id="avatar-title"

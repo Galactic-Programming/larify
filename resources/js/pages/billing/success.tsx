@@ -1,6 +1,13 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Head, Link } from '@inertiajs/react';
 import { CheckCircle2Icon, SparklesIcon } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -31,14 +38,26 @@ export default function Success({ plan }: SuccessProps) {
                         angle: 60,
                         spread: 55,
                         origin: { x: 0, y: 0.7 },
-                        colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+                        colors: [
+                            '#FF6B6B',
+                            '#4ECDC4',
+                            '#45B7D1',
+                            '#96CEB4',
+                            '#FFEAA7',
+                        ],
                     });
                     confetti({
                         particleCount: 3,
                         angle: 120,
                         spread: 55,
                         origin: { x: 1, y: 0.7 },
-                        colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+                        colors: [
+                            '#FF6B6B',
+                            '#4ECDC4',
+                            '#45B7D1',
+                            '#96CEB4',
+                            '#FFEAA7',
+                        ],
                     });
 
                     if (Date.now() < end) {
@@ -80,14 +99,20 @@ export default function Success({ plan }: SuccessProps) {
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                                transition={{
+                                    delay: 0.2,
+                                    type: 'spring',
+                                    stiffness: 200,
+                                }}
                                 className="mx-auto mb-4"
                             >
                                 <div className="inline-flex size-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                                     <CheckCircle2Icon className="size-10 text-green-600 dark:text-green-400" />
                                 </div>
                             </motion.div>
-                            <CardTitle className="text-2xl">Welcome to {plan?.name || 'Pro'}!</CardTitle>
+                            <CardTitle className="text-2xl">
+                                Welcome to {plan?.name || 'Pro'}!
+                            </CardTitle>
                             <CardDescription className="text-base">
                                 Your subscription is now active
                             </CardDescription>
@@ -95,9 +120,13 @@ export default function Success({ plan }: SuccessProps) {
                         <CardContent className="space-y-4">
                             {plan && plan.price > 0 && (
                                 <div className="rounded-lg bg-muted p-4">
-                                    <p className="text-sm text-muted-foreground">Your plan</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Your plan
+                                    </p>
                                     <p className="text-lg font-semibold">
-                                        {plan.name} - {formatPrice(plan.price, plan.currency)}/{plan.interval}
+                                        {plan.name} -{' '}
+                                        {formatPrice(plan.price, plan.currency)}
+                                        /{plan.interval}
                                     </p>
                                 </div>
                             )}
@@ -133,7 +162,10 @@ export default function Success({ plan }: SuccessProps) {
                     transition={{ delay: 0.5 }}
                     className="mt-8"
                 >
-                    <Link href="/" className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+                    >
                         <AppLogoIcon className="size-6" />
                         <span className="text-sm">Larify</span>
                     </Link>

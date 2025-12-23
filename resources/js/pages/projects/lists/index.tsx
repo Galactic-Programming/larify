@@ -1,6 +1,6 @@
-import AppLayout from '@/layouts/app-layout';
-import { index as projectsIndex, show as projectShow } from '@/routes/projects';
 import { index as listsIndex } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
+import AppLayout from '@/layouts/app-layout';
+import { show as projectShow, index as projectsIndex } from '@/routes/projects';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
@@ -12,28 +12,42 @@ import { ListsHeader } from './components/lists-header';
 import { BoardView } from './components/views/board-view';
 import { ListView } from './components/views/list-view';
 import { TableView } from './components/views/table-view';
-import type { Permissions, Project, Task, TaskFilter, TaskList, ViewMode } from './lib/types';
+import type {
+    Permissions,
+    Project,
+    Task,
+    TaskFilter,
+    TaskList,
+    ViewMode,
+} from './lib/types';
 
 // Helper to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
     if (task.completed_at) return false;
-    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const deadline = new Date(
+        `${task.due_date.split('T')[0]}T${task.due_time}`,
+    );
     return new Date() > deadline;
 }
 
 // Helper to check if task is due soon (within 24 hours)
 function isTaskDueSoon(task: Task): boolean {
     if (task.completed_at) return false;
-    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const deadline = new Date(
+        `${task.due_date.split('T')[0]}T${task.due_time}`,
+    );
     const now = new Date();
-    const hoursUntilDue = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const hoursUntilDue =
+        (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
     return hoursUntilDue > 0 && hoursUntilDue <= 24;
 }
 
 // Helper to check if task was completed late (after deadline)
 function isTaskCompletedLate(task: Task): boolean {
     if (!task.completed_at) return false;
-    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const deadline = new Date(
+        `${task.due_date.split('T')[0]}T${task.due_time}`,
+    );
     const completedAt = new Date(task.completed_at);
     return completedAt > deadline;
 }
@@ -41,7 +55,9 @@ function isTaskCompletedLate(task: Task): boolean {
 // Helper to check if task was completed on time (before or at deadline)
 function isTaskCompletedOnTime(task: Task): boolean {
     if (!task.completed_at) return false;
-    const deadline = new Date(`${task.due_date.split('T')[0]}T${task.due_time}`);
+    const deadline = new Date(
+        `${task.due_date.split('T')[0]}T${task.due_time}`,
+    );
     const completedAt = new Date(task.completed_at);
     return completedAt <= deadline;
 }
@@ -107,7 +123,9 @@ export default function ListsIndex({ project, permissions }: Props) {
 
     const renderView = () => {
         if (project.lists.length === 0) {
-            return <ListsEmptyState project={project} permissions={permissions} />;
+            return (
+                <ListsEmptyState project={project} permissions={permissions} />
+            );
         }
 
         switch (viewMode) {
@@ -166,7 +184,9 @@ export default function ListsIndex({ project, permissions }: Props) {
                     project={project}
                     list={editingList}
                     open={!!editingList}
-                    onOpenChange={(open: boolean) => !open && setEditingList(null)}
+                    onOpenChange={(open: boolean) =>
+                        !open && setEditingList(null)
+                    }
                     canSetDoneList={permissions.canSetDoneList}
                 />
             )}
@@ -177,7 +197,9 @@ export default function ListsIndex({ project, permissions }: Props) {
                     project={project}
                     list={deletingList}
                     open={!!deletingList}
-                    onOpenChange={(open: boolean) => !open && setDeletingList(null)}
+                    onOpenChange={(open: boolean) =>
+                        !open && setDeletingList(null)
+                    }
                 />
             )}
         </AppLayout>

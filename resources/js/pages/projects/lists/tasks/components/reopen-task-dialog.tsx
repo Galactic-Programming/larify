@@ -12,10 +12,19 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Form } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { AlertTriangle, CalendarIcon, ChevronDownIcon, Clock } from 'lucide-react';
+import {
+    AlertTriangle,
+    CalendarIcon,
+    ChevronDownIcon,
+    Clock,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { Task } from '../../lib/types';
 
@@ -32,7 +41,12 @@ interface ReopenTaskDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTaskDialogProps) {
+export function ReopenTaskDialog({
+    project,
+    task,
+    open,
+    onOpenChange,
+}: ReopenTaskDialogProps) {
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
     const [dueTime, setDueTime] = useState<string>('');
     const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -69,9 +83,12 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
                                         <AlertTriangle className="size-5 text-amber-500" />
                                     </div>
                                     <div>
-                                        <DialogTitle>Reopen Overdue Task</DialogTitle>
+                                        <DialogTitle>
+                                            Reopen Overdue Task
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            This task is overdue. Set a new deadline to reopen it.
+                                            This task is overdue. Set a new
+                                            deadline to reopen it.
                                         </DialogDescription>
                                     </div>
                                 </div>
@@ -85,7 +102,13 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
                                             {task.title}
                                         </p>
                                         <p className="mt-1 text-amber-700 dark:text-amber-500">
-                                            Original deadline: {format(new Date(`${task.due_date.split('T')[0]}T${task.due_time}`), 'MMM d, yyyy \'at\' HH:mm')}
+                                            Original deadline:{' '}
+                                            {format(
+                                                new Date(
+                                                    `${task.due_date.split('T')[0]}T${task.due_time}`,
+                                                ),
+                                                "MMM d, yyyy 'at' HH:mm",
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -93,20 +116,38 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
 
                             <div className="space-y-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="due_date">New Due Date</Label>
-                                    <input type="hidden" name="due_date" value={dueDate ? format(dueDate, 'yyyy-MM-dd') : ''} />
-                                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                                    <Label htmlFor="due_date">
+                                        New Due Date
+                                    </Label>
+                                    <input
+                                        type="hidden"
+                                        name="due_date"
+                                        value={
+                                            dueDate
+                                                ? format(dueDate, 'yyyy-MM-dd')
+                                                : ''
+                                        }
+                                    />
+                                    <Popover
+                                        open={datePickerOpen}
+                                        onOpenChange={setDatePickerOpen}
+                                    >
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant="outline"
                                                 className="w-full justify-start text-left font-normal"
                                             >
                                                 <CalendarIcon className="mr-2 size-4" />
-                                                {dueDate ? format(dueDate, 'PPP') : 'Select new date'}
+                                                {dueDate
+                                                    ? format(dueDate, 'PPP')
+                                                    : 'Select new date'}
                                                 <ChevronDownIcon className="ml-auto size-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <PopoverContent
+                                            className="w-auto p-0"
+                                            align="start"
+                                        >
                                             <Calendar
                                                 mode="single"
                                                 selected={dueDate}
@@ -114,7 +155,17 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
                                                     setDueDate(date);
                                                     setDatePickerOpen(false);
                                                 }}
-                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                disabled={(date) =>
+                                                    date <
+                                                    new Date(
+                                                        new Date().setHours(
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            0,
+                                                        ),
+                                                    )
+                                                }
                                                 initialFocus
                                             />
                                         </PopoverContent>
@@ -123,13 +174,17 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="due_time">New Due Time</Label>
+                                    <Label htmlFor="due_time">
+                                        New Due Time
+                                    </Label>
                                     <Input
                                         type="time"
                                         id="due_time"
                                         name="due_time"
                                         value={dueTime}
-                                        onChange={(e) => setDueTime(e.target.value)}
+                                        onChange={(e) =>
+                                            setDueTime(e.target.value)
+                                        }
                                         className="w-full"
                                     />
                                     <InputError message={errors.due_time} />
@@ -147,9 +202,13 @@ export function ReopenTaskDialog({ project, task, open, onOpenChange }: ReopenTa
                                 </Button>
                                 <Button
                                     type="submit"
-                                    disabled={processing || !dueDate || !dueTime}
+                                    disabled={
+                                        processing || !dueDate || !dueTime
+                                    }
                                 >
-                                    {processing ? 'Reopening...' : 'Reopen Task'}
+                                    {processing
+                                        ? 'Reopening...'
+                                        : 'Reopen Task'}
                                 </Button>
                             </DialogFooter>
                         </>

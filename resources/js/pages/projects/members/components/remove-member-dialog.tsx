@@ -23,7 +23,12 @@ interface RemoveMemberDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function RemoveMemberDialog({ project, member, open, onOpenChange }: RemoveMemberDialogProps) {
+export function RemoveMemberDialog({
+    project,
+    member,
+    open,
+    onOpenChange,
+}: RemoveMemberDialogProps) {
     const getInitials = useInitials();
     const [isRemoving, setIsRemoving] = useState(false);
 
@@ -49,18 +54,23 @@ export function RemoveMemberDialog({ project, member, open, onOpenChange }: Remo
                     <AlertDialogDescription asChild>
                         <div className="space-y-3">
                             <p>
-                                Are you sure you want to remove this member from the project?
-                                They will lose access to all project content.
+                                Are you sure you want to remove this member from
+                                the project? They will lose access to all
+                                project content.
                             </p>
                             <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
                                 <Avatar className="size-10">
-                                    <AvatarImage src={member.avatar ?? undefined} />
+                                    <AvatarImage
+                                        src={member.avatar ?? undefined}
+                                    />
                                     <AvatarFallback className="bg-primary/10 text-primary">
                                         {getInitials(member.name)}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <p className="font-medium text-foreground">{member.name}</p>
+                                    <p className="font-medium text-foreground">
+                                        {member.name}
+                                    </p>
                                     <p className="text-sm">{member.email}</p>
                                 </div>
                             </div>
@@ -68,7 +78,9 @@ export function RemoveMemberDialog({ project, member, open, onOpenChange }: Remo
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isRemoving}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleRemove}
                         disabled={isRemoving}

@@ -1,3 +1,4 @@
+import Heading from '@/components/heading';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -9,16 +10,27 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { CalendarIcon, CheckIcon, CreditCardIcon, Loader2Icon, SparklesIcon } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import {
+    CalendarIcon,
+    CheckIcon,
+    CreditCardIcon,
+    Loader2Icon,
+    SparklesIcon,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface Plan {
@@ -56,7 +68,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Subscription', href: '/settings/subscription' },
 ];
 
-export default function Subscription({ subscription, currentPlan, plans, onGracePeriod, isSubscribed }: SubscriptionPageProps) {
+export default function Subscription({
+    subscription,
+    currentPlan,
+    plans,
+    onGracePeriod,
+    isSubscribed,
+}: SubscriptionPageProps) {
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
     const formatPrice = (price: number, currency: string) => {
@@ -137,7 +155,10 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading title="Subscription" description="Manage your subscription plan and billing" />
+                    <Heading
+                        title="Subscription"
+                        description="Manage your subscription plan and billing"
+                    />
 
                     {/* Current Plan Card */}
                     <Card>
@@ -152,10 +173,16 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <h3 className="text-2xl font-bold">{currentPlan?.name || 'Free'}</h3>
+                                <h3 className="text-2xl font-bold">
+                                    {currentPlan?.name || 'Free'}
+                                </h3>
                                 {currentPlan && currentPlan.price > 0 && (
                                     <p className="text-muted-foreground">
-                                        {formatPrice(currentPlan.price, currentPlan.currency)}/{currentPlan.interval}
+                                        {formatPrice(
+                                            currentPlan.price,
+                                            currentPlan.currency,
+                                        )}
+                                        /{currentPlan.interval}
                                     </p>
                                 )}
                             </div>
@@ -164,55 +191,82 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
                                     <p className="flex items-center gap-2 text-sm text-destructive">
                                         <CalendarIcon className="size-4" />
-                                        Your subscription will end on {formatDate(subscription.ends_at)}
+                                        Your subscription will end on{' '}
+                                        {formatDate(subscription.ends_at)}
                                     </p>
                                 </div>
                             )}
 
-                            {subscription?.trial_ends_at && !subscription.ends_at && (
-                                <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-3">
-                                    <p className="flex items-center gap-2 text-sm">
-                                        <CalendarIcon className="size-4" />
-                                        Trial ends on {formatDate(subscription.trial_ends_at)}
-                                    </p>
-                                </div>
-                            )}
-
-                            {currentPlan?.features && currentPlan.features.length > 0 && (
-                                <>
-                                    <Separator />
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-muted-foreground">Plan features</h4>
-                                        <ul className="space-y-2">
-                                            {currentPlan.features.map((feature, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-sm">
-                                                    <CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
-                                                    {feature}
-                                                </li>
-                                            ))}
-                                        </ul>
+                            {subscription?.trial_ends_at &&
+                                !subscription.ends_at && (
+                                    <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-3">
+                                        <p className="flex items-center gap-2 text-sm">
+                                            <CalendarIcon className="size-4" />
+                                            Trial ends on{' '}
+                                            {formatDate(
+                                                subscription.trial_ends_at,
+                                            )}
+                                        </p>
                                     </div>
-                                </>
-                            )}
+                                )}
+
+                            {currentPlan?.features &&
+                                currentPlan.features.length > 0 && (
+                                    <>
+                                        <Separator />
+                                        <div>
+                                            <h4 className="mb-2 text-sm font-medium text-muted-foreground">
+                                                Plan features
+                                            </h4>
+                                            <ul className="space-y-2">
+                                                {currentPlan.features.map(
+                                                    (feature, i) => (
+                                                        <li
+                                                            key={i}
+                                                            className="flex items-start gap-2 text-sm"
+                                                        >
+                                                            <CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
+                                                            {feature}
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                        </div>
+                                    </>
+                                )}
                         </CardContent>
                         <CardFooter className="flex flex-wrap gap-2">
                             {subscription && !onGracePeriod && (
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" disabled={!!loadingAction}>
-                                            {loadingAction === 'cancel' && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            disabled={!!loadingAction}
+                                        >
+                                            {loadingAction === 'cancel' && (
+                                                <Loader2Icon className="mr-2 size-4 animate-spin" />
+                                            )}
                                             Cancel Subscription
                                         </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader>
-                                            <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                                            <AlertDialogTitle>
+                                                Cancel Subscription
+                                            </AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Are you sure you want to cancel your subscription? You will still have access to all Pro features until the end of your current billing period.
+                                                Are you sure you want to cancel
+                                                your subscription? You will
+                                                still have access to all Pro
+                                                features until the end of your
+                                                current billing period.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
-                                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                                            <AlertDialogCancel>
+                                                Keep Subscription
+                                            </AlertDialogCancel>
                                             <AlertDialogAction
                                                 onClick={handleCancel}
                                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -224,15 +278,23 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                                 </AlertDialog>
                             )}
                             {onGracePeriod && (
-                                <Button size="sm" onClick={handleResume} disabled={!!loadingAction}>
-                                    {loadingAction === 'resume' && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+                                <Button
+                                    size="sm"
+                                    onClick={handleResume}
+                                    disabled={!!loadingAction}
+                                >
+                                    {loadingAction === 'resume' && (
+                                        <Loader2Icon className="mr-2 size-4 animate-spin" />
+                                    )}
                                     Resume Subscription
                                 </Button>
                             )}
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => (window.location.href = '/billing/portal')}
+                                onClick={() =>
+                                    (window.location.href = '/billing/portal')
+                                }
                             >
                                 <CreditCardIcon className="mr-2 size-4" />
                                 Payment Method
@@ -249,22 +311,39 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                             {plans
                                 .filter((plan) => plan.price > 0)
                                 .map((plan) => {
-                                    const isCurrentPlan = currentPlan?.stripe_id === plan.stripe_id;
+                                    const isCurrentPlan =
+                                        currentPlan?.stripe_id ===
+                                        plan.stripe_id;
 
                                     return (
                                         <Card
                                             key={plan.stripe_id}
-                                            className={isCurrentPlan ? 'border-2 border-primary' : 'hover:border-primary/50'}
+                                            className={
+                                                isCurrentPlan
+                                                    ? 'border-2 border-primary'
+                                                    : 'hover:border-primary/50'
+                                            }
                                         >
                                             <CardContent className="flex items-center justify-between p-4">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="font-medium">{plan.name}</h4>
-                                                        {isCurrentPlan && <Badge variant="outline">Current</Badge>}
+                                                        <h4 className="font-medium">
+                                                            {plan.name}
+                                                        </h4>
+                                                        {isCurrentPlan && (
+                                                            <Badge variant="outline">
+                                                                Current
+                                                            </Badge>
+                                                        )}
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground">{plan.description}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {plan.description}
+                                                    </p>
                                                     <p className="text-lg font-bold">
-                                                        {formatPrice(plan.price, plan.currency)}
+                                                        {formatPrice(
+                                                            plan.price,
+                                                            plan.currency,
+                                                        )}
                                                         <span className="text-sm font-normal text-muted-foreground">
                                                             /{plan.interval}
                                                         </span>
@@ -272,17 +351,28 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                                                 </div>
                                                 <div>
                                                     {isCurrentPlan ? (
-                                                        <Button variant="outline" size="sm" disabled>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled
+                                                        >
                                                             Current
                                                         </Button>
                                                     ) : isSubscribed ? (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => handleSwap(plan.stripe_id)}
-                                                            disabled={!!loadingAction}
+                                                            onClick={() =>
+                                                                handleSwap(
+                                                                    plan.stripe_id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !!loadingAction
+                                                            }
                                                         >
-                                                            {loadingAction === `swap-${plan.stripe_id}` && (
+                                                            {loadingAction ===
+                                                                `swap-${plan.stripe_id}` && (
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                             )}
                                                             Switch
@@ -290,10 +380,17 @@ export default function Subscription({ subscription, currentPlan, plans, onGrace
                                                     ) : (
                                                         <Button
                                                             size="sm"
-                                                            onClick={() => handleUpgrade(plan.stripe_id)}
-                                                            disabled={!!loadingAction}
+                                                            onClick={() =>
+                                                                handleUpgrade(
+                                                                    plan.stripe_id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !!loadingAction
+                                                            }
                                                         >
-                                                            {loadingAction === `upgrade-${plan.stripe_id}` && (
+                                                            {loadingAction ===
+                                                                `upgrade-${plan.stripe_id}` && (
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                             )}
                                                             Upgrade

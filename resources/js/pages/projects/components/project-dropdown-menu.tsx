@@ -9,7 +9,16 @@ import {
 import { index as listsIndex } from '@/routes/projects/lists';
 import { index as membersIndex } from '@/routes/projects/members';
 import { Link } from '@inertiajs/react';
-import { Archive, ArchiveRestore, Eye, FolderKanban, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react';
+import {
+    Archive,
+    ArchiveRestore,
+    Eye,
+    FolderKanban,
+    MoreHorizontal,
+    Pencil,
+    Trash2,
+    Users,
+} from 'lucide-react';
 import type { Project } from '../lib/types';
 
 interface ProjectDropdownMenuProps {
@@ -37,7 +46,10 @@ export function ProjectDropdownMenu({
                 <Button
                     variant="ghost"
                     size="icon-sm"
-                    className={triggerClassName ?? 'opacity-0 transition-opacity group-hover:opacity-100'}
+                    className={
+                        triggerClassName ??
+                        'opacity-0 transition-opacity group-hover:opacity-100'
+                    }
                 >
                     <MoreHorizontal className="size-4" />
                     <span className="sr-only">Open menu</span>

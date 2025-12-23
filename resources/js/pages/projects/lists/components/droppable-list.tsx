@@ -18,7 +18,7 @@ export function DroppableList({ listId, children }: DroppableListProps) {
     return (
         <div
             ref={setNodeRef}
-            className={`min-h-25 flex-1 space-y-2 transition-colors ${isOver ? 'bg-primary/5 rounded-lg' : ''}`}
+            className={`min-h-25 flex-1 space-y-2 transition-colors ${isOver ? 'rounded-lg bg-primary/5' : ''}`}
         >
             {children}
         </div>

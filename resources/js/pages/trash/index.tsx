@@ -1,5 +1,3 @@
-import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
-import AppLayout from '@/layouts/app-layout';
 import {
     emptyTrash,
     forceDeleteList,
@@ -10,6 +8,8 @@ import {
     restoreProject,
     restoreTask,
 } from '@/actions/App/Http/Controllers/Trash/TrashController';
+import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type {
     NormalizedTrashItem,
@@ -148,15 +148,24 @@ function normalizeTask(task: ApiTrashedTask): NormalizedTrashItem {
     };
 }
 
-export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks, retentionDays }: TrashPageProps) {
+export default function TrashIndex({
+    trashedProjects,
+    trashedLists,
+    trashedTasks,
+    retentionDays,
+}: TrashPageProps) {
     const [filter, setFilter] = useState<TrashFilter>('all');
     const [sortBy, setSortBy] = useState<TrashSortBy>('recent');
     const [searchQuery, setSearchQuery] = useState('');
     const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
 
     // Dialog states
-    const [restoreItem, setRestoreItem] = useState<NormalizedTrashItem | null>(null);
-    const [deleteItem, setDeleteItem] = useState<NormalizedTrashItem | null>(null);
+    const [restoreItem, setRestoreItem] = useState<NormalizedTrashItem | null>(
+        null,
+    );
+    const [deleteItem, setDeleteItem] = useState<NormalizedTrashItem | null>(
+        null,
+    );
     const [showEmptyDialog, setShowEmptyDialog] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -188,7 +197,7 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
             items = items.filter(
                 (item) =>
                     item.title.toLowerCase().includes(query) ||
-                    item.subtitle?.toLowerCase().includes(query)
+                    item.subtitle?.toLowerCase().includes(query),
             );
         }
 
@@ -196,7 +205,10 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
         items = [...items].sort((a, b) => {
             switch (sortBy) {
                 case 'recent':
-                    return new Date(b.deletedAt).getTime() - new Date(a.deletedAt).getTime();
+                    return (
+                        new Date(b.deletedAt).getTime() -
+                        new Date(a.deletedAt).getTime()
+                    );
                 case 'type': {
                     const typeOrder = { project: 0, list: 1, task: 2 };
                     return typeOrder[a.type] - typeOrder[b.type];
@@ -219,7 +231,12 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
             lists: trashedLists.length,
             tasks: trashedTasks.length,
         }),
-        [allItems.length, trashedProjects.length, trashedLists.length, trashedTasks.length]
+        [
+            allItems.length,
+            trashedProjects.length,
+            trashedLists.length,
+            trashedTasks.length,
+        ],
     );
 
     // Restore handler
@@ -253,7 +270,9 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    softToastSuccess(`${restoreItem.type.charAt(0).toUpperCase() + restoreItem.type.slice(1)} restored successfully`);
+                    softToastSuccess(
+                        `${restoreItem.type.charAt(0).toUpperCase() + restoreItem.type.slice(1)} restored successfully`,
+                    );
                     setRestoreItem(null);
                 },
                 onError: () => {
@@ -267,7 +286,7 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
                         return next;
                     });
                 },
-            }
+            },
         );
     }, [restoreItem]);
 
@@ -299,7 +318,9 @@ export default function TrashIndex({ trashedProjects, trashedLists, trashedTasks
         router.delete(route.url, {
             preserveScroll: true,
             onSuccess: () => {
-                softToastSuccess(`${deleteItem.type.charAt(0).toUpperCase() + deleteItem.type.slice(1)} permanently deleted`);
+                softToastSuccess(
+                    `${deleteItem.type.charAt(0).toUpperCase() + deleteItem.type.slice(1)} permanently deleted`,
+                );
                 setDeleteItem(null);
             },
             onError: () => {

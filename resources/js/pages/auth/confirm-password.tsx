@@ -48,7 +48,10 @@ export default function ConfirmPassword() {
                         initial="hidden"
                         animate="visible"
                     >
-                        <motion.div className="grid gap-2" variants={fieldVariants}>
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fieldVariants}
+                        >
                             <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
@@ -62,7 +65,10 @@ export default function ConfirmPassword() {
                             <InputError message={errors.password} />
                         </motion.div>
 
-                        <motion.div className="flex items-center" variants={fieldVariants}>
+                        <motion.div
+                            className="flex items-center"
+                            variants={fieldVariants}
+                        >
                             <Button
                                 className="w-full"
                                 disabled={processing}

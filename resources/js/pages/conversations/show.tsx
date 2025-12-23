@@ -9,11 +9,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import { cn } from '@/lib/utils';
-import type { Conversation, ConversationDetail, Message } from '@/types/chat';
 import type { BreadcrumbItem, SharedData } from '@/types';
+import type { Conversation, ConversationDetail, Message } from '@/types/chat';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -48,7 +53,10 @@ function formatDateSeparator(dateString: string): string {
     return format(date, 'MMMM d, yyyy');
 }
 
-function shouldShowDateSeparator(currentMsg: Message, prevMsg?: Message): boolean {
+function shouldShowDateSeparator(
+    currentMsg: Message,
+    prevMsg?: Message,
+): boolean {
     if (!prevMsg) return true;
     const currentDate = new Date(currentMsg.created_at).toDateString();
     const prevDate = new Date(prevMsg.created_at).toDateString();
@@ -77,11 +85,19 @@ function MessageBubble({
     const isMine = message.is_mine;
 
     return (
-        <div className={cn('group flex items-end gap-2', isMine && 'flex-row-reverse')}>
+        <div
+            className={cn(
+                'group flex items-end gap-2',
+                isMine && 'flex-row-reverse',
+            )}
+        >
             {/* Avatar */}
             {!isMine && showAvatar ? (
                 <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage src={message.sender?.avatar} alt={message.sender?.name ?? 'User'} />
+                    <AvatarImage
+                        src={message.sender?.avatar}
+                        alt={message.sender?.name ?? 'User'}
+                    />
                     <AvatarFallback className="text-xs">
                         {message.sender?.name?.charAt(0).toUpperCase() ?? 'U'}
                     </AvatarFallback>
@@ -91,10 +107,17 @@ function MessageBubble({
             ) : null}
 
             {/* Message Content */}
-            <div className={cn('flex max-w-[70%] flex-col gap-1', isMine && 'items-end')}>
+            <div
+                className={cn(
+                    'flex max-w-[70%] flex-col gap-1',
+                    isMine && 'items-end',
+                )}
+            >
                 {/* Sender name (for group chats, non-own messages) */}
                 {!isMine && showAvatar && message.sender && (
-                    <span className="text-muted-foreground text-xs">{message.sender.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                        {message.sender.name}
+                    </span>
                 )}
 
                 {/* Reply reference */}
@@ -107,7 +130,9 @@ function MessageBubble({
                                 : 'border-muted-foreground/50 bg-muted/80 text-muted-foreground',
                         )}
                     >
-                        <span className="font-medium">{message.parent.sender_name}</span>
+                        <span className="font-medium">
+                            {message.parent.sender_name}
+                        </span>
                         <p className="truncate">{message.parent.content}</p>
                     </div>
                 )}
@@ -141,11 +166,17 @@ function MessageBubble({
                             {(canEdit || canDelete) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                        >
                                             <MoreVertical className="h-3.5 w-3.5" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align={isMine ? 'end' : 'start'}>
+                                    <DropdownMenuContent
+                                        align={isMine ? 'end' : 'start'}
+                                    >
                                         {canEdit && (
                                             <DropdownMenuItem onClick={onEdit}>
                                                 <Edit2 className="mr-2 h-4 w-4" />
@@ -171,11 +202,11 @@ function MessageBubble({
                         className={cn(
                             'rounded-2xl px-4 py-2',
                             isMine
-                                ? 'bg-primary text-primary-foreground rounded-br-md'
-                                : 'bg-muted rounded-bl-md',
+                                ? 'rounded-br-md bg-primary text-primary-foreground'
+                                : 'rounded-bl-md bg-muted',
                         )}
                     >
-                        <p className="wrap-break-word whitespace-pre-wrap text-sm">
+                        <p className="text-sm wrap-break-word whitespace-pre-wrap">
                             {message.content}
                         </p>
 
@@ -196,8 +227,10 @@ function MessageBubble({
                                         )}
                                     >
                                         <Paperclip className="h-3 w-3 shrink-0" />
-                                        <span className="truncate">{attachment.original_name}</span>
-                                        <span className="text-muted-foreground shrink-0">
+                                        <span className="truncate">
+                                            {attachment.original_name}
+                                        </span>
+                                        <span className="shrink-0 text-muted-foreground">
                                             ({attachment.human_size})
                                         </span>
                                     </a>
@@ -209,7 +242,9 @@ function MessageBubble({
                         <div
                             className={cn(
                                 'mt-1 flex items-center gap-1 text-xs',
-                                isMine ? 'text-primary-foreground/70' : 'text-muted-foreground',
+                                isMine
+                                    ? 'text-primary-foreground/70'
+                                    : 'text-muted-foreground',
                             )}
                         >
                             <span>{formatMessageTime(message.created_at)}</span>
@@ -229,29 +264,34 @@ function TypingIndicator({ names }: { names: string[] }) {
         names.length === 1
             ? `${names[0]} is typing...`
             : names.length === 2
-                ? `${names[0]} and ${names[1]} are typing...`
-                : `${names[0]} and ${names.length - 1} others are typing...`;
+              ? `${names[0]} and ${names[1]} are typing...`
+              : `${names[0]} and ${names.length - 1} others are typing...`;
 
     return (
-        <div className="text-muted-foreground flex items-center gap-2 px-4 py-2 text-sm">
+        <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
             <div className="flex gap-1">
-                <span className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
-                <span className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
-                <span className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
             </div>
             <span>{text}</span>
         </div>
     );
 }
 
-export default function ConversationShow({ conversations, conversation }: Props) {
+export default function ConversationShow({
+    conversations,
+    conversation,
+}: Props) {
     const { auth } = usePage<SharedData>().props;
     const [messages, setMessages] = useState<Message[]>(conversation.messages);
     const [inputValue, setInputValue] = useState('');
     const [isSending, setIsSending] = useState(false);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-    const [typingUsers, setTypingUsers] = useState<Map<number, string>>(new Map());
+    const [typingUsers, setTypingUsers] = useState<Map<number, string>>(
+        new Map(),
+    );
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -266,9 +306,12 @@ export default function ConversationShow({ conversations, conversation }: Props)
     ];
 
     // Scroll to bottom
-    const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-        messagesEndRef.current?.scrollIntoView({ behavior });
-    }, []);
+    const scrollToBottom = useCallback(
+        (behavior: ScrollBehavior = 'smooth') => {
+            messagesEndRef.current?.scrollIntoView({ behavior });
+        },
+        [],
+    );
 
     // Mark as read when component mounts
     useEffect(() => {
@@ -277,7 +320,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN':
-                        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                        document.querySelector<HTMLMetaElement>(
+                            'meta[name="csrf-token"]',
+                        )?.content ?? '',
                 },
             });
             hasMarkedAsReadRef.current = true;
@@ -358,7 +403,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                    document.querySelector<HTMLMetaElement>(
+                        'meta[name="csrf-token"]',
+                    )?.content ?? '',
             },
         });
     }, [conversation.id]);
@@ -373,7 +420,8 @@ export default function ConversationShow({ conversations, conversation }: Props)
     // Send message
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if ((!inputValue.trim() && selectedFiles.length === 0) || isSending) return;
+        if ((!inputValue.trim() && selectedFiles.length === 0) || isSending)
+            return;
 
         const content = inputValue.trim();
         setInputValue('');
@@ -391,16 +439,20 @@ export default function ConversationShow({ conversations, conversation }: Props)
                 formData.append('attachments[]', file);
             });
 
-            const response = await fetch(`/conversations/${conversation.id}/messages`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN':
-                        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ??
-                        '',
+            const response = await fetch(
+                `/conversations/${conversation.id}/messages`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN':
+                            document.querySelector<HTMLMetaElement>(
+                                'meta[name="csrf-token"]',
+                            )?.content ?? '',
+                    },
+                    body: formData,
                 },
-                body: formData,
-            });
+            );
 
             if (response.ok) {
                 const data = await response.json();
@@ -443,8 +495,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
                         'Content-Type': 'application/json',
                         Accept: 'application/json',
                         'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                                ?.content ?? '',
+                            document.querySelector<HTMLMetaElement>(
+                                'meta[name="csrf-token"]',
+                            )?.content ?? '',
                     },
                     body: JSON.stringify({ content: inputValue.trim() }),
                 },
@@ -453,7 +506,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
             if (response.ok) {
                 const data = await response.json();
                 setMessages((prev) =>
-                    prev.map((m) => (m.id === editingMessage.id ? data.message : m)),
+                    prev.map((m) =>
+                        m.id === editingMessage.id ? data.message : m,
+                    ),
                 );
                 setEditingMessage(null);
                 setInputValue('');
@@ -476,8 +531,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                                ?.content ?? '',
+                            document.querySelector<HTMLMetaElement>(
+                                'meta[name="csrf-token"]',
+                            )?.content ?? '',
                     },
                 },
             );
@@ -515,20 +571,30 @@ export default function ConversationShow({ conversations, conversation }: Props)
                 <div className="border-b p-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" asChild className="md:hidden">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                asChild
+                                className="md:hidden"
+                            >
                                 <Link href="/conversations">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Link>
                             </Button>
                             <Avatar className="h-10 w-10">
-                                <AvatarImage src={conversation.avatar} alt={conversation.name} />
+                                <AvatarImage
+                                    src={conversation.avatar}
+                                    alt={conversation.name}
+                                />
                                 <AvatarFallback>
                                     {conversation.name.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <h2 className="font-semibold">{conversation.name}</h2>
-                                <p className="text-muted-foreground text-sm">
+                                <h2 className="font-semibold">
+                                    {conversation.name}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
                                     {conversation.type === 'group'
                                         ? `${conversation.participants.length} members`
                                         : 'Direct message'}
@@ -545,7 +611,9 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                                 <Users className="h-5 w-5" />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>View members</TooltipContent>
+                                        <TooltipContent>
+                                            View members
+                                        </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                             )}
@@ -567,7 +635,11 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     onClick={() => {
-                                                        if (confirm('Leave this conversation?')) {
+                                                        if (
+                                                            confirm(
+                                                                'Leave this conversation?',
+                                                            )
+                                                        ) {
                                                             router.post(
                                                                 `/conversations/${conversation.id}/leave`,
                                                             );
@@ -591,7 +663,10 @@ export default function ConversationShow({ conversations, conversation }: Props)
                     <div className="mx-auto max-w-3xl space-y-4">
                         {messages.map((message, index) => {
                             const prevMessage = messages[index - 1];
-                            const showDateSeparator = shouldShowDateSeparator(message, prevMessage);
+                            const showDateSeparator = shouldShowDateSeparator(
+                                message,
+                                prevMessage,
+                            );
                             const showAvatar =
                                 !prevMessage ||
                                 prevMessage.sender?.id !== message.sender?.id ||
@@ -601,11 +676,13 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                 <div key={message.id}>
                                     {showDateSeparator && (
                                         <div className="my-4 flex items-center gap-4">
-                                            <div className="bg-border h-px flex-1" />
-                                            <span className="text-muted-foreground text-xs">
-                                                {formatDateSeparator(message.created_at)}
+                                            <div className="h-px flex-1 bg-border" />
+                                            <span className="text-xs text-muted-foreground">
+                                                {formatDateSeparator(
+                                                    message.created_at,
+                                                )}
                                             </span>
-                                            <div className="bg-border h-px flex-1" />
+                                            <div className="h-px flex-1 bg-border" />
                                         </div>
                                     )}
                                     <MessageBubble
@@ -617,9 +694,14 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                             inputRef.current?.focus();
                                         }}
                                         onEdit={() => startEditing(message)}
-                                        onDelete={() => handleDelete(message.id)}
+                                        onDelete={() =>
+                                            handleDelete(message.id)
+                                        }
                                         canEdit={message.is_mine}
-                                        canDelete={message.is_mine || conversation.can_manage_participants}
+                                        canDelete={
+                                            message.is_mine ||
+                                            conversation.can_manage_participants
+                                        }
                                     />
                                 </div>
                             );
@@ -633,16 +715,16 @@ export default function ConversationShow({ conversations, conversation }: Props)
 
                 {/* Reply/Edit indicator */}
                 {(replyingTo || editingMessage) && (
-                    <div className="bg-muted/50 flex items-center justify-between border-t px-4 py-2">
+                    <div className="flex items-center justify-between border-t bg-muted/50 px-4 py-2">
                         <div className="flex items-center gap-2 text-sm">
                             {editingMessage ? (
                                 <>
-                                    <Edit2 className="text-muted-foreground h-4 w-4" />
+                                    <Edit2 className="h-4 w-4 text-muted-foreground" />
                                     <span>Editing message</span>
                                 </>
                             ) : (
                                 <>
-                                    <Reply className="text-muted-foreground h-4 w-4" />
+                                    <Reply className="h-4 w-4 text-muted-foreground" />
                                     <span>
                                         Replying to{' '}
                                         <span className="font-medium">
@@ -668,7 +750,14 @@ export default function ConversationShow({ conversations, conversation }: Props)
                 {/* Input */}
                 <div className="border-t p-4">
                     <form
-                        onSubmit={editingMessage ? (e) => { e.preventDefault(); handleEdit(); } : handleSubmit}
+                        onSubmit={
+                            editingMessage
+                                ? (e) => {
+                                      e.preventDefault();
+                                      handleEdit();
+                                  }
+                                : handleSubmit
+                        }
                         className="mx-auto max-w-3xl space-y-2"
                     >
                         {/* File preview */}
@@ -677,10 +766,12 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                 {selectedFiles.map((file, index) => (
                                     <div
                                         key={index}
-                                        className="bg-muted flex items-center gap-2 rounded px-3 py-2 text-sm"
+                                        className="flex items-center gap-2 rounded bg-muted px-3 py-2 text-sm"
                                     >
                                         <Paperclip className="h-4 w-4" />
-                                        <span className="max-w-50 truncate">{file.name}</span>
+                                        <span className="max-w-50 truncate">
+                                            {file.name}
+                                        </span>
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -717,17 +808,25 @@ export default function ConversationShow({ conversations, conversation }: Props)
                                 ref={inputRef}
                                 type="text"
                                 placeholder={
-                                    editingMessage ? 'Edit your message...' : 'Type a message...'
+                                    editingMessage
+                                        ? 'Edit your message...'
+                                        : 'Type a message...'
                                 }
                                 value={inputValue}
-                                onChange={(e) => handleInputChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleInputChange(e.target.value)
+                                }
                                 className="flex-1"
                                 disabled={isSending}
                             />
                             <Button
                                 type="submit"
                                 size="icon"
-                                disabled={(!inputValue.trim() && selectedFiles.length === 0) || isSending}
+                                disabled={
+                                    (!inputValue.trim() &&
+                                        selectedFiles.length === 0) ||
+                                    isSending
+                                }
                                 className="shrink-0"
                             >
                                 {isSending ? (

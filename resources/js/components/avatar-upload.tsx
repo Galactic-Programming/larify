@@ -6,6 +6,7 @@ import { Transition } from '@headlessui/react';
 import { router, usePage } from '@inertiajs/react';
 import { Camera, Trash2, User } from 'lucide-react';
 
+import InputError from '@/components/input-error';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import InputError from '@/components/input-error';
 
 interface AvatarUploadProps {
     className?: string;
@@ -50,9 +50,17 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
         if (!file) return;
 
         // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        const allowedTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+        ];
         if (!allowedTypes.includes(file.type)) {
-            setError('Please select a valid image file (JPG, PNG, WebP, or GIF)');
+            setError(
+                'Please select a valid image file (JPG, PNG, WebP, or GIF)',
+            );
             return;
         }
 
@@ -103,7 +111,7 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
                         fileInputRef.current.value = '';
                     }
                 },
-            }
+            },
         );
     };
 
@@ -139,9 +147,16 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
                 {/* Avatar Display */}
                 <div className="relative">
                     <Avatar className="size-24">
-                        <AvatarImage src={displayAvatar || undefined} alt={user.name} />
+                        <AvatarImage
+                            src={displayAvatar || undefined}
+                            alt={user.name}
+                        />
                         <AvatarFallback className="text-2xl">
-                            {user.name ? getInitials(user.name) : <User className="size-8" />}
+                            {user.name ? (
+                                getInitials(user.name)
+                            ) : (
+                                <User className="size-8" />
+                            )}
                         </AvatarFallback>
                     </Avatar>
 
@@ -170,7 +185,10 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
 
                         {/* Delete Button */}
                         {user.avatar && (
-                            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                            <Dialog
+                                open={deleteDialogOpen}
+                                onOpenChange={setDeleteDialogOpen}
+                            >
                                 <DialogTrigger asChild>
                                     <Button
                                         type="button"
@@ -186,12 +204,17 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
                                     <DialogHeader>
                                         <DialogTitle>Remove avatar</DialogTitle>
                                         <DialogDescription>
-                                            Are you sure you want to remove your avatar? This action cannot be undone.
+                                            Are you sure you want to remove your
+                                            avatar? This action cannot be
+                                            undone.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
                                         <DialogClose asChild>
-                                            <Button variant="outline" disabled={deleting}>
+                                            <Button
+                                                variant="outline"
+                                                disabled={deleting}
+                                            >
                                                 Cancel
                                             </Button>
                                         </DialogClose>
@@ -200,7 +223,9 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
                                             onClick={handleDelete}
                                             disabled={deleting}
                                         >
-                                            {deleting ? 'Removing...' : 'Remove'}
+                                            {deleting
+                                                ? 'Removing...'
+                                                : 'Remove'}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>

@@ -19,7 +19,13 @@ interface RestoreDialogProps {
     isLoading?: boolean;
 }
 
-export function RestoreDialog({ item, open, onOpenChange, onConfirm, isLoading }: RestoreDialogProps) {
+export function RestoreDialog({
+    item,
+    open,
+    onOpenChange,
+    onConfirm,
+    isLoading,
+}: RestoreDialogProps) {
     if (!item) return null;
 
     const getItemTypeLabel = () => {
@@ -49,19 +55,28 @@ export function RestoreDialog({ item, open, onOpenChange, onConfirm, isLoading }
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Restore {getItemTypeLabel()}</AlertDialogTitle>
+                    <AlertDialogTitle>
+                        Restore {getItemTypeLabel()}
+                    </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-2">
                         <span>
                             Are you sure you want to restore{' '}
-                            <span className="font-semibold text-foreground">"{item.title}"</span>?
+                            <span className="font-semibold text-foreground">
+                                "{item.title}"
+                            </span>
+                            ?
                         </span>
                         {restoreInfo && (
-                            <span className="block text-muted-foreground">{restoreInfo}</span>
+                            <span className="block text-muted-foreground">
+                                {restoreInfo}
+                            </span>
                         )}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isLoading}>
+                        Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
                         disabled={isLoading}

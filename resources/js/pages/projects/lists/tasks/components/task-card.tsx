@@ -1,3 +1,4 @@
+import { complete } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,15 +10,23 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { complete } from '@/actions/App/Http/Controllers/Tasks/TaskController';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import type { Permissions, Project, Task } from '../../lib/types';
-import { getPriorityColor, getTaskStatusIcon, isCompletedLate, isTaskOverdue } from '../../lib/utils';
+import {
+    getPriorityColor,
+    getTaskStatusIcon,
+    isCompletedLate,
+    isTaskOverdue,
+} from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { ReopenTaskDialog } from './reopen-task-dialog';
@@ -40,7 +49,14 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function TaskCard({ task, project, index = 0, variant = 'board', onClick, permissions }: TaskCardProps) {
+export function TaskCard({
+    task,
+    project,
+    index = 0,
+    variant = 'board',
+    onClick,
+    permissions,
+}: TaskCardProps) {
     const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -54,7 +70,8 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
     // Check if user can update deadline:
     // - Owner can always update
     // - Editor can only update tasks they created
-    const canUpdateDeadline = permissions?.role === 'owner' || task.created_by === auth.user.id;
+    const canUpdateDeadline =
+        permissions?.role === 'owner' || task.created_by === auth.user.id;
 
     // Check if task was overdue when completed (for reopen check)
     const wasOverdueWhenCompleted = (() => {
@@ -97,12 +114,18 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                     <MoreHorizontal className="size-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuContent
+                align="end"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <DropdownMenuItem onClick={() => setEditOpen(true)}>
                     <Pencil className="mr-2 size-4" />
                     Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleToggleComplete} disabled={isProcessing}>
+                <DropdownMenuItem
+                    onClick={handleToggleComplete}
+                    disabled={isProcessing}
+                >
                     {isCompleted ? (
                         <>
                             <RotateCcw className="mr-2 size-4" />
@@ -133,9 +156,26 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
 
     const dialogs = (
         <>
-            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions?.canAssignTask} canUpdateDeadline={canUpdateDeadline} />
-            <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
-            <ReopenTaskDialog project={project} task={task} open={reopenOpen} onOpenChange={setReopenOpen} />
+            <EditTaskDialog
+                project={project}
+                task={task}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+                canAssignTask={permissions?.canAssignTask}
+                canUpdateDeadline={canUpdateDeadline}
+            />
+            <DeleteTaskDialog
+                project={project}
+                task={task}
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+            />
+            <ReopenTaskDialog
+                project={project}
+                task={task}
+                open={reopenOpen}
+                onOpenChange={setReopenOpen}
+            />
         </>
     );
 
@@ -146,12 +186,13 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.03 }}
-                    className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${isOverdue
-                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
-                        : completedLate
-                            ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
-                            : 'bg-muted/30'
-                        }`}
+                    className={`group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${
+                        isOverdue
+                            ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                            : completedLate
+                              ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                              : 'bg-muted/30'
+                    }`}
                     onClick={() => onClick?.(task)}
                 >
                     <div className="shrink-0">{getTaskStatusIcon(task)}</div>
@@ -168,17 +209,27 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Avatar className="size-5">
-                                        <AvatarImage src={task.assignee.avatar ?? undefined} />
+                                        <AvatarImage
+                                            src={
+                                                task.assignee.avatar ??
+                                                undefined
+                                            }
+                                        />
                                         <AvatarFallback className="text-[9px]">
                                             {getInitials(task.assignee.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </TooltipTrigger>
-                                <TooltipContent>{task.assignee.name}</TooltipContent>
+                                <TooltipContent>
+                                    {task.assignee.name}
+                                </TooltipContent>
                             </Tooltip>
                         )}
                         {completedLate && (
-                            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-xs">
+                            <Badge
+                                variant="secondary"
+                                className="bg-orange-100 text-xs text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
+                            >
                                 Late
                             </Badge>
                         )}
@@ -187,7 +238,10 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                                 {new Date(task.due_date).toLocaleDateString()}
                             </Badge>
                         )}
-                        <Badge variant="secondary" className={`text-xs ${getPriorityColor(task.priority)}`}>
+                        <Badge
+                            variant="secondary"
+                            className={`text-xs ${getPriorityColor(task.priority)}`}
+                        >
                             {task.priority}
                         </Badge>
                         {taskActions}
@@ -207,15 +261,20 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                 transition={{ duration: 0.2, delay: index * 0.05 }}
                 onClick={() => onClick?.(task)}
             >
-                <Card className={`group cursor-pointer transition-all hover:shadow-md ${isOverdue
-                    ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
-                    : completedLate
-                        ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
-                        : 'bg-card'
-                    }`}>
+                <Card
+                    className={`group cursor-pointer transition-all hover:shadow-md ${
+                        isOverdue
+                            ? 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20'
+                            : completedLate
+                              ? 'border-orange-200 bg-orange-50/30 dark:border-orange-900/50 dark:bg-orange-950/20'
+                              : 'bg-card'
+                    }`}
+                >
                     <CardContent className="px-2.5 py-2">
                         <div className="flex items-center gap-2">
-                            <div className="shrink-0">{getTaskStatusIcon(task)}</div>
+                            <div className="shrink-0">
+                                {getTaskStatusIcon(task)}
+                            </div>
                             <div className="min-w-0 flex-1">
                                 <p
                                     className={`truncate text-sm font-medium ${task.completed_at ? 'text-muted-foreground line-through' : ''}`}
@@ -229,27 +288,49 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Avatar className="size-4">
-                                                <AvatarImage src={task.assignee.avatar ?? undefined} />
+                                                <AvatarImage
+                                                    src={
+                                                        task.assignee.avatar ??
+                                                        undefined
+                                                    }
+                                                />
                                                 <AvatarFallback className="text-[8px]">
-                                                    {getInitials(task.assignee.name)}
+                                                    {getInitials(
+                                                        task.assignee.name,
+                                                    )}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </TooltipTrigger>
-                                        <TooltipContent>{task.assignee.name}</TooltipContent>
+                                        <TooltipContent>
+                                            {task.assignee.name}
+                                        </TooltipContent>
                                     </Tooltip>
                                 )}
                                 {completedLate && (
-                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 text-[10px] px-1.5 py-0">
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-orange-100 px-1.5 py-0 text-[10px] text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
+                                    >
                                         Late
                                     </Badge>
                                 )}
                                 {task.due_date && !completedLate && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                        {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    <Badge
+                                        variant="outline"
+                                        className="px-1.5 py-0 text-[10px]"
+                                    >
+                                        {new Date(
+                                            task.due_date,
+                                        ).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                        })}
                                     </Badge>
                                 )}
                                 {task.priority !== 'none' && (
-                                    <span className={`text-[10px] font-medium uppercase ${getPriorityColor(task.priority)}`}>
+                                    <span
+                                        className={`text-[10px] font-medium uppercase ${getPriorityColor(task.priority)}`}
+                                    >
                                         {task.priority.charAt(0)}
                                     </span>
                                 )}

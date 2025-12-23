@@ -1,6 +1,6 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/badge';
 import {
     Card,
     CardAction,
@@ -8,16 +8,17 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { type StatCardItem } from "@/types"
+} from '@/components/ui/card';
+import { type StatCardItem } from '@/types';
 
 export interface SectionCardsProps {
-    cards: StatCardItem[]
-    className?: string
+    cards: StatCardItem[];
+    className?: string;
 }
 
 function StatCard({ card }: { card: StatCardItem }) {
-    const TrendIcon = card.changeType === "up" ? IconTrendingUp : IconTrendingDown
+    const TrendIcon =
+        card.changeType === 'up' ? IconTrendingUp : IconTrendingDown;
 
     return (
         <Card className="@container/card">
@@ -40,17 +41,17 @@ function StatCard({ card }: { card: StatCardItem }) {
                 <div className="text-muted-foreground">{card.footerNote}</div>
             </CardFooter>
         </Card>
-    )
+    );
 }
 
 export function SectionCards({ cards, className }: SectionCardsProps) {
     return (
         <div
-            className={`*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 ${className ?? ""}`}
+            className={`grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card ${className ?? ''}`}
         >
             {cards.map((card, index) => (
                 <StatCard key={index} card={card} />
             ))}
         </div>
-    )
+    );
 }

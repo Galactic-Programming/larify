@@ -3,15 +3,15 @@
 
 export {
     Tabs as AnimatedTabs,
+    TabsContent as AnimatedTabsContent,
+    TabsContents as AnimatedTabsContents,
     TabsList as AnimatedTabsList,
     TabsTrigger as AnimatedTabsTrigger,
-    TabsContents as AnimatedTabsContents,
-    TabsContent as AnimatedTabsContent,
     useTabs,
-    type TabsContextType,
-    type TabsProps as AnimatedTabsProps,
-    type TabsListProps as AnimatedTabsListProps,
-    type TabsTriggerProps as AnimatedTabsTriggerProps,
-    type TabsContentsProps as AnimatedTabsContentsProps,
     type TabsContentProps as AnimatedTabsContentProps,
-} from './motion-tabs'
+    type TabsContentsProps as AnimatedTabsContentsProps,
+    type TabsListProps as AnimatedTabsListProps,
+    type TabsProps as AnimatedTabsProps,
+    type TabsTriggerProps as AnimatedTabsTriggerProps,
+    type TabsContextType,
+} from './motion-tabs';

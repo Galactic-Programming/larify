@@ -36,7 +36,11 @@ export function NotificationHeader({
                 <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
+                    transition={{
+                        duration: 0.5,
+                        type: 'spring',
+                        stiffness: 200,
+                    }}
                     className="relative flex size-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-lg shadow-primary/25 sm:size-14"
                 >
                     <Bell className="size-6 sm:size-7" />
@@ -45,9 +49,12 @@ export function NotificationHeader({
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.3, type: 'spring' }}
-                            className="absolute -right-1 -top-1"
+                            className="absolute -top-1 -right-1"
                         >
-                            <Badge variant="destructive" className="size-5 justify-center p-0 text-xs">
+                            <Badge
+                                variant="destructive"
+                                className="size-5 justify-center p-0 text-xs"
+                            >
                                 {unreadCount > 99 ? '99+' : unreadCount}
                             </Badge>
                         </motion.div>
@@ -70,7 +77,8 @@ export function NotificationHeader({
                     >
                         {totalCount > 0 ? (
                             <>
-                                {totalCount} notification{totalCount !== 1 ? 's' : ''}
+                                {totalCount} notification
+                                {totalCount !== 1 ? 's' : ''}
                                 {unreadCount > 0 && ` • ${unreadCount} unread`}
                             </>
                         ) : (
@@ -93,7 +101,10 @@ export function NotificationHeader({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={onMarkAllAsRead} disabled={unreadCount === 0}>
+                        <DropdownMenuItem
+                            onClick={onMarkAllAsRead}
+                            disabled={unreadCount === 0}
+                        >
                             <CheckCheck className="mr-2 size-4" />
                             Mark all as read
                         </DropdownMenuItem>

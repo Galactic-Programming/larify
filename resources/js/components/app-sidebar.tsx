@@ -1,3 +1,4 @@
+import { index as trashIndex } from '@/actions/App/Http/Controllers/Trash/TrashController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,10 +15,15 @@ import { dashboard } from '@/routes';
 import { index as conversationsIndex } from '@/routes/conversations';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { index as projectsIndex } from '@/routes/projects';
-import { index as trashIndex } from '@/actions/App/Http/Controllers/Trash/TrashController';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Bell, FolderKanban, LayoutGrid, MessageCircle, Trash2 } from 'lucide-react';
+import {
+    Bell,
+    FolderKanban,
+    LayoutGrid,
+    MessageCircle,
+    Trash2,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -52,9 +58,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     return (

@@ -8,7 +8,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
 import type { NormalizedTrashItem } from '@/types/trash.d';
 import { formatDistanceToNow } from 'date-fns';
@@ -111,8 +115,9 @@ export function TrashItemCard({
             layout
         >
             <Card
-                className={`group relative overflow-hidden transition-all duration-300 hover:shadow-md ${isProcessing ? 'opacity-50 pointer-events-none' : ''
-                    }`}
+                className={`group relative overflow-hidden transition-all duration-300 hover:shadow-md ${
+                    isProcessing ? 'pointer-events-none opacity-50' : ''
+                }`}
             >
                 {/* Color accent bar */}
                 <div
@@ -137,13 +142,22 @@ export function TrashItemCard({
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <h3 className="truncate font-medium">{item.title}</h3>
-                            <Badge variant="outline" className="shrink-0 gap-1 text-xs">
-                                {createElement(TypeIcon, { className: 'size-3' })}
+                            <h3 className="truncate font-medium">
+                                {item.title}
+                            </h3>
+                            <Badge
+                                variant="outline"
+                                className="shrink-0 gap-1 text-xs"
+                            >
+                                {createElement(TypeIcon, {
+                                    className: 'size-3',
+                                })}
                                 {getTypeLabel()}
                             </Badge>
                             {item.type === 'task' && item.metadata.priority && (
-                                <Badge className={`shrink-0 text-xs ${getPriorityColor(item.metadata.priority)}`}>
+                                <Badge
+                                    className={`shrink-0 text-xs ${getPriorityColor(item.metadata.priority)}`}
+                                >
                                     {item.metadata.priority}
                                 </Badge>
                             )}
@@ -152,31 +166,41 @@ export function TrashItemCard({
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                             {item.subtitle && (
                                 <span className="truncate">
-                                    From: <span className="font-medium">{item.subtitle}</span>
+                                    From:{' '}
+                                    <span className="font-medium">
+                                        {item.subtitle}
+                                    </span>
                                 </span>
                             )}
 
                             {item.metadata.listDeleted && (
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Badge variant="destructive" className="gap-1 text-xs">
+                                        <Badge
+                                            variant="destructive"
+                                            className="gap-1 text-xs"
+                                        >
                                             <AlertTriangle className="size-3" />
                                             List deleted
                                         </Badge>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        Cannot restore until the list is restored first
+                                        Cannot restore until the list is
+                                        restored first
                                     </TooltipContent>
                                 </Tooltip>
                             )}
 
                             {item.type === 'project' && (
                                 <span className="text-xs">
-                                    {item.metadata.listsCount} lists • {item.metadata.tasksCount} tasks
+                                    {item.metadata.listsCount} lists •{' '}
+                                    {item.metadata.tasksCount} tasks
                                 </span>
                             )}
                             {item.type === 'list' && (
-                                <span className="text-xs">{item.metadata.tasksCount} tasks</span>
+                                <span className="text-xs">
+                                    {item.metadata.tasksCount} tasks
+                                </span>
                             )}
                         </div>
                     </div>
@@ -185,14 +209,18 @@ export function TrashItemCard({
                     <div className="hidden flex-col items-end gap-1 sm:flex">
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Clock className="size-3" />
-                            Deleted {formatDistanceToNow(new Date(item.deletedAt), { addSuffix: true })}
+                            Deleted{' '}
+                            {formatDistanceToNow(new Date(item.deletedAt), {
+                                addSuffix: true,
+                            })}
                         </div>
                         <Badge
                             variant={isUrgent ? 'destructive' : 'secondary'}
                             className={`gap-1 text-xs ${isUrgent ? 'animate-pulse' : ''}`}
                         >
                             {isUrgent && <AlertTriangle className="size-3" />}
-                            {item.daysRemaining} day{item.daysRemaining !== 1 ? 's' : ''} remaining
+                            {item.daysRemaining} day
+                            {item.daysRemaining !== 1 ? 's' : ''} remaining
                         </Badge>
                     </div>
 
@@ -204,11 +232,16 @@ export function TrashItemCard({
                                     size="sm"
                                     variant="outline"
                                     onClick={() => onRestore(item)}
-                                    disabled={isProcessing || item.metadata.listDeleted}
+                                    disabled={
+                                        isProcessing ||
+                                        item.metadata.listDeleted
+                                    }
                                     className="gap-1.5"
                                 >
                                     <RotateCcw className="size-4" />
-                                    <span className="hidden sm:inline">Restore</span>
+                                    <span className="hidden sm:inline">
+                                        Restore
+                                    </span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -220,7 +253,11 @@ export function TrashItemCard({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost" disabled={isProcessing}>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    disabled={isProcessing}
+                                >
                                     <MoreHorizontal className="size-4" />
                                 </Button>
                             </DropdownMenuTrigger>

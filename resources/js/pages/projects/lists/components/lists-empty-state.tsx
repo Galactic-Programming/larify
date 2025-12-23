@@ -9,7 +9,10 @@ interface ListsEmptyStateProps {
     permissions: Permissions;
 }
 
-export function ListsEmptyState({ project, permissions }: ListsEmptyStateProps) {
+export function ListsEmptyState({
+    project,
+    permissions,
+}: ListsEmptyStateProps) {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -23,11 +26,14 @@ export function ListsEmptyState({ project, permissions }: ListsEmptyStateProps) 
                         className="flex size-24 items-center justify-center rounded-2xl shadow-xl"
                         style={{ backgroundColor: `${project.color}20` }}
                     >
-                        <LayoutList className="size-12" style={{ color: project.color }} />
+                        <LayoutList
+                            className="size-12"
+                            style={{ color: project.color }}
+                        />
                     </div>
                     {permissions.canEdit && (
                         <div
-                            className="absolute -right-2 -top-2 flex size-8 animate-bounce items-center justify-center rounded-full text-white shadow-lg"
+                            className="absolute -top-2 -right-2 flex size-8 animate-bounce items-center justify-center rounded-full text-white shadow-lg"
                             style={{ backgroundColor: project.color }}
                         >
                             <Plus className="size-4" />

@@ -1,23 +1,36 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export interface CardTopImageAction {
-    label: string
-    onClick?: () => void
-    variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive'
-    href?: string
+    label: string;
+    onClick?: () => void;
+    variant?:
+        | 'default'
+        | 'outline'
+        | 'secondary'
+        | 'ghost'
+        | 'link'
+        | 'destructive';
+    href?: string;
 }
 
 export interface CardTopImageProps {
-    imageSrc: string
-    imageAlt?: string
-    title: string
-    description?: string
-    actions?: CardTopImageAction[]
-    className?: string
-    imageClassName?: string
-    children?: React.ReactNode
+    imageSrc: string;
+    imageAlt?: string;
+    title: string;
+    description?: string;
+    actions?: CardTopImageAction[];
+    className?: string;
+    imageClassName?: string;
+    children?: React.ReactNode;
 }
 
 const CardTopImage = ({
@@ -36,26 +49,38 @@ const CardTopImage = ({
                 <img
                     src={imageSrc}
                     alt={imageAlt}
-                    className={cn('aspect-video h-70 rounded-t-xl object-cover', imageClassName)}
+                    className={cn(
+                        'aspect-video h-70 rounded-t-xl object-cover',
+                        imageClassName,
+                    )}
                 />
             </CardContent>
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
-                {description && <CardDescription>{description}</CardDescription>}
+                {description && (
+                    <CardDescription>{description}</CardDescription>
+                )}
             </CardHeader>
             {children}
             {actions && actions.length > 0 && (
                 <CardFooter className="gap-3 max-sm:flex-col max-sm:items-stretch">
                     {actions.map((action, index) => (
-                        <Button key={index} variant={action.variant || (index === 0 ? 'default' : 'outline')} onClick={action.onClick}>
+                        <Button
+                            key={index}
+                            variant={
+                                action.variant ||
+                                (index === 0 ? 'default' : 'outline')
+                            }
+                            onClick={action.onClick}
+                        >
                             {action.label}
                         </Button>
                     ))}
                 </CardFooter>
             )}
         </Card>
-    )
-}
+    );
+};
 
-export { CardTopImage }
-export default CardTopImage
+export { CardTopImage };
+export default CardTopImage;

@@ -69,14 +69,29 @@ class ConversationController extends Controller
     }
 
     /**
-     * Get users list for creating conversations (JSON API).
+     * Search users by email for creating conversations (JSON API).
+     * Requires at least 3 characters to search for privacy.
      */
     public function users(Request $request): JsonResponse
     {
+        $request->validate([
+            'query' => ['required', 'string', 'min:3', 'max:100'],
+        ]);
+
+        $query = $request->input('query');
+
+        // Search users by email (exact or partial match)
+        // For better privacy, prioritize exact email matches
         $users = \App\Models\User::query()
             ->where('id', '!=', $request->user()->id)
+            ->where(function ($q) use ($query) {
+                $q->where('email', $query) // Exact match first
+                    ->orWhere('email', 'like', "{$query}%"); // Or starts with
+            })
             ->select('id', 'name', 'email', 'avatar')
+            ->orderByRaw('CASE WHEN email = ? THEN 0 ELSE 1 END', [$query])
             ->orderBy('name')
+            ->limit(10)
             ->get();
 
         return response()->json([

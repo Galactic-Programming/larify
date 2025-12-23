@@ -1,9 +1,21 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { TrashFilter, TrashSortBy } from '@/types/trash.d';
-import { CheckSquare, Clock, FolderKanban, LayoutList, Search } from 'lucide-react';
+import {
+    CheckSquare,
+    Clock,
+    FolderKanban,
+    LayoutList,
+    Search,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface TrashFiltersProps {
@@ -46,7 +58,10 @@ export function TrashFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     All
-                    <Badge variant={filter === 'all' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <Badge
+                        variant={filter === 'all' ? 'secondary' : 'outline'}
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {counts.all}
                     </Badge>
                 </Button>
@@ -57,8 +72,13 @@ export function TrashFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <FolderKanban className="size-4" />
-                    <span className="hidden xs:inline">Projects</span>
-                    <Badge variant={filter === 'projects' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <span className="xs:inline hidden">Projects</span>
+                    <Badge
+                        variant={
+                            filter === 'projects' ? 'secondary' : 'outline'
+                        }
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {counts.projects}
                     </Badge>
                 </Button>
@@ -69,8 +89,11 @@ export function TrashFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <LayoutList className="size-4" />
-                    <span className="hidden xs:inline">Lists</span>
-                    <Badge variant={filter === 'lists' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <span className="xs:inline hidden">Lists</span>
+                    <Badge
+                        variant={filter === 'lists' ? 'secondary' : 'outline'}
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {counts.lists}
                     </Badge>
                 </Button>
@@ -81,8 +104,11 @@ export function TrashFilters({
                     className="flex-1 gap-1 text-xs sm:flex-initial sm:gap-1.5 sm:text-sm"
                 >
                     <CheckSquare className="size-4" />
-                    <span className="hidden xs:inline">Tasks</span>
-                    <Badge variant={filter === 'tasks' ? 'secondary' : 'outline'} className="ml-0.5 sm:ml-1">
+                    <span className="xs:inline hidden">Tasks</span>
+                    <Badge
+                        variant={filter === 'tasks' ? 'secondary' : 'outline'}
+                        className="ml-0.5 sm:ml-1"
+                    >
                         {counts.tasks}
                     </Badge>
                 </Button>
@@ -90,7 +116,12 @@ export function TrashFilters({
 
             {/* Sort & Search */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <Select value={sortBy} onValueChange={(value) => onSortChange(value as TrashSortBy)}>
+                <Select
+                    value={sortBy}
+                    onValueChange={(value) =>
+                        onSortChange(value as TrashSortBy)
+                    }
+                >
                     <SelectTrigger className="h-9 w-full sm:w-40">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
@@ -117,7 +148,7 @@ export function TrashFilters({
                 </Select>
 
                 <div className="group relative">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
                     <Input
                         type="text"
                         placeholder="Search deleted items..."

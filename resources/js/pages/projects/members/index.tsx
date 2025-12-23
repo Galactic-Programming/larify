@@ -1,16 +1,16 @@
 import AppLayout from '@/layouts/app-layout';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as membersIndex } from '@/routes/projects/members';
-import { type BreadcrumbItem, type User as AuthUser } from '@/types';
+import { type User as AuthUser, type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { AddMemberDialog } from './components/add-member-dialog';
+import { MembersEmptyState } from './components/members-empty-state';
 import { MembersHeader } from './components/members-header';
 import { MembersList } from './components/members-list';
-import { MembersEmptyState } from './components/members-empty-state';
-import { AddMemberDialog } from './components/add-member-dialog';
-import { UpdateRoleDialog } from './components/update-role-dialog';
 import { RemoveMemberDialog } from './components/remove-member-dialog';
+import { UpdateRoleDialog } from './components/update-role-dialog';
 import type { Member, ProjectWithMembers } from './lib/types';
 
 interface Props {
@@ -48,7 +48,7 @@ export default function MembersIndex({ project }: Props) {
             is_owner: true,
         },
         // Then other members
-        ...project.members.filter(m => m.id !== project.user_id),
+        ...project.members.filter((m) => m.id !== project.user_id),
     ];
 
     const handleEditMember = (member: Member) => {
@@ -99,7 +99,9 @@ export default function MembersIndex({ project }: Props) {
                     project={project}
                     member={editingMember}
                     open={!!editingMember}
-                    onOpenChange={(open: boolean) => !open && setEditingMember(null)}
+                    onOpenChange={(open: boolean) =>
+                        !open && setEditingMember(null)
+                    }
                 />
             )}
 
@@ -109,7 +111,9 @@ export default function MembersIndex({ project }: Props) {
                     project={project}
                     member={removingMember}
                     open={!!removingMember}
-                    onOpenChange={(open: boolean) => !open && setRemovingMember(null)}
+                    onOpenChange={(open: boolean) =>
+                        !open && setRemovingMember(null)
+                    }
                 />
             )}
         </AppLayout>

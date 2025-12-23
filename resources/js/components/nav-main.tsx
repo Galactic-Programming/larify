@@ -1,3 +1,4 @@
+import { Kbd } from '@/components/ui/kbd';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -5,7 +6,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Kbd } from '@/components/ui/kbd';
 import { resolveUrl } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';

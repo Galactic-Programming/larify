@@ -5,4 +5,4 @@ export {
     AnimatedTooltip,
     type AnimatedTooltipItem,
     type AnimatedTooltipProps,
-} from './motion-tooltip'
+} from './motion-tooltip';
