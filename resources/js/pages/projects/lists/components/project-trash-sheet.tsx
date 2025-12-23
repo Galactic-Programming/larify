@@ -371,9 +371,9 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <SheetTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:gap-2 sm:px-3">
-                            <Trash2 className="size-3.5 sm:size-4" />
-                            <span className="hidden sm:inline">Trash</span>
+                        <Button>
+                            <Trash2 className="size-4" />
+                            Trash
                         </Button>
                     </SheetTrigger>
                 </TooltipTrigger>

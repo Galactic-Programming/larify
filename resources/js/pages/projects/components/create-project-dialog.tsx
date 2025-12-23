@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { isPresetColor, PRESET_COLORS } from '@/pages/projects/lib/constants';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
@@ -44,14 +45,19 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>
-                {trigger ?? (
-                    <Button>
-                        <Plus className="size-4" />
-                        New Project
-                    </Button>
-                )}
-            </DialogTrigger>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                        {trigger ?? (
+                            <Button>
+                                <Plus className="size-4" />
+                                New Project
+                            </Button>
+                        )}
+                    </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Create New Project</TooltipContent>
+            </Tooltip>
             <DialogContent className="sm:max-w-lg">
                 <Form
                     {...store.form()}

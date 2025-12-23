@@ -208,10 +208,10 @@ export function ListsHeader({
                 {/* Members Button */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" asChild className="gap-1.5 px-2 sm:gap-2 sm:px-3">
+                        <Button asChild>
                             <Link href={membersIndex(project).url}>
-                                <Users className="size-3.5 sm:size-4" />
-                                <span className="hidden sm:inline">Members</span>
+                                <Users className="size-4" />
+                                Members
                             </Link>
                         </Button>
                     </TooltipTrigger>

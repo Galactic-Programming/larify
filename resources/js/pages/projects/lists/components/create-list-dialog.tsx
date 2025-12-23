@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { store } from '@/actions/App/Http/Controllers/TaskLists/TaskListController';
 import { Form } from '@inertiajs/react';
 import { LayoutList, Plus } from 'lucide-react';
@@ -33,14 +34,19 @@ export function CreateListDialog({ project, trigger }: CreateListDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger ?? (
-                    <Button>
-                        <Plus className="size-4" />
-                        New List
-                    </Button>
-                )}
-            </DialogTrigger>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                        {trigger ?? (
+                            <Button>
+                                <Plus className="size-4" />
+                                New List
+                            </Button>
+                        )}
+                    </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Create New List</TooltipContent>
+            </Tooltip>
             <DialogContent className="sm:max-w-md">
                 <Form
                     {...store.form(project)}
