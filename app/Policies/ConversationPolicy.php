@@ -51,16 +51,17 @@ class ConversationPolicy
 
     /**
      * Determine whether the user can delete the conversation.
-     * Only group owners can delete.
-     * Direct conversations cannot be deleted (only archived/left).
+     * Group owners can delete groups.
+     * Direct conversation participants can archive (hide for themselves only).
      */
     public function delete(User $user, Conversation $conversation): bool
     {
-        // Direct conversations cannot be deleted
+        // Direct conversations: any participant can archive
         if ($conversation->isDirect()) {
-            return false;
+            return $conversation->hasParticipant($user);
         }
 
+        // Groups: only owners can delete
         return $this->isOwner($user, $conversation);
     }
 

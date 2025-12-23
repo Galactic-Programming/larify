@@ -33,6 +33,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import {
+    Archive,
     ArrowLeft,
     Check,
     CheckCheck,
@@ -771,8 +772,18 @@ export default function ConversationShow({
                                                     }
                                                     className="text-destructive"
                                                 >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete conversation
+                                                    {conversation.type ===
+                                                        'direct' ? (
+                                                        <>
+                                                            <Archive className="mr-2 h-4 w-4" />
+                                                            Archive conversation
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Delete conversation
+                                                        </>
+                                                    )}
                                                 </DropdownMenuItem>
                                             </>
                                         )}
@@ -942,18 +953,22 @@ export default function ConversationShow({
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Delete Conversation Confirmation Dialog */}
+            {/* Delete/Archive Conversation Confirmation Dialog */}
             <AlertDialog
                 open={showDeleteConversation}
                 onOpenChange={(open) => !open && setShowDeleteConversation(false)}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {conversation.type === 'direct'
+                                ? 'Archive Conversation'
+                                : 'Delete Conversation'}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete this conversation?
-                            All messages and attachments will be permanently
-                            deleted. This action cannot be undone.
+                            {conversation.type === 'direct'
+                                ? 'Are you sure you want to archive this conversation? It will be hidden from your list but the other person can still see it.'
+                                : 'Are you sure you want to delete this conversation? All messages and attachments will be permanently deleted. This action cannot be undone.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -966,8 +981,12 @@ export default function ConversationShow({
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             {isDeletingConversation
-                                ? 'Deleting...'
-                                : 'Delete Conversation'}
+                                ? conversation.type === 'direct'
+                                    ? 'Archiving...'
+                                    : 'Deleting...'
+                                : conversation.type === 'direct'
+                                    ? 'Archive'
+                                    : 'Delete Conversation'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

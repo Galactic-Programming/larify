@@ -20,6 +20,7 @@ class ConversationParticipant extends Model
         'notifications_muted',
         'joined_at',
         'left_at',
+        'archived_at',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class ConversationParticipant extends Model
             'notifications_muted' => 'boolean',
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
+            'archived_at' => 'datetime',
         ];
     }
 
@@ -82,6 +84,30 @@ class ConversationParticipant extends Model
     }
 
     /**
+     * Check if the participant has archived the conversation.
+     */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    /**
+     * Archive the conversation for this participant.
+     */
+    public function archive(): void
+    {
+        $this->update(['archived_at' => now()]);
+    }
+
+    /**
+     * Unarchive the conversation for this participant.
+     */
+    public function unarchive(): void
+    {
+        $this->update(['archived_at' => null]);
+    }
+
+    /**
      * Mark messages as read up to now.
      */
     public function markAsRead(): void
@@ -111,6 +137,14 @@ class ConversationParticipant extends Model
     public function scopeActive($query)
     {
         return $query->whereNull('left_at');
+    }
+
+    /**
+     * Scope to get non-archived participants only.
+     */
+    public function scopeNotArchived($query)
+    {
+        return $query->whereNull('archived_at');
     }
 
     /**

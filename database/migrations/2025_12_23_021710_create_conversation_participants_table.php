@@ -21,10 +21,12 @@ return new class extends Migration
             $table->boolean('notifications_muted')->default(false);
             $table->timestamp('joined_at')->useCurrent();
             $table->timestamp('left_at')->nullable(); // When user leaves group
+            $table->timestamp('archived_at')->nullable(); // When user archives/hides conversation
             $table->timestamps();
 
             $table->unique(['conversation_id', 'user_id']);
             $table->index(['user_id', 'left_at']);
+            $table->index(['user_id', 'archived_at']);
             $table->index(['conversation_id', 'role']);
         });
     }

@@ -290,3 +290,59 @@ it('prevents owner from leaving group conversation', function () {
 
     $response->assertForbidden();
 });
+
+// === ARCHIVING DIRECT CONVERSATION ===
+
+it('allows user to archive direct conversation', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+
+    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+
+    $response = $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
+
+    $response->assertRedirect(route('conversations.index'));
+
+    // Conversation should still exist
+    expect(Conversation::find($conversation->id))->not->toBeNull();
+
+    // User1's participant record should be archived
+    $participant1 = $conversation->participantRecords()->where('user_id', $user1->id)->first();
+    expect($participant1->archived_at)->not->toBeNull();
+
+    // User2's participant record should NOT be archived
+    $participant2 = $conversation->participantRecords()->where('user_id', $user2->id)->first();
+    expect($participant2->archived_at)->toBeNull();
+});
+
+it('hides archived conversation from user list', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+
+    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+
+    // Archive the conversation for user1
+    $conversation->participantRecords()
+        ->where('user_id', $user1->id)
+        ->update(['archived_at' => now()]);
+
+    // User1 should not see the conversation
+    expect($user1->activeConversations()->count())->toBe(0);
+
+    // User2 should still see the conversation
+    expect($user2->activeConversations()->count())->toBe(1);
+});
+
+it('allows other user to still see archived conversation', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+
+    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+
+    // User1 archives the conversation
+    $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
+
+    // User2 can still view the conversation
+    $response = $this->actingAs($user2)->get(route('conversations.show', $conversation));
+    $response->assertOk();
+});

@@ -26,7 +26,7 @@ class ConversationController extends Controller
     protected function getConversationsList(Request $request): \Illuminate\Support\Collection
     {
         return $request->user()
-            ->conversations()
+            ->activeConversations()
             ->with(['latestMessage.sender:id,name,avatar', 'activeParticipants:id,name,avatar'])
             ->orderByDesc('last_message_at')
             ->orderByDesc('created_at')
@@ -270,10 +270,21 @@ class ConversationController extends Controller
 
     /**
      * Remove the specified conversation (soft delete/archive).
+     * For direct conversations: archive (hide) for current user only.
+     * For groups: delete entirely.
      */
-    public function destroy(Conversation $conversation): RedirectResponse
+    public function destroy(Request $request, Conversation $conversation): RedirectResponse
     {
         Gate::authorize('delete', $conversation);
+
+        if ($conversation->isDirect()) {
+            // For direct conversations: archive for current user only
+            $conversation->participantRecords()
+                ->where('user_id', $request->user()->id)
+                ->update(['archived_at' => now()]);
+
+            return to_route('conversations.index')->with('success', 'Conversation archived.');
+        }
 
         // For groups: delete the conversation entirely
         $conversation->delete();
