@@ -36,7 +36,9 @@ class StoreTaskListRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('lists', 'name')->where('project_id', $project->id),
+                Rule::unique('lists', 'name')
+                    ->where('project_id', $project->id)
+                    ->whereNull('deleted_at'),
             ],
         ];
     }

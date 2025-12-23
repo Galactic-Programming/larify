@@ -75,6 +75,7 @@ class ProjectTrashController extends Controller
 
     /**
      * Restore a trashed list within the project.
+     * If the name conflicts with an existing list, auto-suffix will be applied.
      */
     public function restoreList(Request $request, Project $project, int $listId): RedirectResponse
     {
@@ -84,9 +85,14 @@ class ProjectTrashController extends Controller
 
         Gate::authorize('restore', [$list, $project]);
 
-        $list->restore();
+        $originalName = $list->name;
+        $list->restoreWithUniqueName();
 
-        return back()->with('success', 'List restored successfully.');
+        $message = $list->name !== $originalName
+            ? "List restored as '{$list->name}' (original name was already taken)."
+            : 'List restored successfully.';
+
+        return back()->with('success', $message);
     }
 
     /**

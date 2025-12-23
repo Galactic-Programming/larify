@@ -89,4 +89,52 @@ class TaskList extends Model
     {
         return $this->hasMany(Task::class, 'list_id')->orderBy('position');
     }
+
+    /**
+     * Generate a unique name for restore if the current name conflicts.
+     * Returns the original name if no conflict, or "Name (1)", "Name (2)", etc.
+     */
+    public function getUniqueNameForRestore(): string
+    {
+        $baseName = $this->name;
+
+        // Check if there's an active list with the same name
+        $existingList = static::where('project_id', $this->project_id)
+            ->where('name', $baseName)
+            ->whereNull('deleted_at')
+            ->where('id', '!=', $this->id)
+            ->exists();
+
+        if (! $existingList) {
+            return $baseName;
+        }
+
+        // Find a unique suffix
+        $counter = 1;
+        do {
+            $newName = "{$baseName} ({$counter})";
+            $exists = static::where('project_id', $this->project_id)
+                ->where('name', $newName)
+                ->whereNull('deleted_at')
+                ->exists();
+            $counter++;
+        } while ($exists);
+
+        return $newName;
+    }
+
+    /**
+     * Restore the list with auto-suffix if name conflicts.
+     */
+    public function restoreWithUniqueName(): void
+    {
+        $uniqueName = $this->getUniqueNameForRestore();
+
+        if ($uniqueName !== $this->name) {
+            $this->name = $uniqueName;
+            $this->saveQuietly(); // Save without triggering events
+        }
+
+        $this->restore();
+    }
 }

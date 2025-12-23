@@ -44,6 +44,7 @@ class UpdateTaskListRequest extends FormRequest
                 'max:255',
                 Rule::unique('lists', 'name')
                     ->where('project_id', $project->id)
+                    ->whereNull('deleted_at')
                     ->ignore($list->id),
             ],
         ];
