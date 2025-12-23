@@ -60,6 +60,22 @@ class ConversationController extends Controller
     }
 
     /**
+     * Show the form for creating a new conversation.
+     */
+    public function create(Request $request): Response
+    {
+        $users = \App\Models\User::query()
+            ->where('id', '!=', $request->user()->id)
+            ->select('id', 'name', 'email', 'avatar')
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('conversations/create', [
+            'users' => $users,
+        ]);
+    }
+
+    /**
      * Store a newly created conversation.
      */
     public function store(StoreConversationRequest $request): RedirectResponse
