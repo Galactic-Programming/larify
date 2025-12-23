@@ -3,12 +3,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Activity } from '@/types/notifications.d';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { ActivityItem } from './activity-item';
+import { ActivityTimeline } from './activity-timeline';
 
 interface ActivityListProps {
     activities: Activity[];
     isLoading?: boolean;
     hasMore?: boolean;
     onLoadMore?: () => void;
+    viewMode?: 'list' | 'timeline';
 }
 
 // Animation variants
@@ -47,7 +49,21 @@ export function ActivityList({
     isLoading,
     hasMore,
     onLoadMore,
+    viewMode = 'timeline',
 }: ActivityListProps) {
+    // Use timeline view by default
+    if (viewMode === 'timeline') {
+        return (
+            <ActivityTimeline
+                activities={activities}
+                isLoading={isLoading}
+                hasMore={hasMore}
+                onLoadMore={onLoadMore}
+            />
+        );
+    }
+
+    // Original list view
     if (isLoading && activities.length === 0) {
         return (
             <div className="flex flex-col gap-3">
