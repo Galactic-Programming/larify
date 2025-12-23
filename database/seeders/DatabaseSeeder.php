@@ -39,11 +39,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PlanSeeder::class,
             ProjectSeeder::class,
-            // Chat seeders
-            ConversationSeeder::class,
-            ConversationParticipantSeeder::class,
-            MessageSeeder::class,
-            MessageAttachmentSeeder::class,
         ]);
     }
 }

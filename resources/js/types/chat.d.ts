@@ -24,8 +24,9 @@ export interface MessageAttachment {
 
 export interface MessageParent {
     id: number;
-    content: string;
-    sender_name?: string;
+    content: string | null;
+    sender_name?: string | null;
+    is_deleted?: boolean;
 }
 
 export interface Message {
@@ -40,6 +41,7 @@ export interface Message {
         avatar?: string;
     } | null;
     is_mine: boolean;
+    is_read?: boolean;
     parent?: MessageParent;
     attachments: MessageAttachment[];
 }

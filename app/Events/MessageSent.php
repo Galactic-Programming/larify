@@ -52,11 +52,19 @@ class MessageSent implements ShouldBroadcastNow
                     'name' => $this->message->sender->name,
                     'avatar' => $this->message->sender->avatar,
                 ],
+                'is_mine' => false, // Broadcast is always for other users
+                'parent' => $this->message->parent ? [
+                    'id' => $this->message->parent->id,
+                    'content' => $this->message->parent->trashed() ? null : $this->message->parent->content,
+                    'sender_name' => $this->message->parent->trashed() ? null : $this->message->parent->sender?->name,
+                    'is_deleted' => $this->message->parent->trashed(),
+                ] : null,
                 'attachments' => $this->message->attachments->map(fn ($a) => [
                     'id' => $a->id,
                     'original_name' => $a->original_name,
                     'mime_type' => $a->mime_type,
                     'size' => $a->size,
+                    'human_size' => $a->human_size,
                     'url' => $a->url,
                 ])->toArray(),
             ],

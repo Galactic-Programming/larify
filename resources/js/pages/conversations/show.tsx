@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,7 +17,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+import { MessageInput } from '@/components/ui/message-input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Tooltip,
@@ -24,12 +34,12 @@ import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import {
     ArrowLeft,
+    Check,
+    CheckCheck,
     Edit2,
-    Loader2,
     MoreVertical,
     Paperclip,
     Reply,
-    Send,
     Settings,
     Trash2,
     Users,
@@ -130,10 +140,20 @@ function MessageBubble({
                                 : 'border-muted-foreground/50 bg-muted/80 text-muted-foreground',
                         )}
                     >
-                        <span className="font-medium">
-                            {message.parent.sender_name}
-                        </span>
-                        <p className="truncate">{message.parent.content}</p>
+                        {message.parent.is_deleted ? (
+                            <p className="truncate italic opacity-70">
+                                Deleted message
+                            </p>
+                        ) : (
+                            <>
+                                <span className="font-medium">
+                                    {message.parent.sender_name}
+                                </span>
+                                <p className="truncate">
+                                    {message.parent.content}
+                                </p>
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -249,6 +269,14 @@ function MessageBubble({
                         >
                             <span>{formatMessageTime(message.created_at)}</span>
                             {message.is_edited && <span>(edited)</span>}
+                            {/* Read status checkmarks (only for own messages) */}
+                            {isMine && (
+                                message.is_read ? (
+                                    <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+                                ) : (
+                                    <Check className="h-3.5 w-3.5" />
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
@@ -264,8 +292,8 @@ function TypingIndicator({ names }: { names: string[] }) {
         names.length === 1
             ? `${names[0]} is typing...`
             : names.length === 2
-              ? `${names[0]} and ${names[1]} are typing...`
-              : `${names[0]} and ${names.length - 1} others are typing...`;
+                ? `${names[0]} and ${names[1]} are typing...`
+                : `${names[0]} and ${names.length - 1} others are typing...`;
 
     return (
         <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
@@ -293,10 +321,10 @@ export default function ConversationShow({
         new Map(),
     );
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const lastTypingRef = useRef<number>(0);
     const hasMarkedAsReadRef = useRef(false);
 
@@ -339,9 +367,19 @@ export default function ConversationShow({
         `conversation.${conversation.id}`,
         '.message.sent',
         (data: { message: Message }) => {
-            setMessages((prev) => [...prev, data.message]);
+            // Only add message if it's not from the current user
+            // (the sender already adds their message from the API response)
+            if (data.message.sender?.id !== auth.user.id) {
+                setMessages((prev) => {
+                    // Also check for duplicates by message ID
+                    if (prev.some((m) => m.id === data.message.id)) {
+                        return prev;
+                    }
+                    return [...prev, data.message];
+                });
+            }
         },
-        [],
+        [auth.user.id],
         'private',
     );
 
@@ -361,7 +399,25 @@ export default function ConversationShow({
         `conversation.${conversation.id}`,
         '.message.deleted',
         (data: { message_id: number }) => {
-            setMessages((prev) => prev.filter((m) => m.id !== data.message_id));
+            setMessages((prev) =>
+                prev
+                    .filter((m) => m.id !== data.message_id)
+                    .map((m) => {
+                        // Update parent reference for replies to the deleted message
+                        if (m.parent?.id === data.message_id) {
+                            return {
+                                ...m,
+                                parent: {
+                                    ...m.parent,
+                                    content: null,
+                                    sender_name: null,
+                                    is_deleted: true,
+                                },
+                            };
+                        }
+                        return m;
+                    })
+            );
         },
         [],
         'private',
@@ -387,6 +443,29 @@ export default function ConversationShow({
                     return next;
                 });
             }, 3000);
+        },
+        [],
+        'private',
+    );
+
+    // Listen for messages read event
+    useEcho(
+        `conversation.${conversation.id}`,
+        '.messages.read',
+        (data: { reader_id: number; read_at: string }) => {
+            console.log('MessagesRead event received:', data);
+            // Don't process if the reader is the current user
+            if (data.reader_id === auth.user.id) return;
+
+            // Mark all own messages as read that were sent before read_at
+            setMessages((prev) =>
+                prev.map((msg) => {
+                    if (msg.is_mine && !msg.is_read && new Date(msg.created_at) <= new Date(data.read_at)) {
+                        return { ...msg, is_read: true };
+                    }
+                    return msg;
+                }),
+            );
         },
         [],
         'private',
@@ -456,7 +535,13 @@ export default function ConversationShow({
 
             if (response.ok) {
                 const data = await response.json();
-                setMessages((prev) => [...prev, data.message]);
+                setMessages((prev) => {
+                    // Prevent duplicates
+                    if (prev.some((m) => m.id === data.message.id)) {
+                        return prev;
+                    }
+                    return [...prev, data.message];
+                });
                 setReplyingTo(null);
                 setSelectedFiles([]);
             }
@@ -464,21 +549,7 @@ export default function ConversationShow({
             console.error('Failed to send message:', error);
         } finally {
             setIsSending(false);
-            inputRef.current?.focus();
         }
-    };
-
-    const handleFileSelect = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        setSelectedFiles(files);
-    };
-
-    const removeFile = (index: number) => {
-        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     // Edit message
@@ -521,12 +592,13 @@ export default function ConversationShow({
     };
 
     // Delete message
-    const handleDelete = async (messageId: number) => {
-        if (!confirm('Delete this message?')) return;
+    const confirmDelete = async () => {
+        if (!deleteMessageId) return;
 
+        setIsDeleting(true);
         try {
             const response = await fetch(
-                `/conversations/${conversation.id}/messages/${messageId}`,
+                `/conversations/${conversation.id}/messages/${deleteMessageId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -539,10 +611,31 @@ export default function ConversationShow({
             );
 
             if (response.ok) {
-                setMessages((prev) => prev.filter((m) => m.id !== messageId));
+                setMessages((prev) =>
+                    prev
+                        .filter((m) => m.id !== deleteMessageId)
+                        .map((m) => {
+                            // Update parent reference for replies to the deleted message
+                            if (m.parent?.id === deleteMessageId) {
+                                return {
+                                    ...m,
+                                    parent: {
+                                        ...m.parent,
+                                        content: null,
+                                        sender_name: null,
+                                        is_deleted: true,
+                                    },
+                                };
+                            }
+                            return m;
+                        })
+                );
             }
         } catch (error) {
             console.error('Failed to delete message:', error);
+        } finally {
+            setIsDeleting(false);
+            setDeleteMessageId(null);
         }
     };
 
@@ -550,7 +643,6 @@ export default function ConversationShow({
         setEditingMessage(message);
         setInputValue(message.content);
         setReplyingTo(null);
-        inputRef.current?.focus();
     };
 
     const cancelEditing = () => {
@@ -659,56 +751,57 @@ export default function ConversationShow({
                 </div>
 
                 {/* Messages */}
-                <ScrollArea className="flex-1 p-4">
-                    <div className="mx-auto max-w-3xl space-y-4">
-                        {messages.map((message, index) => {
-                            const prevMessage = messages[index - 1];
-                            const showDateSeparator = shouldShowDateSeparator(
-                                message,
-                                prevMessage,
-                            );
-                            const showAvatar =
-                                !prevMessage ||
-                                prevMessage.sender?.id !== message.sender?.id ||
-                                showDateSeparator;
+                <div className="min-h-0 flex-1">
+                    <ScrollArea className="h-full">
+                        <div className="space-y-4 p-4">
+                            {messages.map((message, index) => {
+                                const prevMessage = messages[index - 1];
+                                const showDateSeparator = shouldShowDateSeparator(
+                                    message,
+                                    prevMessage,
+                                );
+                                const showAvatar =
+                                    !prevMessage ||
+                                    prevMessage.sender?.id !== message.sender?.id ||
+                                    showDateSeparator;
 
-                            return (
-                                <div key={message.id}>
-                                    {showDateSeparator && (
-                                        <div className="my-4 flex items-center gap-4">
-                                            <div className="h-px flex-1 bg-border" />
-                                            <span className="text-xs text-muted-foreground">
-                                                {formatDateSeparator(
-                                                    message.created_at,
-                                                )}
-                                            </span>
-                                            <div className="h-px flex-1 bg-border" />
-                                        </div>
-                                    )}
-                                    <MessageBubble
-                                        message={message}
-                                        showAvatar={showAvatar}
-                                        onReply={() => {
-                                            setReplyingTo(message);
-                                            setEditingMessage(null);
-                                            inputRef.current?.focus();
-                                        }}
-                                        onEdit={() => startEditing(message)}
-                                        onDelete={() =>
-                                            handleDelete(message.id)
-                                        }
-                                        canEdit={message.is_mine}
-                                        canDelete={
-                                            message.is_mine ||
-                                            conversation.can_manage_participants
-                                        }
-                                    />
-                                </div>
-                            );
-                        })}
-                        <div ref={messagesEndRef} />
-                    </div>
-                </ScrollArea>
+                                return (
+                                    <div key={message.id}>
+                                        {showDateSeparator && (
+                                            <div className="my-4 flex items-center gap-4">
+                                                <div className="h-px flex-1 bg-border" />
+                                                <span className="text-xs text-muted-foreground">
+                                                    {formatDateSeparator(
+                                                        message.created_at,
+                                                    )}
+                                                </span>
+                                                <div className="h-px flex-1 bg-border" />
+                                            </div>
+                                        )}
+                                        <MessageBubble
+                                            message={message}
+                                            showAvatar={showAvatar}
+                                            onReply={() => {
+                                                setReplyingTo(message);
+                                                setEditingMessage(null);
+                                            }}
+                                            onEdit={() => startEditing(message)}
+                                            onDelete={() =>
+                                                setDeleteMessageId(message.id)
+                                            }
+                                            canEdit={message.is_mine}
+                                            canDelete={
+                                                message.is_mine ||
+                                                conversation.can_manage_participants
+                                            }
+                                        />
+                                    </div>
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    </ScrollArea>
+                </div>
 
                 {/* Typing indicator */}
                 <TypingIndicator names={Array.from(typingUsers.values())} />
@@ -753,92 +846,68 @@ export default function ConversationShow({
                         onSubmit={
                             editingMessage
                                 ? (e) => {
-                                      e.preventDefault();
-                                      handleEdit();
-                                  }
+                                    e.preventDefault();
+                                    handleEdit();
+                                }
                                 : handleSubmit
                         }
-                        className="mx-auto max-w-3xl space-y-2"
                     >
-                        {/* File preview */}
-                        {selectedFiles.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {selectedFiles.map((file, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center gap-2 rounded bg-muted px-3 py-2 text-sm"
-                                    >
-                                        <Paperclip className="h-4 w-4" />
-                                        <span className="max-w-50 truncate">
-                                            {file.name}
-                                        </span>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5"
-                                            onClick={() => removeFile(index)}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                multiple
-                                className="hidden"
-                                onChange={handleFilesChange}
-                            />
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="shrink-0"
-                                onClick={handleFileSelect}
-                                disabled={editingMessage !== null}
-                            >
-                                <Paperclip className="h-5 w-5" />
-                            </Button>
-                            <Input
-                                ref={inputRef}
-                                type="text"
-                                placeholder={
-                                    editingMessage
-                                        ? 'Edit your message...'
-                                        : 'Type a message...'
+                        <MessageInput
+                            placeholder={
+                                editingMessage
+                                    ? 'Edit your message...'
+                                    : 'Type a message...'
+                            }
+                            value={inputValue}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            isGenerating={isSending}
+                            allowAttachments={true}
+                            files={editingMessage ? null : (selectedFiles.length > 0 ? selectedFiles : null)}
+                            setFiles={(files) => {
+                                if (editingMessage) return; // Don't allow file changes while editing
+                                if (typeof files === 'function') {
+                                    setSelectedFiles((prev) => {
+                                        const result = files(prev.length > 0 ? prev : null);
+                                        return result ?? [];
+                                    });
+                                } else {
+                                    setSelectedFiles(files ?? []);
                                 }
-                                value={inputValue}
-                                onChange={(e) =>
-                                    handleInputChange(e.target.value)
-                                }
-                                className="flex-1"
-                                disabled={isSending}
-                            />
-                            <Button
-                                type="submit"
-                                size="icon"
-                                disabled={
-                                    (!inputValue.trim() &&
-                                        selectedFiles.length === 0) ||
-                                    isSending
-                                }
-                                className="shrink-0"
-                            >
-                                {isSending ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : (
-                                    <Send className="h-5 w-5" />
-                                )}
-                            </Button>
-                        </div>
+                            }}
+                            submitOnEnter={true}
+                            enableInterrupt={false}
+                        />
                     </form>
                 </div>
             </div>
+
+            {/* Delete Message Confirmation Dialog */}
+            <AlertDialog
+                open={deleteMessageId !== null}
+                onOpenChange={(open) => !open && setDeleteMessageId(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Message</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this message? This
+                            action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </ChatLayout>
     );
 }

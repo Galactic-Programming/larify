@@ -61,10 +61,11 @@ class Message extends Model
 
     /**
      * Get the parent message (for replies).
+     * Include soft-deleted messages so we can show "Deleted message" placeholder.
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Message::class, 'parent_id');
+        return $this->belongsTo(Message::class, 'parent_id')->withTrashed();
     }
 
     /**

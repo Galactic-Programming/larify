@@ -174,19 +174,29 @@ class ConversationController extends Controller
     {
         Gate::authorize('view', $conversation);
 
-        // Mark messages as read
+        // Mark messages as read and broadcast
+        $now = now();
         $conversation->participantRecords()
             ->where('user_id', $request->user()->id)
-            ->update(['last_read_at' => now()]);
+            ->update(['last_read_at' => $now]);
 
-        // Load conversation with messages and participants
+        // Broadcast that messages were read
+        event(new \App\Events\MessagesRead($conversation, $request->user(), $now->toISOString()));
+
+        // Load conversation with messages and participants (including last_read_at)
         $conversation->load([
             'activeParticipants:id,name,email,avatar',
+            'participantRecords' => fn ($query) => $query->whereNull('left_at'),
             'messages' => fn ($query) => $query
                 ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name'])
                 ->orderBy('created_at', 'asc')
                 ->limit(50),
         ]);
+
+        // Get other participants' last_read_at for read status
+        $otherParticipantsReadAt = $conversation->participantRecords
+            ->where('user_id', '!=', $request->user()->id)
+            ->pluck('last_read_at', 'user_id');
 
         return Inertia::render('conversations/show', [
             'conversations' => $this->getConversationsList($request),
@@ -203,32 +213,43 @@ class ConversationController extends Controller
                     'avatar' => $user->avatar,
                     'role' => $user->pivot->role,
                 ]),
-                'messages' => $conversation->messages->map(fn ($message) => [
-                    'id' => $message->id,
-                    'content' => $message->content,
-                    'is_edited' => $message->is_edited,
-                    'edited_at' => $message->edited_at?->toISOString(),
-                    'created_at' => $message->created_at->toISOString(),
-                    'sender' => $message->sender ? [
-                        'id' => $message->sender->id,
-                        'name' => $message->sender->name,
-                        'avatar' => $message->sender->avatar,
-                    ] : null,
-                    'is_mine' => $message->sender_id === $request->user()->id,
-                    'parent' => $message->parent ? [
-                        'id' => $message->parent->id,
-                        'content' => $message->parent->content,
-                        'sender_name' => $message->parent->sender?->name,
-                    ] : null,
-                    'attachments' => $message->attachments->map(fn ($a) => [
-                        'id' => $a->id,
-                        'original_name' => $a->original_name,
-                        'mime_type' => $a->mime_type,
-                        'size' => $a->size,
-                        'human_size' => $a->human_size,
-                        'url' => $a->url,
-                    ]),
-                ]),
+                'messages' => $conversation->messages->map(function ($message) use ($request, $otherParticipantsReadAt) {
+                    $isMine = $message->sender_id === $request->user()->id;
+
+                    // Check if message is read by at least one other participant
+                    $isRead = $isMine && $otherParticipantsReadAt->contains(function ($lastReadAt) use ($message) {
+                        return $lastReadAt && $lastReadAt >= $message->created_at;
+                    });
+
+                    return [
+                        'id' => $message->id,
+                        'content' => $message->content,
+                        'is_edited' => $message->is_edited,
+                        'edited_at' => $message->edited_at?->toISOString(),
+                        'created_at' => $message->created_at->toISOString(),
+                        'sender' => $message->sender ? [
+                            'id' => $message->sender->id,
+                            'name' => $message->sender->name,
+                            'avatar' => $message->sender->avatar,
+                        ] : null,
+                        'is_mine' => $isMine,
+                        'is_read' => $isRead,
+                        'parent' => $message->parent ? [
+                            'id' => $message->parent->id,
+                            'content' => $message->parent->trashed() ? null : $message->parent->content,
+                            'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
+                            'is_deleted' => $message->parent->trashed(),
+                        ] : null,
+                        'attachments' => $message->attachments->map(fn ($a) => [
+                            'id' => $a->id,
+                            'original_name' => $a->original_name,
+                            'mime_type' => $a->mime_type,
+                            'size' => $a->size,
+                            'human_size' => $a->human_size,
+                            'url' => $a->url,
+                        ]),
+                    ];
+                }),
                 'can_update' => Gate::allows('update', $conversation),
                 'can_manage_participants' => Gate::allows('manageParticipants', $conversation),
                 'can_leave' => Gate::allows('leave', $conversation),

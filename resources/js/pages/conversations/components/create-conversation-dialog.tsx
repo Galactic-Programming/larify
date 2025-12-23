@@ -207,7 +207,15 @@ export function CreateConversationDialog({
 
             if (!response.ok) {
                 if (data.errors) {
-                    setErrors(data.errors);
+                    // Laravel returns errors as arrays, convert to strings
+                    const formattedErrors: Record<string, string> = {};
+                    for (const [key, value] of Object.entries(data.errors)) {
+                        formattedErrors[key] = Array.isArray(value) ? value[0] : String(value);
+                    }
+                    setErrors(formattedErrors);
+                } else if (data.message) {
+                    // Handle general error message
+                    setErrors({ general: data.message });
                 }
                 return;
             }
@@ -248,6 +256,13 @@ export function CreateConversationDialog({
                         Create a direct message or a group conversation
                     </DialogDescription>
                 </DialogHeader>
+
+                {/* General error message */}
+                {errors.general && (
+                    <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                        {errors.general}
+                    </div>
+                )}
 
                 <div className="space-y-4">
                     {/* Conversation Type */}

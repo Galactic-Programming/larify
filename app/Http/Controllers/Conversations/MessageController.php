@@ -58,8 +58,9 @@ class MessageController extends Controller
                 'is_mine' => $message->sender_id === $request->user()->id,
                 'parent' => $message->parent ? [
                     'id' => $message->parent->id,
-                    'content' => $message->parent->content,
-                    'sender_name' => $message->parent->sender?->name,
+                    'content' => $message->parent->trashed() ? null : $message->parent->content,
+                    'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
+                    'is_deleted' => $message->parent->trashed(),
                 ] : null,
                 'attachments' => $message->attachments->map(fn ($a) => [
                     'id' => $a->id,
@@ -104,7 +105,7 @@ class MessageController extends Controller
         }
 
         // Load relationships for broadcasting
-        $message->load(['sender:id,name,avatar', 'attachments']);
+        $message->load(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name']);
 
         // Broadcast the message
         broadcast(new MessageSent($message))->toOthers();
@@ -123,6 +124,12 @@ class MessageController extends Controller
                         'avatar' => $message->sender->avatar,
                     ],
                     'is_mine' => true,
+                    'parent' => $message->parent ? [
+                        'id' => $message->parent->id,
+                        'content' => $message->parent->trashed() ? null : $message->parent->content,
+                        'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
+                        'is_deleted' => $message->parent->trashed(),
+                    ] : null,
                     'attachments' => $message->attachments->map(fn ($a) => [
                         'id' => $a->id,
                         'original_name' => $a->original_name,
