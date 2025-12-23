@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Notification } from '@/types/notifications.d';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { NotificationItem } from './notification-item';
+import { NotificationTimeline } from './notification-timeline';
 
 interface NotificationListProps {
     notifications: Notification[];
@@ -11,6 +12,7 @@ interface NotificationListProps {
     onLoadMore?: () => void;
     onMarkAsRead?: (id: string) => void;
     onDelete?: (id: string) => void;
+    viewMode?: 'list' | 'timeline';
 }
 
 // Animation variants for staggered list
@@ -45,7 +47,23 @@ export function NotificationList({
     onLoadMore,
     onMarkAsRead,
     onDelete,
+    viewMode = 'timeline',
 }: NotificationListProps) {
+    // Use timeline view by default
+    if (viewMode === 'timeline') {
+        return (
+            <NotificationTimeline
+                notifications={notifications}
+                isLoading={isLoading}
+                hasMore={hasMore}
+                onLoadMore={onLoadMore}
+                onMarkAsRead={onMarkAsRead}
+                onDelete={onDelete}
+            />
+        );
+    }
+
+    // Original list view
     if (isLoading && notifications.length === 0) {
         return (
             <div className="flex flex-col gap-3">

@@ -1,16 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Activity } from '@/types/notifications.d';
+import type { Notification } from '@/types/notifications.d';
 import { FolderOpen } from 'lucide-react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { useMemo } from 'react';
-import { ActivityItem } from './activity-item';
+import { NotificationItem } from './notification-item';
 
-interface ActivityTimelineProps {
-    activities: Activity[];
+interface NotificationTimelineProps {
+    notifications: Notification[];
     isLoading?: boolean;
     hasMore?: boolean;
     onLoadMore?: () => void;
+    onMarkAsRead?: (id: string) => void;
+    onDelete?: (id: string) => void;
 }
 
 // Animation variants
@@ -25,54 +27,53 @@ const containerVariants: Variants = {
     },
 };
 
-// Group activities by project
+// Group notifications by project
 interface ProjectGroup {
     projectId: number;
     projectName: string;
     projectColor: string;
-    activities: Activity[];
-    latestActivityTime: string;
+    notifications: Notification[];
+    latestTime: string;
+    unreadCount: number;
 }
 
 /**
- * Group consecutive activities by project in chronological order.
- * This creates a timeline where:
- * - Activities are displayed in time order (newest first)
- * - Consecutive activities from the same project are grouped together
- * - When a different project's activity appears, a new group is created
- *
- * Example: If activities come in order P1, P1, P2, P1 → creates 3 groups: [P1, P1], [P2], [P1]
+ * Group consecutive notifications by project in chronological order.
  */
-function groupConsecutiveActivitiesByProject(activities: Activity[]): ProjectGroup[] {
-    if (activities.length === 0) return [];
+function groupConsecutiveNotificationsByProject(notifications: Notification[]): ProjectGroup[] {
+    if (notifications.length === 0) return [];
 
     const groups: ProjectGroup[] = [];
     let currentGroup: ProjectGroup | null = null;
 
-    activities.forEach((activity) => {
-        const projectId = activity.project?.id || 0;
-        const projectName = activity.project?.name || 'Unknown Project';
-        const projectColor = activity.project?.color || '#6b7280';
+    notifications.forEach((notification) => {
+        const projectId = notification.data.project_id || 0;
+        const projectName = notification.data.project_name || 'General';
+        const projectColor = notification.data.project_color || '#6b7280';
 
-        // If this activity belongs to a different project, start a new group
+        // If this notification belongs to a different project, start a new group
         if (!currentGroup || currentGroup.projectId !== projectId) {
             currentGroup = {
                 projectId,
                 projectName,
                 projectColor,
-                activities: [],
-                latestActivityTime: activity.created_at_human,
+                notifications: [],
+                latestTime: notification.created_at_human,
+                unreadCount: 0,
             };
             groups.push(currentGroup);
         }
 
-        currentGroup.activities.push(activity);
+        currentGroup.notifications.push(notification);
+        if (!notification.is_read) {
+            currentGroup.unreadCount++;
+        }
     });
 
     return groups;
 }
 
-function ActivitySkeleton() {
+function NotificationSkeleton() {
     return (
         <div className="relative pl-6">
             {/* Timeline dot */}
@@ -84,15 +85,9 @@ function ActivitySkeleton() {
                 <div className="flex items-start gap-3 rounded-lg border bg-card p-4">
                     <Skeleton className="size-10 rounded-full" />
                     <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="size-6 rounded-full" />
-                            <Skeleton className="h-4 w-32" />
-                        </div>
                         <Skeleton className="h-4 w-3/4" />
-                        <div className="flex items-center gap-3">
-                            <Skeleton className="h-5 w-24 rounded-full" />
-                            <Skeleton className="h-4 w-16" />
-                        </div>
+                        <Skeleton className="h-3 w-1/4" />
+                        <Skeleton className="h-5 w-24 rounded-full" />
                     </div>
                 </div>
             </div>
@@ -105,10 +100,14 @@ function ProjectTimelineGroup({
     group,
     groupIndex,
     isLastGroup,
+    onMarkAsRead,
+    onDelete,
 }: {
     group: ProjectGroup;
     groupIndex: number;
     isLastGroup: boolean;
+    onMarkAsRead?: (id: string) => void;
+    onDelete?: (id: string) => void;
 }) {
     return (
         <motion.div
@@ -131,36 +130,52 @@ function ProjectTimelineGroup({
                 <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-foreground">{group.projectName}</h3>
                     <span className="text-xs text-muted-foreground">
-                        {group.activities.length} {group.activities.length === 1 ? 'activity' : 'activities'}
+                        {group.notifications.length}{' '}
+                        {group.notifications.length === 1 ? 'notification' : 'notifications'}
                     </span>
-                    <span className="text-xs text-muted-foreground">• {group.latestActivityTime}</span>
+                    {group.unreadCount > 0 && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                            {group.unreadCount} unread
+                        </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">• {group.latestTime}</span>
                 </div>
             </div>
 
-            {/* Activities with timeline */}
+            {/* Notifications with timeline */}
             <div className="relative ml-3">
-                {/* Continuous timeline line - only for activities */}
+                {/* Continuous timeline line - only for notifications */}
                 <div
                     className="absolute left-0 top-0 w-0.5 rounded-full"
                     style={{
                         backgroundColor: group.projectColor,
                         opacity: 0.3,
-                        // Line from first dot to last dot
                         top: '20px',
                         height: `calc(100% - ${isLastGroup ? '44px' : '24px'})`,
                     }}
                 />
 
-                {/* Activities in this project */}
-                {group.activities.map((activity, index) => (
-                    <div key={activity.id} className="relative pb-4 pl-6">
-                        {/* Activity dot - centered on the timeline line */}
+                {/* Notifications in this project */}
+                {group.notifications.map((notification, index) => (
+                    <div key={notification.id} className="relative pb-4 pl-6">
+                        {/* Notification dot - centered on the timeline line */}
                         <div
                             className="absolute left-0 top-5 z-10 -translate-x-1/2 size-2.5 rounded-full ring-[3px] ring-background"
-                            style={{ backgroundColor: group.projectColor }}
+                            style={{
+                                backgroundColor: notification.is_read ? group.projectColor : undefined,
+                            }}
+                        >
+                            {/* Unread dot has primary color */}
+                            {!notification.is_read && (
+                                <div className="size-full rounded-full bg-primary animate-pulse" />
+                            )}
+                        </div>
+                        {/* Notification card */}
+                        <NotificationItem
+                            notification={notification}
+                            onMarkAsRead={onMarkAsRead}
+                            onDelete={onDelete}
                         />
-                        {/* Activity card */}
-                        <ActivityItem activity={activity} index={groupIndex * 10 + index} />
                     </div>
                 ))}
             </div>
@@ -171,25 +186,27 @@ function ProjectTimelineGroup({
     );
 }
 
-export function ActivityTimeline({
-    activities,
+export function NotificationTimeline({
+    notifications,
     isLoading,
     hasMore,
     onLoadMore,
-}: ActivityTimelineProps) {
+    onMarkAsRead,
+    onDelete,
+}: NotificationTimelineProps) {
     const projectGroups = useMemo(
-        () => groupConsecutiveActivitiesByProject(activities),
-        [activities]
+        () => groupConsecutiveNotificationsByProject(notifications),
+        [notifications],
     );
 
-    if (isLoading && activities.length === 0) {
+    if (isLoading && notifications.length === 0) {
         return (
             <div className="relative ml-3">
                 {/* Skeleton timeline line */}
                 <div className="absolute left-0 top-5 h-[calc(100%-44px)] w-0.5 rounded-full bg-muted opacity-30" />
                 <div className="flex flex-col">
                     {[...Array(5)].map((_, i) => (
-                        <ActivitySkeleton key={i} />
+                        <NotificationSkeleton key={i} />
                     ))}
                 </div>
             </div>
@@ -206,10 +223,12 @@ export function ActivityTimeline({
             <AnimatePresence mode="popLayout">
                 {projectGroups.map((group, groupIndex) => (
                     <ProjectTimelineGroup
-                        key={group.projectId}
+                        key={`${group.projectId}-${groupIndex}`}
                         group={group}
                         groupIndex={groupIndex}
                         isLastGroup={groupIndex === projectGroups.length - 1}
+                        onMarkAsRead={onMarkAsRead}
+                        onDelete={onDelete}
                     />
                 ))}
             </AnimatePresence>
