@@ -202,7 +202,7 @@ export function ChatSidebar({
                         </TabsTrigger>
                         <TabsTrigger value="direct" className="flex-1 gap-1 text-xs">
                             <User className="h-3 w-3" />
-                            DM
+                            Direct Messages
                             <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
                                 {counts.direct}
                             </Badge>

@@ -36,7 +36,7 @@ export default function ChatLayout({
                         conversations={conversations}
                         activeConversationId={activeConversationId}
                         className={cn(
-                            'w-80 shrink-0 border-r',
+                            'w-96 shrink-0 border-r',
                             // On mobile, hide sidebar when content is shown
                             showContent && 'hidden md:flex',
                         )}
