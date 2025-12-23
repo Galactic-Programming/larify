@@ -31,7 +31,7 @@ const ImageFilePreview = React.forwardRef<HTMLDivElement, FilePreviewProps>(
     return (
       <motion.div
         ref={ref}
-        className="relative flex max-w-[200px] rounded-md border p-1.5 pr-2 text-xs"
+        className="relative flex max-w-50 rounded-md border p-1.5 pr-2 text-xs"
         layout
         initial={{ opacity: 0, y: "100%" }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ const TextFilePreview = React.forwardRef<HTMLDivElement, FilePreviewProps>(
     return (
       <motion.div
         ref={ref}
-        className="relative flex max-w-[200px] rounded-md border p-1.5 pr-2 text-xs"
+        className="relative flex max-w-50 rounded-md border p-1.5 pr-2 text-xs"
         layout
         initial={{ opacity: 0, y: "100%" }}
         animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ const GenericFilePreview = React.forwardRef<HTMLDivElement, FilePreviewProps>(
     return (
       <motion.div
         ref={ref}
-        className="relative flex max-w-[200px] rounded-md border p-1.5 pr-2 text-xs"
+        className="relative flex max-w-50 rounded-md border p-1.5 pr-2 text-xs"
         layout
         initial={{ opacity: 0, y: "100%" }}
         animate={{ opacity: 1, y: 0 }}

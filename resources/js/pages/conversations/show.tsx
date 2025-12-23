@@ -10,9 +10,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import AppLayout from '@/layouts/app-layout';
+import ChatLayout from '@/layouts/chat/chat-layout';
 import { cn } from '@/lib/utils';
-import type { ConversationDetail, Message } from '@/types/chat';
+import type { Conversation, ConversationDetail, Message } from '@/types/chat';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
@@ -32,6 +32,7 @@ import {
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
+    conversations: Conversation[];
     conversation: ConversationDetail;
 }
 
@@ -243,7 +244,7 @@ function TypingIndicator({ names }: { names: string[] }) {
     );
 }
 
-export default function ConversationShow({ conversation }: Props) {
+export default function ConversationShow({ conversations, conversation }: Props) {
     const { auth } = usePage<SharedData>().props;
     const [messages, setMessages] = useState<Message[]>(conversation.messages);
     const [inputValue, setInputValue] = useState('');
@@ -502,7 +503,12 @@ export default function ConversationShow({ conversation }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <ChatLayout
+            breadcrumbs={breadcrumbs}
+            conversations={conversations}
+            activeConversationId={conversation.id}
+            showContent={true}
+        >
             <Head title={conversation.name} />
             <div className="flex h-full flex-1 flex-col overflow-hidden">
                 {/* Header */}
@@ -734,6 +740,6 @@ export default function ConversationShow({ conversation }: Props) {
                     </form>
                 </div>
             </div>
-        </AppLayout>
+        </ChatLayout>
     );
 }

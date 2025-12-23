@@ -18,11 +18,13 @@ use Inertia\Response;
 class ConversationController extends Controller
 {
     /**
-     * Display a listing of the user's conversations.
+     * Get formatted conversations list for the current user.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
      */
-    public function index(Request $request): Response
+    protected function getConversationsList(Request $request): \Illuminate\Support\Collection
     {
-        $conversations = $request->user()
+        return $request->user()
             ->conversations()
             ->with(['latestMessage.sender:id,name,avatar', 'activeParticipants:id,name,avatar'])
             ->orderByDesc('last_message_at')
@@ -53,9 +55,15 @@ class ConversationController extends Controller
                     'created_at' => $conversation->created_at->toISOString(),
                 ];
             });
+    }
 
+    /**
+     * Display a listing of the user's conversations.
+     */
+    public function index(Request $request): Response
+    {
         return Inertia::render('conversations/index', [
-            'conversations' => $conversations,
+            'conversations' => $this->getConversationsList($request),
         ]);
     }
 
@@ -149,6 +157,7 @@ class ConversationController extends Controller
         ]);
 
         return Inertia::render('conversations/show', [
+            'conversations' => $this->getConversationsList($request),
             'conversation' => [
                 'id' => $conversation->id,
                 'type' => $conversation->type->value,
