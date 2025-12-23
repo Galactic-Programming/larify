@@ -124,7 +124,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $subscription = $this->subscription($type);
 
-        if (!$subscription) {
+        if (! $subscription) {
             return null;
         }
 
@@ -170,12 +170,38 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function currentPlanName(): string
     {
-        if (!$this->subscribed('default')) {
+        if (! $this->subscribed('default')) {
             return 'Free';
         }
 
         $plan = \App\Models\Plan::findByStripeId($this->subscription('default')->stripe_price);
 
         return $plan?->name ?? 'Premium';
+    }
+
+    /**
+     * Get the conversations the user is a participant in.
+     */
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot(['role', 'nickname', 'last_read_at', 'notifications_muted', 'joined_at', 'left_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get active conversations (not left).
+     */
+    public function activeConversations(): BelongsToMany
+    {
+        return $this->conversations()->whereNull('conversation_participants.left_at');
+    }
+
+    /**
+     * Get the messages sent by the user.
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
     }
 }
