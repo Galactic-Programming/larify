@@ -3,6 +3,9 @@
 use App\Http\Controllers\Activities\ActivityController;
 use App\Http\Controllers\Api\UserSearchController;
 use App\Http\Controllers\Auth\SocialController;
+use App\Http\Controllers\Conversations\ConversationController;
+use App\Http\Controllers\Conversations\ConversationParticipantController;
+use App\Http\Controllers\Conversations\MessageController;
 use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
@@ -130,6 +133,44 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.trash.tasks.force-delete');
     Route::delete('projects/{project}/trash', [ProjectTrashController::class, 'emptyTrash'])
         ->name('projects.trash.empty');
+
+    // Conversations (Chat)
+    Route::get('conversations', [ConversationController::class, 'index'])
+        ->name('conversations.index');
+    Route::post('conversations', [ConversationController::class, 'store'])
+        ->name('conversations.store');
+    Route::get('conversations/{conversation}', [ConversationController::class, 'show'])
+        ->name('conversations.show');
+    Route::patch('conversations/{conversation}', [ConversationController::class, 'update'])
+        ->name('conversations.update');
+    Route::delete('conversations/{conversation}', [ConversationController::class, 'destroy'])
+        ->name('conversations.destroy');
+    Route::post('conversations/{conversation}/leave', [ConversationController::class, 'leave'])
+        ->name('conversations.leave');
+
+    // Conversation Participants
+    Route::post('conversations/{conversation}/participants', [ConversationParticipantController::class, 'store'])
+        ->name('conversations.participants.store');
+    Route::patch('conversations/{conversation}/participants/{participant}', [ConversationParticipantController::class, 'update'])
+        ->name('conversations.participants.update');
+    Route::delete('conversations/{conversation}/participants/{participant}', [ConversationParticipantController::class, 'destroy'])
+        ->name('conversations.participants.destroy');
+    Route::post('conversations/{conversation}/participants/{participant}/transfer-ownership', [ConversationParticipantController::class, 'transferOwnership'])
+        ->name('conversations.participants.transfer-ownership');
+
+    // Messages
+    Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])
+        ->name('api.conversations.messages.index');
+    Route::post('conversations/{conversation}/messages', [MessageController::class, 'store'])
+        ->name('conversations.messages.store');
+    Route::patch('conversations/{conversation}/messages/{message}', [MessageController::class, 'update'])
+        ->name('conversations.messages.update');
+    Route::delete('conversations/{conversation}/messages/{message}', [MessageController::class, 'destroy'])
+        ->name('conversations.messages.destroy');
+    Route::post('conversations/{conversation}/messages/read', [MessageController::class, 'markAsRead'])
+        ->name('conversations.messages.read');
+    Route::post('conversations/{conversation}/typing', [MessageController::class, 'typing'])
+        ->name('conversations.typing');
 });
 
 // Terms & Privacy

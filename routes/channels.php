@@ -31,3 +31,23 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
     // Member check
     return $project->projectMembers()->where('user_id', $user->id)->exists();
 });
+
+/**
+ * Conversation channel - authorize users who are active participants
+ */
+Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
+    $conversation = \App\Models\Conversation::find($conversationId);
+
+    if (! $conversation) {
+        return false;
+    }
+
+    return $conversation->activeParticipants()->where('users.id', $user->id)->exists();
+});
+
+/**
+ * User conversations channel - for receiving new conversation notifications
+ */
+Broadcast::channel('user.{userId}.conversations', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
