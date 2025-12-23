@@ -32,6 +32,7 @@ class TaskController extends Controller
         $task = $list->tasks()->create([
             ...$request->validated(),
             'project_id' => $project->id,
+            'created_by' => auth()->id(),
             'position' => $maxPosition + 1,
         ]);
 

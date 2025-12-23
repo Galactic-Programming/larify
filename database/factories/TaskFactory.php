@@ -25,6 +25,7 @@ class TaskFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'list_id' => TaskList::factory(),
+            'created_by' => null, // Will be set by the controller or test
             'title' => fake()->sentence(rand(3, 8)),
             'description' => fake()->optional(0.5)->paragraph(),
             'position' => fake()->numberBetween(0, 100),

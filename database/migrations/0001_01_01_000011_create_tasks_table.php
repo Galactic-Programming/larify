@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->foreignId('list_id')->constrained()->cascadeOnDelete();
             $table->foreignId('original_list_id')->nullable()->constrained('lists')->nullOnDelete(); // Original list before auto-move to Done
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete(); // User who created the task
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->index('created_by');
             $table->index('assigned_to');
             $table->index(['list_id', 'position']);
             $table->index(['project_id', 'completed_at']);

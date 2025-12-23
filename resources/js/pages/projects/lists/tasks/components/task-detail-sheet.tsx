@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { complete, move } from '@/actions/App/Http/Controllers/Tasks/TaskController';
-import { router } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import { format, parseISO, differenceInSeconds, formatDistanceToNow } from 'date-fns';
 import {
     AlertTriangle,
@@ -51,11 +52,15 @@ const PRIORITY_CONFIG: Record<TaskPriority, { label: string; icon: typeof Minus;
 };
 
 export function TaskDetailSheet({ task, project, permissions, open, onOpenChange }: TaskDetailSheetProps) {
+    const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [reopenOpen, setReopenOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(0);
+
+    // Check if user can update deadline
+    const canUpdateDeadline = permissions.role === 'owner' || (task?.created_by === auth.user.id);
 
     // Real-time countdown to deadline
     useEffect(() => {
@@ -578,6 +583,7 @@ export function TaskDetailSheet({ task, project, permissions, open, onOpenChange
                 open={editOpen}
                 onOpenChange={setEditOpen}
                 canAssignTask={permissions.canAssignTask}
+                canUpdateDeadline={canUpdateDeadline}
             />
 
             {/* Delete Dialog */}

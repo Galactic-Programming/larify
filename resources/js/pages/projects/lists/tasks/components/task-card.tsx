@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { complete } from '@/actions/App/Http/Controllers/Tasks/TaskController';
-import { router } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -40,6 +41,7 @@ function getInitials(name: string): string {
 }
 
 export function TaskCard({ task, project, index = 0, variant = 'board', onClick, permissions }: TaskCardProps) {
+    const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [reopenOpen, setReopenOpen] = useState(false);
@@ -48,6 +50,11 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
     const isCompleted = !!task.completed_at;
     const isOverdue = isTaskOverdue(task);
     const completedLate = isCompletedLate(task);
+
+    // Check if user can update deadline:
+    // - Owner can always update
+    // - Editor can only update tasks they created
+    const canUpdateDeadline = permissions?.role === 'owner' || task.created_by === auth.user.id;
 
     // Check if task was overdue when completed (for reopen check)
     const wasOverdueWhenCompleted = (() => {
@@ -126,7 +133,7 @@ export function TaskCard({ task, project, index = 0, variant = 'board', onClick,
 
     const dialogs = (
         <>
-            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions?.canAssignTask} />
+            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions?.canAssignTask} canUpdateDeadline={canUpdateDeadline} />
             <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
             <ReopenTaskDialog project={project} task={task} open={reopenOpen} onOpenChange={setReopenOpen} />
         </>

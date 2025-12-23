@@ -21,6 +21,7 @@ export interface Task {
     project_id: number;
     list_id: number;
     original_list_id: number | null;
+    created_by: number | null;
     assigned_to: number | null;
     assignee: User | null;
     title: string;

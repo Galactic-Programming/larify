@@ -35,6 +35,28 @@ class TaskPolicy
     }
 
     /**
+     * Determine whether the user can update the task deadline (due_date, due_time).
+     * Owner can always update deadlines.
+     * Editor can only update deadlines on tasks they created themselves.
+     */
+    public function updateDeadline(User $user, Task $task, Project $project): bool
+    {
+        // Must be able to update the task first
+        if (! $this->update($user, $task, $project)) {
+            return false;
+        }
+
+        // Owner can always update deadlines
+        if ($project->user_id === $user->id) {
+            return true;
+        }
+
+        // Editor can only update deadline on tasks they created
+        // If task has no creator (legacy data), Editor cannot change deadline
+        return $task->created_by === $user->id;
+    }
+
+    /**
      * Determine whether the user can delete the task.
      * Only Owner can delete tasks.
      */

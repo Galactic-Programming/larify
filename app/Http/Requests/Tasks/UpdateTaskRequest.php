@@ -34,13 +34,40 @@ class UpdateTaskRequest extends FormRequest
     {
         /** @var Project $project */
         $project = $this->route('project');
+        /** @var Task $task */
+        $task = $this->route('task');
+
+        // Check if user can update deadline
+        $canUpdateDeadline = Gate::allows('updateDeadline', [$task, $project]);
 
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'priority' => ['sometimes', 'required', Rule::enum(TaskPriority::class)],
-            'due_date' => ['sometimes', 'required', 'date'],
-            'due_time' => ['sometimes', 'required', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'due_date' => [
+                'sometimes',
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($canUpdateDeadline, $task) {
+                    if (! $canUpdateDeadline && $value !== $task->due_date->format('Y-m-d')) {
+                        $fail('You do not have permission to change the deadline of this task.');
+                    }
+                },
+            ],
+            'due_time' => [
+                'sometimes',
+                'required',
+                'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/',
+                function ($attribute, $value, $fail) use ($canUpdateDeadline, $task) {
+                    // Normalize time format for comparison (remove seconds if present)
+                    $normalizedValue = substr($value, 0, 5);
+                    $normalizedTaskTime = substr($task->due_time, 0, 5);
+
+                    if (! $canUpdateDeadline && $normalizedValue !== $normalizedTaskTime) {
+                        $fail('You do not have permission to change the deadline of this task.');
+                    }
+                },
+            ],
             'assigned_to' => [
                 'nullable',
                 'integer',

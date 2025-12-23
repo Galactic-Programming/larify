@@ -48,6 +48,7 @@ interface EditTaskDialogProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     canAssignTask?: boolean;
+    canUpdateDeadline?: boolean;
 }
 
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string; icon: typeof Minus; color: string }[] = [
@@ -67,7 +68,7 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function EditTaskDialog({ project, task, trigger, open: controlledOpen, onOpenChange, canAssignTask = false }: EditTaskDialogProps) {
+export function EditTaskDialog({ project, task, trigger, open: controlledOpen, onOpenChange, canAssignTask = false, canUpdateDeadline = true }: EditTaskDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [priority, setPriority] = useState<TaskPriority>(task.priority);
     const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? parseISO(task.due_date) : undefined);
@@ -312,32 +313,48 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="grid gap-2">
                                             <Label>Due Date</Label>
-                                            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className="w-full justify-between font-normal"
-                                                    >
-                                                        <span className="flex items-center gap-2">
+                                            {canUpdateDeadline ? (
+                                                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-full justify-between font-normal"
+                                                        >
+                                                            <span className="flex items-center gap-2">
+                                                                <CalendarIcon className="size-4 text-muted-foreground" />
+                                                                {dueDate ? format(dueDate, 'MMM d, yyyy') : 'Select date'}
+                                                            </span>
+                                                            <ChevronDownIcon className="size-4 text-muted-foreground" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={dueDate}
+                                                            captionLayout="dropdown"
+                                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                            onSelect={(date) => {
+                                                                setDueDate(date);
+                                                                setDatePickerOpen(false);
+                                                            }}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            ) : (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
                                                             <CalendarIcon className="size-4 text-muted-foreground" />
-                                                            {dueDate ? format(dueDate, 'MMM d, yyyy') : 'Select date'}
-                                                        </span>
-                                                        <ChevronDownIcon className="size-4 text-muted-foreground" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={dueDate}
-                                                        captionLayout="dropdown"
-                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                        onSelect={(date) => {
-                                                            setDueDate(date);
-                                                            setDatePickerOpen(false);
-                                                        }}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                                            <span className="text-sm">
+                                                                {dueDate ? format(dueDate, 'MMM d, yyyy') : 'No date'}
+                                                            </span>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        You cannot change the deadline for this task
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
                                             <input
                                                 type="hidden"
                                                 name="due_date"
@@ -347,12 +364,27 @@ export function EditTaskDialog({ project, task, trigger, open: controlledOpen, o
                                         </div>
                                         <div className="grid gap-2">
                                             <Label>Due Time</Label>
-                                            <Input
-                                                type="time"
-                                                value={dueTime}
-                                                onChange={(e) => setDueTime(e.target.value)}
-                                                className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                                            />
+                                            {canUpdateDeadline ? (
+                                                <Input
+                                                    type="time"
+                                                    value={dueTime}
+                                                    onChange={(e) => setDueTime(e.target.value)}
+                                                    className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                                                />
+                                            ) : (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
+                                                            <span className="text-sm">
+                                                                {dueTime ? dueTime.slice(0, 5) : 'No time'}
+                                                            </span>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        You cannot change the deadline for this task
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
                                             <input type="hidden" name="due_time" value={dueTime} />
                                             <InputError message={errors.due_time} />
                                         </div>

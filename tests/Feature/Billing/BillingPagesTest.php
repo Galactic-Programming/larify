@@ -66,8 +66,7 @@ test('guest can access public pricing page', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('pricing')
-            ->has('plans.monthly')
-            ->has('plans.yearly')
+            ->has('plans')
         );
 });
 

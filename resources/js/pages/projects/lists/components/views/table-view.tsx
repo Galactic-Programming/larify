@@ -24,10 +24,12 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Circle, Clock, MoreHorizontal, Pencil, Plus, Search, Trash2, User, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useCallback, useMemo } from 'react';
-import type { Permissions, Project, Task, TaskList } from '../../lib/types';
+import type { Permissions, Project, Task } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { DeleteTaskDialog } from '../../tasks/components/delete-task-dialog';
@@ -43,8 +45,12 @@ interface TableViewProps {
 }
 
 function TaskRowActions({ project, task, permissions }: { project: Project; task: Task; permissions: Permissions }) {
+    const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+
+    // Check if user can update deadline
+    const canUpdateDeadline = permissions.role === 'owner' || task.created_by === auth.user.id;
 
     // Hide actions menu for viewers
     if (!permissions.canEdit) return null;
@@ -77,7 +83,7 @@ function TaskRowActions({ project, task, permissions }: { project: Project; task
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>
-            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions.canAssignTask} />
+            <EditTaskDialog project={project} task={task} open={editOpen} onOpenChange={setEditOpen} canAssignTask={permissions.canAssignTask} canUpdateDeadline={canUpdateDeadline} />
             {permissions.canDelete && (
                 <DeleteTaskDialog project={project} task={task} open={deleteOpen} onOpenChange={setDeleteOpen} />
             )}

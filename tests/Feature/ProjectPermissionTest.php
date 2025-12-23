@@ -142,15 +142,49 @@ test('editor can create tasks', function () {
 });
 
 test('editor can update tasks', function () {
+    // Editor can update task fields like title (without changing deadline)
     $this->actingAs($this->editor)
         ->patch(route('projects.tasks.update', ['project' => $this->project, 'task' => $this->task]), [
             'title' => 'Editor Updated',
-            'due_date' => $this->task->due_date,
-            'due_time' => $this->task->due_time,
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('tasks', ['id' => $this->task->id, 'title' => 'Editor Updated']);
+});
+
+test('editor cannot change deadline on task created by owner', function () {
+    // Task was created by factory (no created_by), so Editor cannot change deadline
+    $this->actingAs($this->editor)
+        ->patch(route('projects.tasks.update', ['project' => $this->project, 'task' => $this->task]), [
+            'title' => 'Editor Updated',
+            'due_date' => now()->addDays(10)->format('Y-m-d'),
+            'due_time' => '18:00',
+        ])
+        ->assertSessionHasErrors(['due_date', 'due_time']);
+});
+
+test('editor can change deadline on task they created', function () {
+    // Create a task by the editor
+    $editorTask = Task::factory()
+        ->for($this->project)
+        ->for($this->list, 'list')
+        ->create(['created_by' => $this->editor->id]);
+
+    $newDate = now()->addDays(10)->format('Y-m-d');
+    $newTime = '18:00';
+
+    $this->actingAs($this->editor)
+        ->patch(route('projects.tasks.update', ['project' => $this->project, 'task' => $editorTask]), [
+            'title' => 'Editor Updated',
+            'due_date' => $newDate,
+            'due_time' => $newTime,
+        ])
+        ->assertRedirect();
+
+    $editorTask->refresh();
+    expect($editorTask->title)->toBe('Editor Updated')
+        ->and($editorTask->due_date->format('Y-m-d'))->toBe($newDate)
+        ->and($editorTask->due_time)->toBe($newTime);
 });
 
 test('editor cannot delete tasks', function () {

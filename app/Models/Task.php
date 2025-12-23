@@ -16,6 +16,7 @@ class Task extends Model
         'project_id',
         'list_id',
         'original_list_id',
+        'created_by',
         'assigned_to',
         'title',
         'description',
@@ -78,6 +79,14 @@ class Task extends Model
     }
 
     /**
+     * Get the user who created this task.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
      * Check if the task is completed.
      */
     public function isCompleted(): bool
@@ -94,7 +103,7 @@ class Task extends Model
             return false;
         }
 
-        $deadline = $this->due_date->format('Y-m-d') . ' ' . $this->due_time;
+        $deadline = $this->due_date->format('Y-m-d').' '.$this->due_time;
 
         return now()->gt($deadline);
     }
