@@ -137,8 +137,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Conversations (Chat)
     Route::get('conversations', [ConversationController::class, 'index'])
         ->name('conversations.index');
-    Route::get('conversations/create', [ConversationController::class, 'create'])
-        ->name('conversations.create');
+    Route::get('api/users/search', [ConversationController::class, 'users'])
+        ->name('api.users.search');
     Route::post('conversations', [ConversationController::class, 'store'])
         ->name('conversations.store');
     Route::get('conversations/{conversation}', [ConversationController::class, 'show'])

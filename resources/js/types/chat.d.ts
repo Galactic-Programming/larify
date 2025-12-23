@@ -119,15 +119,6 @@ export interface ChatConversation {
     unreadCount: number;
 }
 
-export interface ChatSidebarProps {
-    conversations: ChatConversation[];
-    activeConversationId?: string;
-    currentUserId: number;
-    onConversationSelect: (conversationId: string) => void;
-    onNewChat?: () => void;
-    onSearch?: (query: string) => void;
-}
-
 export interface ChatMainProps {
     conversation?: ChatConversation;
     messages: ChatMessage[];

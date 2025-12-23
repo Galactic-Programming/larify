@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversations\StoreConversationRequest;
 use App\Http\Requests\Conversations\UpdateConversationRequest;
 use App\Models\Conversation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -68,9 +69,9 @@ class ConversationController extends Controller
     }
 
     /**
-     * Show the form for creating a new conversation.
+     * Get users list for creating conversations (JSON API).
      */
-    public function create(Request $request): Response
+    public function users(Request $request): JsonResponse
     {
         $users = \App\Models\User::query()
             ->where('id', '!=', $request->user()->id)
@@ -78,7 +79,7 @@ class ConversationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('conversations/create', [
+        return response()->json([
             'users' => $users,
         ]);
     }
@@ -86,7 +87,7 @@ class ConversationController extends Controller
     /**
      * Store a newly created conversation.
      */
-    public function store(StoreConversationRequest $request): RedirectResponse
+    public function store(StoreConversationRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
         $type = ConversationType::from($validated['type']);
@@ -98,6 +99,14 @@ class ConversationController extends Controller
                 $request->user(),
                 \App\Models\User::find($participantIds[0])
             );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'conversation' => [
+                        'id' => $existingConversation->id,
+                    ],
+                ]);
+            }
 
             return to_route('conversations.show', $existingConversation);
         }
@@ -131,6 +140,14 @@ class ConversationController extends Controller
 
         // Broadcast to all participants
         broadcast(new ConversationCreated($conversation))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'conversation' => [
+                    'id' => $conversation->id,
+                ],
+            ]);
+        }
 
         return to_route('conversations.show', $conversation);
     }

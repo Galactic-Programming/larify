@@ -1,16 +1,17 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
 import type { Conversation, ConversationType } from '@/types/chat';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquarePlus, MessagesSquare, Search, User, Users } from 'lucide-react';
+import { MessagesSquare, Search, User, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export interface ChatSidebarProps {
@@ -167,11 +168,7 @@ export function ChatSidebar({
             <div className="shrink-0 space-y-3 border-b p-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold">Messages</h2>
-                    <Button size="sm" variant="ghost" asChild>
-                        <Link href="/conversations/create">
-                            <MessageSquarePlus className="h-4 w-4" />
-                        </Link>
-                    </Button>
+                    <CreateConversationDialog />
                 </div>
 
                 {/* Search */}

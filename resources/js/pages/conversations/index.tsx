@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button';
 import ChatLayout from '@/layouts/chat/chat-layout';
+import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
 import type { Conversation } from '@/types/chat';
 import type { BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { MessageSquarePlus, MessagesSquare } from 'lucide-react';
 
 interface Props {
@@ -26,12 +27,14 @@ function EmptyConversation() {
             <p className="text-muted-foreground mb-6 max-w-sm">
                 Select a conversation from the sidebar to start chatting, or create a new one.
             </p>
-            <Button asChild>
-                <Link href="/conversations/create">
-                    <MessageSquarePlus className="mr-2 h-4 w-4" />
-                    New Conversation
-                </Link>
-            </Button>
+            <CreateConversationDialog
+                trigger={
+                    <Button>
+                        <MessageSquarePlus className="mr-2 h-4 w-4" />
+                        New Conversation
+                    </Button>
+                }
+            />
         </div>
     );
 }
