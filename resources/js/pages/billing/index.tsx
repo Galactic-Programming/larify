@@ -2,8 +2,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'motion/react';
 
-import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
+import { BillingHeader } from './components/billing-header';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -146,9 +146,9 @@ export default function BillingIndex({
             <Head title="Billing" />
 
             <div className="px-4 py-6">
-                <Heading
-                    title="Billing"
-                    description="Manage your subscription and billing settings"
+                <BillingHeader
+                    statusBadge={getStatusBadge()}
+                    planName={currentPlan?.name}
                 />
 
                 <motion.div
@@ -305,9 +305,9 @@ export default function BillingIndex({
                                                 className={cn(
                                                     'relative transition-all',
                                                     isCurrentPlan &&
-                                                        'border-2 border-primary',
+                                                    'border-2 border-primary',
                                                     canUpgrade &&
-                                                        'hover:border-primary hover:shadow-md',
+                                                    'hover:border-primary hover:shadow-md',
                                                 )}
                                             >
                                                 {isCurrentPlan && (
@@ -386,7 +386,7 @@ export default function BillingIndex({
                                                             }
                                                         >
                                                             {loadingAction ===
-                                                            `swap-${plan.stripe_id}` ? (
+                                                                `swap-${plan.stripe_id}` ? (
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                             ) : null}
                                                             Switch Plan
@@ -404,7 +404,7 @@ export default function BillingIndex({
                                                             }
                                                         >
                                                             {loadingAction ===
-                                                            `upgrade-${plan.stripe_id}` ? (
+                                                                `upgrade-${plan.stripe_id}` ? (
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                             ) : null}
                                                             Upgrade
