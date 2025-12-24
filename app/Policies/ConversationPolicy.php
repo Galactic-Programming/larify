@@ -10,11 +10,12 @@ class ConversationPolicy
 {
     /**
      * Determine whether the user can view any conversations.
-     * Pro users only.
+     * Allow all authenticated users to view the conversations page.
+     * The frontend will show an upgrade prompt for Free users.
      */
     public function viewAny(User $user): bool
     {
-        return $user->plan->canUseChat();
+        return true;
     }
 
     /**

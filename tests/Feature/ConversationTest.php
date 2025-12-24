@@ -18,6 +18,15 @@ it('allows authenticated user to view conversations list', function () {
     expect($response->status())->not->toBe(404);
 });
 
+it('allows free user to view conversations page (shows upgrade prompt)', function () {
+    // Free users can access the page but will see upgrade prompt
+    $user = User::factory()->create(['plan' => UserPlan::Free]);
+
+    $response = $this->actingAs($user)->get(route('conversations.index'));
+
+    expect($response->status())->toBe(200);
+});
+
 it('allows user to create a direct conversation', function () {
     // Chat is a Pro feature
     $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
