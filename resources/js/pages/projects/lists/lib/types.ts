@@ -81,4 +81,8 @@ export interface Permissions {
     canSetDoneList: boolean;
     canReopen: boolean;
     role: 'owner' | 'editor' | 'viewer';
+    // List limit info
+    canCreateList: boolean;
+    maxLists: number | null;
+    currentLists: number;
 }

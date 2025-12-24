@@ -306,7 +306,14 @@ export function ListsHeader({
                 )}
 
                 {/* Create List - Only for editors */}
-                {permissions.canEdit && <CreateListDialog project={project} />}
+                {permissions.canEdit && (
+                    <CreateListDialog
+                        project={project}
+                        canCreateList={permissions.canCreateList}
+                        maxLists={permissions.maxLists}
+                        currentLists={permissions.currentLists}
+                    />
+                )}
             </motion.div>
         </motion.div>
     );

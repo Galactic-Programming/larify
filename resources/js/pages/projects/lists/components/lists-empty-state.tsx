@@ -49,6 +49,9 @@ export function ListsEmptyState({
                 {permissions.canEdit && (
                     <CreateListDialog
                         project={project}
+                        canCreateList={permissions.canCreateList}
+                        maxLists={permissions.maxLists}
+                        currentLists={permissions.currentLists}
                         trigger={
                             <Button
                                 size="lg"

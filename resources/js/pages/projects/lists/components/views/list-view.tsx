@@ -210,6 +210,9 @@ export function ListView({
                         >
                             <CreateListDialog
                                 project={project}
+                                canCreateList={permissions.canCreateList}
+                                maxLists={permissions.maxLists}
+                                currentLists={permissions.currentLists}
                                 trigger={
                                     <Card className="flex cursor-pointer items-center justify-center border-dashed bg-muted/20 py-6 transition-all hover:border-primary hover:bg-muted/40">
                                         <div className="flex items-center gap-2 text-muted-foreground">

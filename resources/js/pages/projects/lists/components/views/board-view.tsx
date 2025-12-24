@@ -481,6 +481,9 @@ export function BoardView({
                             >
                                 <CreateListDialog
                                     project={project}
+                                    canCreateList={permissions.canCreateList}
+                                    maxLists={permissions.maxLists}
+                                    currentLists={permissions.currentLists}
                                     trigger={
                                         <Card className="flex h-32 cursor-pointer items-center justify-center border-dashed bg-muted/20 transition-all hover:border-primary hover:bg-muted/40">
                                             <div className="flex flex-col items-center gap-2 text-muted-foreground">

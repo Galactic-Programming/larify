@@ -650,7 +650,7 @@ export function TableView({ project, permissions }: TableViewProps) {
                                                         key={pageNum}
                                                         variant={
                                                             currentPage ===
-                                                            pageNum
+                                                                pageNum
                                                                 ? 'default'
                                                                 : 'ghost'
                                                         }
@@ -757,7 +757,12 @@ export function TableView({ project, permissions }: TableViewProps) {
                             </div>
                         </div>
                         {permissions.canEdit && (
-                            <CreateListDialog project={project} />
+                            <CreateListDialog
+                                project={project}
+                                canCreateList={permissions.canCreateList}
+                                maxLists={permissions.maxLists}
+                                currentLists={permissions.currentLists}
+                            />
                         )}
                     </div>
                 </motion.div>

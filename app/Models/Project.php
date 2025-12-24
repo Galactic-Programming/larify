@@ -205,7 +205,7 @@ class Project extends Model
     /**
      * Get user permissions for this project.
      *
-     * @return array<string, bool>
+     * @return array<string, mixed>
      */
     public function getPermissions(User $user): array
     {
@@ -214,6 +214,12 @@ class Project extends Model
 
         // canManageMembers requires: owner role + plan that allows inviting members
         $canManageMembers = $isOwner && ($user->plan?->canInviteMembers() ?? false);
+
+        // List limit is based on project owner's plan
+        $owner = $this->user;
+        $maxLists = $owner->plan?->maxListsPerProject();
+        $currentLists = $this->lists()->count();
+        $canCreateList = $maxLists === null || $currentLists < $maxLists;
 
         return [
             'canView' => $role !== null,
@@ -226,6 +232,10 @@ class Project extends Model
             'canSetDoneList' => $role?->canSetDoneList() ?? false,
             'isOwner' => $isOwner,
             'role' => $role?->value,
+            // List limit info
+            'canCreateList' => $canCreateList,
+            'maxLists' => $maxLists,
+            'currentLists' => $currentLists,
         ];
     }
 
