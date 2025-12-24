@@ -77,6 +77,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import type { DashboardTask } from './types';
@@ -532,7 +533,7 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
         <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as TaskGroup)}
-            className="w-full flex-col justify-start gap-4"
+            className="flex w-full flex-1 flex-col justify-start gap-4"
         >
             {/* Toolbar with Tabs and Customize Columns */}
             <div className="flex items-center justify-between gap-4">
@@ -600,8 +601,8 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
                 </DropdownMenu>
             </div>
 
-            <TabsContent value={activeTab} className="relative flex flex-col gap-4 mt-0">
-                <div className="min-h-100 max-h-150 overflow-hidden overflow-y-auto rounded-lg border">
+            <TabsContent value={activeTab} className="relative flex min-h-0 flex-1 flex-col gap-4 mt-0">
+                <ScrollArea className="min-h-0 flex-1 rounded-lg border">
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToVerticalAxis]}
@@ -652,7 +653,7 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
                             </TableBody>
                         </Table>
                     </DndContext>
-                </div>
+                </ScrollArea>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-2">
