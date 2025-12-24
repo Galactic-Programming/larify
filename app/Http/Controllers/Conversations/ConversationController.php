@@ -73,6 +73,7 @@ class ConversationController extends Controller
     /**
      * Search users by email for creating conversations (JSON API).
      * Requires at least 3 characters to search for privacy.
+     * Only returns Pro users (users who can participate in chat).
      */
     public function users(Request $request): JsonResponse
     {
@@ -83,9 +84,10 @@ class ConversationController extends Controller
         $query = $request->input('query');
 
         // Search users by email (exact or partial match)
-        // For better privacy, prioritize exact email matches
+        // Only return Pro users who can participate in chat
         $users = \App\Models\User::query()
             ->where('id', '!=', $request->user()->id)
+            ->where('plan', \App\Enums\UserPlan::Pro) // Only Pro users can be messaged
             ->where(function ($q) use ($query) {
                 $q->where('email', $query) // Exact match first
                     ->orWhere('email', 'like', "{$query}%"); // Or starts with
