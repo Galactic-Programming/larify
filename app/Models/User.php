@@ -206,4 +206,62 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Message::class, 'sender_id');
     }
+
+    /**
+     * Check if user can create more projects.
+     */
+    public function canCreateProject(): bool
+    {
+        $max = $this->plan?->maxProjects();
+
+        return $max === null || $this->projects()->count() < $max;
+    }
+
+    /**
+     * Get remaining project slots.
+     * Returns null for unlimited.
+     */
+    public function remainingProjectSlots(): ?int
+    {
+        $max = $this->plan?->maxProjects();
+
+        if ($max === null) {
+            return null;
+        }
+
+        return max(0, $max - $this->projects()->count());
+    }
+
+    /**
+     * Check if user can create more lists in a project.
+     * Always checks against the project owner's plan.
+     */
+    public function canCreateListInProject(Project $project): bool
+    {
+        // Get the project owner
+        $owner = $project->user_id === $this->id
+            ? $this
+            : $project->user;
+
+        $max = $owner->plan?->maxListsPerProject();
+
+        return $max === null || $project->lists()->count() < $max;
+    }
+
+    /**
+     * Get plan limits for frontend.
+     *
+     * @return array<string, mixed>
+     */
+    public function getPlanLimits(): array
+    {
+        $limits = $this->plan?->getLimits() ?? UserPlan::Free->getLimits();
+        $currentProjects = $this->projects()->count();
+
+        return array_merge($limits, [
+            'current_projects' => $currentProjects,
+            'can_create_project' => $this->canCreateProject(),
+            'remaining_project_slots' => $this->remainingProjectSlots(),
+        ]);
+    }
 }
