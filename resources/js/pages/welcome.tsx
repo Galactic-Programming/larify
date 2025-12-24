@@ -185,8 +185,8 @@ const faqItems: FAQItem[] = [
         answer: 'Larify is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
     },
     {
-        question: 'Is there a free trial available?',
-        answer: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to start. You can explore everything Larify has to offer before making a commitment.',
+        question: 'Is there a free plan available?',
+        answer: 'Yes! We offer a free plan with essential features to get you started. You can explore Larify and upgrade to a paid plan anytime for access to premium features.',
     },
     {
         question: 'How does the Focus Mode work?',
@@ -539,7 +539,7 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                                 >
                                     <Button size="lg" asChild>
                                         <Link href={register()}>
-                                            Start Free Trial
+                                            Get Started
                                             <ArrowRightIcon className="ml-2 size-4" />
                                         </Link>
                                     </Button>
