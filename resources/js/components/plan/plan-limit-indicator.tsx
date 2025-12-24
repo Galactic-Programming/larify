@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import { cn } from '@/lib/utils';
-import { plans } from '@/routes/billing';
+import { index as billingIndex } from '@/routes/billing';
 
 interface PlanLimitIndicatorProps {
     className?: string;
@@ -128,7 +128,7 @@ export function PlanLimitIndicator({
                             variant="outline"
                             className="h-7 gap-1 text-xs"
                         >
-                            <Link href={plans.url()}>
+                            <Link href={billingIndex.url()}>
                                 <Crown className="h-3 w-3" />
                                 Upgrade
                             </Link>

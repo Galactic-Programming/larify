@@ -34,17 +34,11 @@ class BillingController extends Controller
 
     /**
      * Show available plans/pricing page.
+     * Redirects to billing index which shows all plan information.
      */
     public function plans()
     {
-        $plans = Plan::active()->ordered()->get()->groupBy('interval');
-
-        return Inertia::render('billing/plans', [
-            'plans' => [
-                'monthly' => $plans->get('month', collect())->values(),
-                'yearly' => $plans->get('year', collect())->values(),
-            ],
-        ]);
+        return redirect()->route('billing.index');
     }
 
     /**

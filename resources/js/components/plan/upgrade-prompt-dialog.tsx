@@ -10,7 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { plans } from '@/routes/billing';
+import { index as billingIndex } from '@/routes/billing';
 
 interface UpgradePromptDialogProps {
     open: boolean;
@@ -31,7 +31,7 @@ export function UpgradePromptDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader className="text-center sm:text-center">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-amber-600">
                         <Crown className="h-6 w-6 text-white" />
                     </div>
                     <DialogTitle className="text-xl">{title}</DialogTitle>
@@ -71,7 +71,7 @@ export function UpgradePromptDialog({
                         Maybe Later
                     </Button>
                     <Button asChild className="gap-2">
-                        <Link href={plans.url()}>
+                        <Link href={billingIndex.url()}>
                             <Crown className="h-4 w-4" />
                             View Plans
                         </Link>

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
-import { plans } from '@/routes/billing';
+import { index as billingIndex } from '@/routes/billing';
 import type { BreadcrumbItem } from '@/types';
 import type { Conversation } from '@/types/chat';
 import { Head, Link } from '@inertiajs/react';
@@ -46,7 +46,7 @@ function UpgradePrompt() {
                 size="lg"
                 className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25 transition-all duration-300 hover:from-amber-600 hover:to-orange-600 hover:shadow-xl hover:shadow-amber-500/30"
             >
-                <Link href={plans.url()}>
+                <Link href={billingIndex.url()}>
                     <Crown className="h-4 w-4" />
                     Upgrade to Pro
                 </Link>

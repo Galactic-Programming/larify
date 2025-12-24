@@ -7,10 +7,11 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
+import { index as billingIndex } from '@/routes/billing';
 import { edit } from '@/routes/profile';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Crown, LogOut, Settings } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -18,6 +19,7 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const isPro = user.plan === 'pro';
 
     const handleLogout = () => {
         cleanup();
@@ -28,7 +30,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         <>
             <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <UserInfo user={user} showEmail={true} />
+                    <UserInfo user={user} showEmail={true} showPlanBadge={true} />
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -45,6 +47,20 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         Settings
                     </Link>
                 </DropdownMenuItem>
+                {!isPro && (
+                    <DropdownMenuItem asChild>
+                        <Link
+                            className="block w-full"
+                            href={billingIndex.url()}
+                            as="button"
+                            prefetch
+                            onClick={cleanup}
+                        >
+                            <Crown className="mr-2 text-amber-500" />
+                            Upgrade to Pro
+                        </Link>
+                    </DropdownMenuItem>
+                )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

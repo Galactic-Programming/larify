@@ -32,18 +32,10 @@ test('authenticated user can access billing index', function () {
         );
 });
 
-test('authenticated user can access billing plans page', function () {
-    Plan::factory()->free()->create();
-    Plan::factory()->proMonthly()->create();
-
+test('billing plans route redirects to billing index', function () {
     $this->actingAs($this->user)
         ->get(route('billing.plans'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('billing/plans', false) // Don't check if file exists
-            ->has('plans.monthly')
-            ->has('plans.yearly')
-        );
+        ->assertRedirect(route('billing.index'));
 });
 
 test('authenticated user can access invoices page', function () {
