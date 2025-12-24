@@ -8,10 +8,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { CheckCircle2Icon, SparklesIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface SuccessProps {
     plan: {
@@ -23,6 +23,16 @@ interface SuccessProps {
 }
 
 export default function Success({ plan }: SuccessProps) {
+    const hasReloaded = useRef(false);
+
+    useEffect(() => {
+        // Reload shared data to update user plan badge across the app
+        if (!hasReloaded.current) {
+            hasReloaded.current = true;
+            router.reload({ only: ['auth'] });
+        }
+    }, []);
+
     useEffect(() => {
         // Dynamic import for canvas-confetti to avoid SSR issues
         const runConfetti = async () => {
