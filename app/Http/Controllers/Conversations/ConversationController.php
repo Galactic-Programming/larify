@@ -63,6 +63,8 @@ class ConversationController extends Controller
      */
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', Conversation::class);
+
         return Inertia::render('conversations/index', [
             'conversations' => $this->getConversationsList($request),
         ]);

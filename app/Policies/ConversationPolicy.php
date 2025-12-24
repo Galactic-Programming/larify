@@ -10,27 +10,29 @@ class ConversationPolicy
 {
     /**
      * Determine whether the user can view any conversations.
+     * Pro users only.
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->plan->canUseChat();
     }
 
     /**
      * Determine whether the user can view the conversation.
-     * User must be an active participant.
+     * User must be Pro and an active participant.
      */
     public function view(User $user, Conversation $conversation): bool
     {
-        return $conversation->hasParticipant($user);
+        return $user->plan->canUseChat() && $conversation->hasParticipant($user);
     }
 
     /**
      * Determine whether the user can create conversations.
+     * Pro users only.
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->plan->canUseChat();
     }
 
     /**
@@ -67,10 +69,11 @@ class ConversationPolicy
 
     /**
      * Determine whether the user can send messages in the conversation.
+     * Pro users only.
      */
     public function sendMessage(User $user, Conversation $conversation): bool
     {
-        return $conversation->hasParticipant($user);
+        return $user->plan->canUseChat() && $conversation->hasParticipant($user);
     }
 
     /**

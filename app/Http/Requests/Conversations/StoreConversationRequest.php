@@ -6,9 +6,29 @@ use App\Enums\ConversationType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class StoreConversationRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     * Only Pro users can use chat.
+     */
+    public function authorize(): bool
+    {
+        return $this->user()->plan->canUseChat();
+    }
+
+    /**
+     * Handle a failed authorization attempt.
+     */
+    protected function failedAuthorization(): void
+    {
+        throw new AccessDeniedHttpException(
+            'Chat is a Pro feature. Upgrade to Pro to start conversations and message your team.'
+        );
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

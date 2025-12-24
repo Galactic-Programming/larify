@@ -2,13 +2,15 @@
 
 use App\Enums\ConversationType;
 use App\Enums\ParticipantRole;
+use App\Enums\UserPlan;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->user1 = User::factory()->create();
-    $this->user2 = User::factory()->create();
+    // Chat is a Pro feature, so we need Pro users for these tests
+    $this->user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $this->user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $this->conversation = Conversation::create([
         'type' => ConversationType::Direct,
@@ -37,7 +39,7 @@ it('allows participant to send a message', function () {
 });
 
 it('prevents non-participant from sending message', function () {
-    $outsider = User::factory()->create();
+    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($outsider)->post(
         route('conversations.messages.store', $this->conversation),
@@ -272,7 +274,7 @@ it('allows participant to fetch messages via API', function () {
 });
 
 it('prevents non-participant from fetching messages', function () {
-    $outsider = User::factory()->create();
+    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($outsider)->getJson(
         route('api.conversations.messages.index', $this->conversation)
@@ -317,7 +319,7 @@ it('allows participant to send typing indicator', function () {
 });
 
 it('prevents non-participant from sending typing indicator', function () {
-    $outsider = User::factory()->create();
+    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($outsider)->postJson(
         route('conversations.typing', $this->conversation),

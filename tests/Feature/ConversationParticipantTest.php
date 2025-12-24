@@ -2,14 +2,15 @@
 
 use App\Enums\ConversationType;
 use App\Enums\ParticipantRole;
+use App\Enums\UserPlan;
 use App\Models\Conversation;
-use App\Models\ConversationParticipant;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->owner = User::factory()->create();
-    $this->member1 = User::factory()->create();
-    $this->member2 = User::factory()->create();
+    // Chat is a Pro feature
+    $this->owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $this->member1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $this->member2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $this->groupConversation = Conversation::create([
         'type' => ConversationType::Group,

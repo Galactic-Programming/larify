@@ -2,13 +2,15 @@
 
 use App\Enums\ConversationType;
 use App\Enums\ParticipantRole;
+use App\Enums\UserPlan;
 use App\Models\Conversation;
 use App\Models\User;
 
 // === CONVERSATION CREATION ===
 
 it('allows authenticated user to view conversations list', function () {
-    $user = User::factory()->create();
+    // Chat is a Pro feature
+    $user = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($user)->get(route('conversations.index'));
 
@@ -17,8 +19,9 @@ it('allows authenticated user to view conversations list', function () {
 });
 
 it('allows user to create a direct conversation', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    // Chat is a Pro feature
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($user1)->post(route('conversations.store'), [
         'type' => 'direct',
@@ -33,8 +36,8 @@ it('allows user to create a direct conversation', function () {
 });
 
 it('reuses existing direct conversation when creating duplicate', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     // Create first conversation
     $this->actingAs($user1)->post(route('conversations.store'), [
@@ -56,9 +59,9 @@ it('reuses existing direct conversation when creating duplicate', function () {
 });
 
 it('allows user to create a group conversation', function () {
-    $owner = User::factory()->create();
-    $member1 = User::factory()->create();
-    $member2 = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($owner)->post(route('conversations.store'), [
         'type' => 'group',
@@ -75,8 +78,8 @@ it('allows user to create a group conversation', function () {
 });
 
 it('requires name for group conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($owner)->post(route('conversations.store'), [
         'type' => 'group',
@@ -87,7 +90,7 @@ it('requires name for group conversation', function () {
 });
 
 it('prevents adding yourself as participant', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $response = $this->actingAs($user)->post(route('conversations.store'), [
         'type' => 'direct',
@@ -100,8 +103,8 @@ it('prevents adding yourself as participant', function () {
 // === CONVERSATION ACCESS ===
 
 it('allows participant to view conversation', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Direct,
@@ -119,9 +122,9 @@ it('allows participant to view conversation', function () {
 });
 
 it('prevents non-participant from viewing conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
-    $outsider = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Direct,
@@ -140,8 +143,8 @@ it('prevents non-participant from viewing conversation', function () {
 // === CONVERSATION UPDATE ===
 
 it('allows group owner to update conversation name', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -163,8 +166,8 @@ it('allows group owner to update conversation name', function () {
 });
 
 it('prevents member from updating group conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -186,8 +189,8 @@ it('prevents member from updating group conversation', function () {
 });
 
 it('prevents updating direct conversation', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Direct,
@@ -208,8 +211,8 @@ it('prevents updating direct conversation', function () {
 // === CONVERSATION DELETION ===
 
 it('allows group owner to delete conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -230,8 +233,8 @@ it('allows group owner to delete conversation', function () {
 });
 
 it('prevents member from deleting group conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -251,8 +254,8 @@ it('prevents member from deleting group conversation', function () {
 // === LEAVING CONVERSATION ===
 
 it('allows member to leave group conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -273,8 +276,8 @@ it('allows member to leave group conversation', function () {
 });
 
 it('prevents owner from leaving group conversation', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::create([
         'type' => ConversationType::Group,
@@ -294,8 +297,8 @@ it('prevents owner from leaving group conversation', function () {
 // === ARCHIVING DIRECT CONVERSATION ===
 
 it('allows user to archive direct conversation', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::findOrCreateDirect($user1, $user2);
 
@@ -316,8 +319,8 @@ it('allows user to archive direct conversation', function () {
 });
 
 it('hides archived conversation from user list', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::findOrCreateDirect($user1, $user2);
 
@@ -334,8 +337,8 @@ it('hides archived conversation from user list', function () {
 });
 
 it('allows other user to still see archived conversation', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
     $conversation = Conversation::findOrCreateDirect($user1, $user2);
 
