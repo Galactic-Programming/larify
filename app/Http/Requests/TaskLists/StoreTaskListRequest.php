@@ -13,12 +13,49 @@ class StoreTaskListRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Checks both permission to create lists AND list limit based on project owner's plan.
      */
     public function authorize(): bool
     {
         $project = $this->route('project');
 
-        return $project instanceof Project && Gate::allows('create', [TaskList::class, $project]);
+        if (! $project instanceof Project) {
+            return false;
+        }
+
+        // Check permission to create lists in this project
+        if (! Gate::allows('create', [TaskList::class, $project])) {
+            return false;
+        }
+
+        // Check list limit based on project owner's plan
+        return $this->user()->canCreateListInProject($project);
+    }
+
+    /**
+     * Handle a failed authorization attempt.
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    protected function failedAuthorization(): void
+    {
+        $project = $this->route('project');
+
+        // Check if it's a permission issue or limit issue
+        if ($project instanceof Project && Gate::allows('create', [TaskList::class, $project])) {
+            // User has permission but hit limit
+            $owner = $project->user;
+            $max = $owner->plan?->maxListsPerProject() ?? 5;
+
+            throw new \Illuminate\Auth\Access\AuthorizationException(
+                "This project has reached the maximum of {$max} lists. The project owner needs to upgrade to Pro for unlimited lists."
+            );
+        }
+
+        // Default permission denied message
+        throw new \Illuminate\Auth\Access\AuthorizationException(
+            'You do not have permission to create lists in this project.'
+        );
     }
 
     /**

@@ -144,7 +144,7 @@ it('allows sender to edit their message within time limit', function () {
 
 it('prevents editing message after time limit', function () {
     // Create a message that's older than the edit limit
-    $message = Message::factory()->create([
+    $message = Message::create([
         'conversation_id' => $this->conversation->id,
         'sender_id' => $this->user1->id,
         'content' => 'Original content',
