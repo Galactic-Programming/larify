@@ -1,5 +1,6 @@
 import DashboardFooter from '@/components/shadcn-studio/blocks/dashboard-footer';
 import { SparklesText } from '@/components/ui/sparkles-text';
+import { useDashboardRealtime } from '@/hooks/use-dashboard-realtime';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -35,6 +36,9 @@ export default function Dashboard({
 }: DashboardPageProps) {
     const { auth } = usePage<SharedData>().props;
     const firstName = auth.user.name.split(' ')[0];
+
+    // Real-time updates for dashboard data
+    useDashboardRealtime({ autoRefresh: true });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -93,10 +97,10 @@ export default function Dashboard({
 
                     {/* Right Column - Sidebar Widgets (1/3 width, proportional heights) */}
                     <div className="flex flex-col gap-6">
-                        <div className="flex-[54]">
+                        <div className="flex-54">
                             <UpcomingWidget deadlines={upcomingDeadlines} />
                         </div>
-                        <div className="flex-[46]">
+                        <div className="flex-46">
                             <ActivityWidget activities={recentActivities} />
                         </div>
                     </div>

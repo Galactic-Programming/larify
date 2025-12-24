@@ -80,6 +80,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
+import { motion } from 'motion/react';
 import type { DashboardTask } from './types';
 
 // Drag Handle Component
@@ -314,17 +315,21 @@ function createColumns(
 }
 
 // Draggable Row Component
-function DraggableRow({ row }: { row: Row<DashboardTask> }) {
+function DraggableRow({ row, index }: { row: Row<DashboardTask>; index: number }) {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.original.id,
     });
 
     return (
-        <TableRow
+        <motion.tr
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, delay: index * 0.03 }}
             data-state={row.getIsSelected() && 'selected'}
             data-dragging={isDragging}
             ref={setNodeRef}
-            className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+            className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
             style={{
                 transform: CSS.Transform.toString(transform),
                 transition: transition,
@@ -335,7 +340,7 @@ function DraggableRow({ row }: { row: Row<DashboardTask> }) {
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
             ))}
-        </TableRow>
+        </motion.tr>
     );
 }
 
@@ -636,8 +641,8 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
                                         items={dataIds}
                                         strategy={verticalListSortingStrategy}
                                     >
-                                        {table.getRowModel().rows.map((row) => (
-                                            <DraggableRow key={row.id} row={row} />
+                                        {table.getRowModel().rows.map((row, index) => (
+                                            <DraggableRow key={row.id} row={row} index={index} />
                                         ))}
                                     </SortableContext>
                                 ) : (
