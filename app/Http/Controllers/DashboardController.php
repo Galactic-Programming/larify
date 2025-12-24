@@ -152,12 +152,39 @@ class DashboardController extends Controller
             ? round((($completedThisWeek - $completedLastWeek) / $completedLastWeek) * 100)
             : ($completedThisWeek > 0 ? 100 : 0);
 
+        // Additional stats for enhanced cards
+        $dueTodayCount = $todayTasks->count();
+        $highPriorityCount = $myTasks->filter(fn ($task) => $task->priority?->value === 'high')->count();
+
+        // Calculate average progress across active projects
+        $activeProjects = $user->allProjects()
+            ->where('is_archived', false)
+            ->withCount([
+                'tasks as total_tasks_count',
+                'tasks as completed_tasks_count' => fn ($query) => $query->whereNotNull('completed_at'),
+            ])
+            ->get();
+
+        $avgProgress = $activeProjects->count() > 0
+            ? round($activeProjects->avg(fn ($p) => $p->total_tasks_count > 0
+                ? ($p->completed_tasks_count / $p->total_tasks_count) * 100
+                : 0))
+            : 0;
+
+        $totalProjectTasks = $activeProjects->sum('total_tasks_count');
+        $completedProjectTasks = $activeProjects->sum('completed_tasks_count');
+
         return Inertia::render('dashboard', [
             'stats' => [
                 'my_tasks_count' => $myTasks->count(),
                 'overdue_count' => $overdueTasks->count(),
-                'projects_count' => $user->allProjects()->where('is_archived', false)->count(),
+                'due_today_count' => $dueTodayCount,
+                'high_priority_count' => $highPriorityCount,
+                'projects_count' => $activeProjects->count(),
                 'archived_projects_count' => $user->allProjects()->where('is_archived', true)->count(),
+                'avg_progress' => $avgProgress,
+                'total_project_tasks' => $totalProjectTasks,
+                'completed_project_tasks' => $completedProjectTasks,
                 'completed_this_week' => $completedThisWeek,
                 'completed_last_week' => $completedLastWeek,
                 'week_change' => $weekChange,

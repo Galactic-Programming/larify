@@ -31,8 +31,13 @@ export interface GroupedTasks {
 export interface DashboardStats {
     my_tasks_count: number;
     overdue_count: number;
+    due_today_count: number;
+    high_priority_count: number;
     projects_count: number;
     archived_projects_count: number;
+    avg_progress: number;
+    total_project_tasks: number;
+    completed_project_tasks: number;
     completed_this_week: number;
     completed_last_week: number;
     week_change: number;
