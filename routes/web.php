@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Conversations\ConversationController;
 use App\Http\Controllers\Conversations\ConversationParticipantController;
 use App\Http\Controllers\Conversations\MessageController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
@@ -26,9 +27,7 @@ Route::get('/', function () {
 
 // Authenticated
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Projects
     Route::resource('projects', ProjectController::class);

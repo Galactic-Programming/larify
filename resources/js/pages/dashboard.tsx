@@ -1,11 +1,16 @@
 import DashboardFooter from '@/components/shadcn-studio/blocks/dashboard-footer';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { SparklesText } from '@/components/ui/sparkles-text';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'motion/react';
+import { ActivityWidget } from './dashboard/components/activity-widget';
+import { MyTasksSection } from './dashboard/components/my-tasks-section';
+import { ProjectsSection } from './dashboard/components/projects-section';
+import { StatsSection } from './dashboard/components/stats-section';
+import { UpcomingWidget } from './dashboard/components/upcoming-widget';
+import type { DashboardPageProps } from './dashboard/components/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -21,90 +26,80 @@ function getGreeting(): string {
     return 'Good evening';
 }
 
-export default function Dashboard() {
+export default function Dashboard({
+    stats,
+    myTasks,
+    upcomingDeadlines,
+    recentActivities,
+    recentProjects,
+}: DashboardPageProps) {
     const { auth } = usePage<SharedData>().props;
     const firstName = auth.user.name.split(' ')[0];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    {/* Welcome Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
-                        className="relative col-span-full overflow-hidden rounded-xl border border-sidebar-border/70 bg-linear-to-br from-primary/10 via-card to-card p-6 dark:border-sidebar-border"
-                    >
-                        <div className="relative z-10">
-                            <motion.p
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2, duration: 0.4 }}
-                                className="text-sm text-muted-foreground"
-                            >
-                                {getGreeting()},
-                            </motion.p>
-                            <motion.h1
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3, duration: 0.4 }}
-                                className="text-2xl font-bold tracking-tight md:text-3xl"
-                            >
-                                <SparklesText className="inline-block">
-                                    {firstName}
-                                </SparklesText>
-                            </motion.h1>
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.5, duration: 0.4 }}
-                                className="mt-2 text-muted-foreground"
-                            >
-                                Welcome back to Larify. Here's what's happening
-                                today.
-                            </motion.p>
-                        </div>
-                        {/* Decorative gradient circles */}
-                        <div className="absolute -top-10 -right-10 size-40 rounded-full bg-primary/10 blur-3xl" />
-                        <div className="absolute -bottom-10 -left-10 size-32 rounded-full bg-primary/5 blur-2xl" />
-                    </motion.div>
-                </div>
-
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    {[0, 1, 2].map((index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                                delay: 0.6 + index * 0.1,
-                                duration: 0.4,
-                                ease: 'easeOut',
-                            }}
-                            whileHover={{
-                                scale: 1.02,
-                                y: -4,
-                                transition: { duration: 0.2 },
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            className="relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 bg-card transition-shadow hover:shadow-lg dark:border-sidebar-border"
-                        >
-                            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                        </motion.div>
-                    ))}
-                </div>
-
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 pb-0">
+                {/* Welcome Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9, duration: 0.5, ease: 'easeOut' }}
-                    whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
-                    className="relative min-h-[50vh] flex-1 cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 bg-card transition-shadow hover:shadow-lg sm:min-h-[60vh] md:min-h-min dark:border-sidebar-border"
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-linear-to-br from-primary/10 via-card to-card p-6 dark:border-sidebar-border"
                 >
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                    <div className="relative z-10">
+                        <motion.p
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2, duration: 0.4 }}
+                            className="text-sm text-muted-foreground"
+                        >
+                            {getGreeting()},
+                        </motion.p>
+                        <motion.h1
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3, duration: 0.4 }}
+                            className="text-2xl font-bold tracking-tight md:text-3xl"
+                        >
+                            <SparklesText className="inline-block">
+                                {firstName}
+                            </SparklesText>
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 0.4 }}
+                            className="mt-2 text-muted-foreground"
+                        >
+                            Welcome back to Larify. Here's what's happening today.
+                        </motion.p>
+                    </div>
+                    {/* Decorative gradient circles */}
+                    <div className="absolute -top-10 -right-10 size-40 rounded-full bg-primary/10 blur-3xl" />
+                    <div className="absolute -bottom-10 -left-10 size-32 rounded-full bg-primary/5 blur-2xl" />
                 </motion.div>
+
+                {/* Stats Section */}
+                <StatsSection stats={stats} />
+
+                {/* Main Content Grid */}
+                <div className="grid gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
+                    {/* Left Column - My Tasks (2/3 width, spans 2 rows) */}
+                    <div className="lg:col-span-2 lg:row-span-2">
+                        <MyTasksSection
+                            tasks={myTasks}
+                            overdueCount={stats.overdue_count}
+                        />
+                    </div>
+
+                    {/* Right Column - Sidebar Widgets (1/3 width) */}
+                    <UpcomingWidget deadlines={upcomingDeadlines} />
+                    <ActivityWidget activities={recentActivities} />
+                </div>
+
+                {/* Projects Section */}
+                <ProjectsSection projects={recentProjects} />
             </div>
             <DashboardFooter />
         </AppLayout>
