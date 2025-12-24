@@ -55,6 +55,7 @@ class HandleInertiaRequests extends Middleware
                 'subscription' => $user?->subscriptionWithPlan() ?? null,
                 'subscribed' => $user?->subscribed('default') ?? false,
             ],
+            'planLimits' => $user?->getPlanLimits() ?? null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

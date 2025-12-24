@@ -23,10 +23,25 @@ export interface NavItem {
     shortcut?: string;
 }
 
+// Plan limits shared from backend
+export interface PlanLimits {
+    max_projects: number | null;
+    max_lists_per_project: number | null;
+    activity_retention_days: number;
+    can_invite_members: boolean;
+    can_use_chat: boolean;
+    can_use_due_date_reminders: boolean;
+    has_full_palette: boolean;
+    current_projects: number;
+    can_create_project: boolean;
+    remaining_project_slots: number | null;
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    planLimits: PlanLimits | null;
     sidebarOpen: boolean;
     [key: string]: unknown;
 }
