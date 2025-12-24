@@ -1,5 +1,5 @@
 import InputError from '@/components/input-error';
-import { UpgradePromptDialog } from '@/components/plan';
+import { ProBadge, UpgradePromptDialog } from '@/components/plan';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,11 +20,11 @@ import {
 } from '@/components/ui/tooltip';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import { cn } from '@/lib/utils';
-import { isPresetColor, PRESET_COLORS } from '@/pages/projects/lib/constants';
-import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
+import { getAvailableColors, isPresetColor, PRESET_COLORS } from '@/pages/projects/lib/constants';
+import { getAvailableIcons, PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { store } from '@/routes/projects';
 import { Form } from '@inertiajs/react';
-import { Check, Palette, Plus } from 'lucide-react';
+import { Check, Lock, Palette, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 interface CreateProjectDialogProps {
@@ -37,8 +37,12 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
     const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0].value);
     const [selectedIcon, setSelectedIcon] = useState(PROJECT_ICONS[0].name);
 
-    const { canCreateProject, maxProjects } =
+    const { canCreateProject, maxProjects, hasFullPalette } =
         usePlanFeatures();
+
+    // Get available colors and icons based on plan
+    const availableColors = getAvailableColors(hasFullPalette);
+    const availableIcons = getAvailableIcons(hasFullPalette);
 
     const resetForm = () => {
         setSelectedColor(PRESET_COLORS[0].value);
@@ -142,9 +146,14 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
 
                                 {/* Color Picker */}
                                 <div className="grid gap-2">
-                                    <Label>Color</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Label>Color</Label>
+                                        {!hasFullPalette && (
+                                            <ProBadge size="sm" />
+                                        )}
+                                    </div>
                                     <div className="flex flex-wrap items-center gap-2">
-                                        {PRESET_COLORS.map((color) => (
+                                        {availableColors.map((color) => (
                                             <button
                                                 key={color.value}
                                                 type="button"
@@ -175,49 +184,78 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                                 )}
                                             </button>
                                         ))}
-                                        {/* Custom color picker */}
-                                        <div className="relative">
-                                            <input
-                                                type="color"
-                                                value={selectedColor}
-                                                onChange={(e) =>
-                                                    setSelectedColor(
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="absolute inset-0 size-8 cursor-pointer opacity-0"
-                                                title="Pick custom color"
-                                            />
-                                            <div
-                                                className={cn(
-                                                    'flex size-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-foreground',
-                                                    !isPresetColor(
-                                                        selectedColor,
-                                                    ) &&
-                                                        'ring-2 ring-offset-2 ring-offset-background',
-                                                )}
-                                                style={
-                                                    {
-                                                        backgroundColor:
-                                                            !isPresetColor(
-                                                                selectedColor,
-                                                            )
-                                                                ? selectedColor
-                                                                : 'transparent',
-                                                        '--tw-ring-color':
+                                        {/* Show locked Pro colors for Free users */}
+                                        {!hasFullPalette && PRESET_COLORS.filter((c) => c.isPro).slice(0, 3).map((color) => (
+                                            <Tooltip key={color.value}>
+                                                <TooltipTrigger asChild>
+                                                    <div
+                                                        className="relative flex size-8 cursor-not-allowed items-center justify-center rounded-full opacity-50"
+                                                        style={{ backgroundColor: color.value }}
+                                                    >
+                                                        <Lock className="size-3 text-white" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{color.name} - Upgrade to Pro</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ))}
+                                        {/* Custom color picker - Pro only */}
+                                        {hasFullPalette ? (
+                                            <div className="relative">
+                                                <input
+                                                    type="color"
+                                                    value={selectedColor}
+                                                    onChange={(e) =>
+                                                        setSelectedColor(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="absolute inset-0 size-8 cursor-pointer opacity-0"
+                                                    title="Pick custom color"
+                                                />
+                                                <div
+                                                    className={cn(
+                                                        'flex size-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-foreground',
+                                                        !isPresetColor(
                                                             selectedColor,
-                                                    } as React.CSSProperties
-                                                }
-                                            >
-                                                {isPresetColor(
-                                                    selectedColor,
-                                                ) ? (
-                                                    <Palette className="size-4 text-muted-foreground" />
-                                                ) : (
-                                                    <Check className="size-4 text-white" />
-                                                )}
+                                                        ) &&
+                                                            'ring-2 ring-offset-2 ring-offset-background',
+                                                    )}
+                                                    style={
+                                                        {
+                                                            backgroundColor:
+                                                                !isPresetColor(
+                                                                    selectedColor,
+                                                                )
+                                                                    ? selectedColor
+                                                                    : 'transparent',
+                                                            '--tw-ring-color':
+                                                                selectedColor,
+                                                        } as React.CSSProperties
+                                                    }
+                                                >
+                                                    {isPresetColor(
+                                                        selectedColor,
+                                                    ) ? (
+                                                        <Palette className="size-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <Check className="size-4 text-white" />
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex size-8 cursor-not-allowed items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 opacity-50">
+                                                        <Palette className="size-4 text-muted-foreground" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Custom colors - Upgrade to Pro</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )}
                                     </div>
                                     <input
                                         type="hidden"
@@ -229,9 +267,14 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
 
                                 {/* Icon Picker */}
                                 <div className="grid gap-2">
-                                    <Label>Icon</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Label>Icon</Label>
+                                        {!hasFullPalette && (
+                                            <ProBadge size="sm" />
+                                        )}
+                                    </div>
                                     <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-10">
-                                        {PROJECT_ICONS.map((icon) => {
+                                        {availableIcons.map((icon) => {
                                             const IconComponent = icon.icon;
                                             const isSelected =
                                                 selectedIcon === icon.name;
@@ -265,6 +308,25 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                                                         </div>
                                                     )}
                                                 </button>
+                                            );
+                                        })}
+                                        {/* Show locked Pro icons for Free users */}
+                                        {!hasFullPalette && PROJECT_ICONS.filter((i) => i.isPro).slice(0, 4).map((icon) => {
+                                            const IconComponent = icon.icon;
+                                            return (
+                                                <Tooltip key={icon.name}>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="relative flex size-8 cursor-not-allowed items-center justify-center rounded-lg opacity-40">
+                                                            <IconComponent className="size-4" />
+                                                            <div className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-muted shadow-sm">
+                                                                <Lock className="size-2" />
+                                                            </div>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{icon.label} - Upgrade to Pro</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             );
                                         })}
                                     </div>
