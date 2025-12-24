@@ -39,6 +39,24 @@ class DashboardController extends Controller
         $laterTasks = $myTasks->filter(fn ($task) => ! $task->isOverdue() && $task->due_date && $task->due_date->isAfter($endOfWeek))->values();
         $noDateTasks = $myTasks->filter(fn ($task) => ! $task->due_date)->values();
 
+        // Limit total tasks to 10 for dashboard display (prioritize by urgency)
+        $maxTasks = 10;
+        $remaining = $maxTasks;
+
+        $limitedOverdue = $overdueTasks->take($remaining);
+        $remaining -= $limitedOverdue->count();
+
+        $limitedToday = $remaining > 0 ? $todayTasks->take($remaining) : collect();
+        $remaining -= $limitedToday->count();
+
+        $limitedThisWeek = $remaining > 0 ? $thisWeekTasks->take($remaining) : collect();
+        $remaining -= $limitedThisWeek->count();
+
+        $limitedLater = $remaining > 0 ? $laterTasks->take($remaining) : collect();
+        $remaining -= $limitedLater->count();
+
+        $limitedNoDate = $remaining > 0 ? $noDateTasks->take($remaining) : collect();
+
         // Get upcoming deadlines (5 nearest tasks with due dates)
         $upcomingDeadlines = Task::where('assigned_to', $user->id)
             ->whereNull('completed_at')
@@ -81,7 +99,7 @@ class DashboardController extends Controller
             ->where('created_at', '>=', $cutoffDate)
             ->with(['user:id,name,avatar', 'project:id,name,color,icon'])
             ->latest()
-            ->limit(10)
+            ->limit(5)
             ->get()
             ->map(fn ($activity) => [
                 'id' => $activity->id,
@@ -145,11 +163,11 @@ class DashboardController extends Controller
                 'week_change' => $weekChange,
             ],
             'myTasks' => [
-                'overdue' => $this->formatTasks($overdueTasks),
-                'today' => $this->formatTasks($todayTasks),
-                'this_week' => $this->formatTasks($thisWeekTasks),
-                'later' => $this->formatTasks($laterTasks),
-                'no_date' => $this->formatTasks($noDateTasks),
+                'overdue' => $this->formatTasks($limitedOverdue),
+                'today' => $this->formatTasks($limitedToday),
+                'this_week' => $this->formatTasks($limitedThisWeek),
+                'later' => $this->formatTasks($limitedLater),
+                'no_date' => $this->formatTasks($limitedNoDate),
             ],
             'upcomingDeadlines' => $this->formatTasks($upcomingDeadlines),
             'recentActivities' => $recentActivities,

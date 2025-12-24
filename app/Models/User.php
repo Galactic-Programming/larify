@@ -105,8 +105,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function allProjects()
     {
-        return Project::where('user_id', $this->id)
-            ->orWhereHas('members', fn ($q) => $q->where('user_id', $this->id));
+        return Project::where(function ($query) {
+            $query->where('user_id', $this->id)
+                ->orWhereHas('members', fn ($q) => $q->where('user_id', $this->id));
+        });
     }
 
     /**

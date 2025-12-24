@@ -60,16 +60,16 @@ export function StatsCard({
                 </CardHeader>
                 <CardContent className="pt-0">
                     <p className="font-medium text-foreground">{title}</p>
-                    {subtitle && (
-                        <p
-                            className={cn(
-                                'mt-1 text-sm',
-                                subtitleColors[subtitleVariant],
-                            )}
-                        >
-                            {subtitle}
-                        </p>
-                    )}
+                    <p
+                        className={cn(
+                            'mt-1 min-h-5 text-sm',
+                            subtitle
+                                ? subtitleColors[subtitleVariant]
+                                : 'text-transparent',
+                        )}
+                    >
+                        {subtitle || '\u00A0'}
+                    </p>
                 </CardContent>
             </Card>
         </motion.div>
