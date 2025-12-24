@@ -156,8 +156,9 @@ export function ActivityWidget({ activities }: ActivityWidgetProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
+            className="h-full"
         >
-            <Card>
+            <Card className="flex h-full flex-col">
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-base">
@@ -174,7 +175,7 @@ export function ActivityWidget({ activities }: ActivityWidgetProps) {
                     <CardDescription>Latest actions in your projects</CardDescription>
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="flex-1 overflow-auto">
                     {activities.length === 0 ? (
                         <div className="py-4 text-center text-sm text-muted-foreground">
                             No recent activity

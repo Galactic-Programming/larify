@@ -61,8 +61,9 @@ export function UpcomingWidget({ deadlines }: UpcomingWidgetProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
+            className="h-full"
         >
-            <Card>
+            <Card className="flex h-full flex-col">
                 <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                         <CalendarClock className="size-4 text-primary" />
@@ -71,7 +72,7 @@ export function UpcomingWidget({ deadlines }: UpcomingWidgetProps) {
                     <CardDescription>Next 5 due tasks</CardDescription>
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="flex-1 overflow-auto">
                     {deadlines.length === 0 ? (
                         <div className="py-4 text-center text-sm text-muted-foreground">
                             No upcoming deadlines

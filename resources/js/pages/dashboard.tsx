@@ -84,18 +84,22 @@ export default function Dashboard({
                 <StatsSection stats={stats} />
 
                 {/* Main Content Grid */}
-                <div className="grid gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
-                    {/* Left Column - My Tasks (2/3 width, spans 2 rows) */}
-                    <div className="lg:col-span-2 lg:row-span-2">
-                        <MyTasksSection
-                            tasks={myTasks}
-                            overdueCount={stats.overdue_count}
-                        />
-                    </div>
+                <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                    {/* Left Column - My Tasks (2/3 width) */}
+                    <MyTasksSection
+                        tasks={myTasks}
+                        overdueCount={stats.overdue_count}
+                    />
 
-                    {/* Right Column - Sidebar Widgets (1/3 width) */}
-                    <UpcomingWidget deadlines={upcomingDeadlines} />
-                    <ActivityWidget activities={recentActivities} />
+                    {/* Right Column - Sidebar Widgets (1/3 width, proportional heights) */}
+                    <div className="flex flex-col gap-6">
+                        <div className="flex-[54]">
+                            <UpcomingWidget deadlines={upcomingDeadlines} />
+                        </div>
+                        <div className="flex-[46]">
+                            <ActivityWidget activities={recentActivities} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Projects Section */}
