@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { UpgradePromptDialog } from '@/components/plan';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,7 +9,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import { cn } from '@/lib/utils';
 import { isPresetColor, PRESET_COLORS } from '@/pages/projects/lib/constants';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
@@ -32,8 +33,12 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
     const [open, setOpen] = useState(false);
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
     const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0].value);
     const [selectedIcon, setSelectedIcon] = useState(PROJECT_ICONS[0].name);
+
+    const { canCreateProject, maxProjects } =
+        usePlanFeatures();
 
     const resetForm = () => {
         setSelectedColor(PRESET_COLORS[0].value);
@@ -47,21 +52,43 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
         }
     };
 
+    const handleTriggerClick = () => {
+        if (canCreateProject) {
+            setOpen(true);
+        } else {
+            setUpgradeOpen(true);
+        }
+    };
+
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
+        <>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <DialogTrigger asChild>
+                    <span onClick={handleTriggerClick}>
                         {trigger ?? (
                             <Button>
                                 <Plus className="size-4" />
                                 New Project
                             </Button>
                         )}
-                    </DialogTrigger>
+                    </span>
                 </TooltipTrigger>
-                <TooltipContent>Create New Project</TooltipContent>
+                <TooltipContent>
+                    {canCreateProject
+                        ? 'Create New Project'
+                        : `Project limit reached (${maxProjects})`}
+                </TooltipContent>
             </Tooltip>
+
+            <UpgradePromptDialog
+                open={upgradeOpen}
+                onOpenChange={setUpgradeOpen}
+                title="Project Limit Reached"
+                description={`You've reached your limit of ${maxProjects} projects. Upgrade to Pro for unlimited projects.`}
+                feature="Unlimited Projects"
+            />
+
+            <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-lg">
                 <Form
                     {...store.form()}
@@ -268,5 +295,6 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                 </Form>
             </DialogContent>
         </Dialog>
+        </>
     );
 }

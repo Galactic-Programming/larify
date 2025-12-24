@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { UpgradePromptDialog } from '@/components/plan';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import type { ConversationType } from '@/types/chat';
 import { router } from '@inertiajs/react';
 import { Mail, MessageSquarePlus, Search, User, Users, X } from 'lucide-react';
@@ -50,6 +51,7 @@ export function CreateConversationDialog({
     trigger,
 }: CreateConversationDialogProps) {
     const [open, setOpen] = useState(false);
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
     const [type, setType] = useState<ConversationType>('direct');
     const [name, setName] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +63,16 @@ export function CreateConversationDialog({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    const { canUseChat } = usePlanFeatures();
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleTriggerClick = () => {
+        if (canUseChat) {
+            setOpen(true);
+        } else {
+            setUpgradeOpen(true);
+        }
+    };
 
     // Debounce search query
     useEffect(() => {
@@ -236,19 +247,31 @@ export function CreateConversationDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
+        <>
+            <UpgradePromptDialog
+                open={upgradeOpen}
+                onOpenChange={setUpgradeOpen}
+                title="Chat is a Pro Feature"
+                description="Upgrade to Pro to communicate with your team directly within Larify."
+                feature="Team Chat"
+            />
+
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <DialogTrigger asChild>
+                    <span onClick={handleTriggerClick}>
                         {trigger ?? (
                             <Button size="sm" variant="ghost">
                                 <MessageSquarePlus className="h-4 w-4" />
                             </Button>
                         )}
-                    </DialogTrigger>
+                    </span>
                 </TooltipTrigger>
-                <TooltipContent>New Conversation</TooltipContent>
+                <TooltipContent>
+                    {canUseChat ? 'New Conversation' : 'Upgrade to Pro'}
+                </TooltipContent>
             </Tooltip>
+
+            <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Start a New Conversation</DialogTitle>
@@ -483,5 +506,6 @@ export function CreateConversationDialog({
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        </>
     );
 }
