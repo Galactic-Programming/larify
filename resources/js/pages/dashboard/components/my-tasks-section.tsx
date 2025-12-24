@@ -6,79 +6,41 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 import {
     AlertTriangle,
-    Calendar,
-    CalendarClock,
     CheckCircle2,
-    Clock,
     ListTodo,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { DashboardTaskCard } from './dashboard-task-card';
-import type { GroupedTasks } from './types';
+import { MyTasksTable } from './my-tasks-table';
+import type { DashboardTask, GroupedTasks } from './types';
 
 interface MyTasksSectionProps {
     tasks: GroupedTasks;
     overdueCount: number;
 }
 
-interface TaskGroupProps {
-    title: string;
-    icon: React.ReactNode;
-    tasks: GroupedTasks[keyof GroupedTasks];
-    variant?: 'default' | 'warning' | 'muted';
-}
+export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
+    // Flatten all tasks into a single array, ordered by priority
+    const allTasks: DashboardTask[] = [
+        ...tasks.overdue,
+        ...tasks.today,
+        ...tasks.this_week,
+        ...tasks.later,
+        ...tasks.no_date,
+    ];
 
-function TaskGroup({
-    title,
-    icon,
-    tasks,
-    variant = 'default',
-}: TaskGroupProps) {
-    if (tasks.length === 0) return null;
-
-    const headerColors = {
-        default: 'text-foreground',
-        warning: 'text-destructive',
-        muted: 'text-muted-foreground',
+    // Create grouped data for tabs
+    const groupedData = {
+        all: allTasks,
+        overdue: tasks.overdue,
+        today: tasks.today,
+        this_week: tasks.this_week,
+        later: tasks.later,
+        no_date: tasks.no_date,
     };
 
-    return (
-        <div className="space-y-2">
-            <div
-                className={cn(
-                    'flex items-center gap-2 text-sm font-medium',
-                    headerColors[variant],
-                )}
-            >
-                {icon}
-                <span>{title}</span>
-                <Badge
-                    variant={variant === 'warning' ? 'destructive' : 'secondary'}
-                    className="text-xs"
-                >
-                    {tasks.length}
-                </Badge>
-            </div>
-            <div className="space-y-2">
-                {tasks.map((task, index) => (
-                    <DashboardTaskCard key={task.id} task={task} index={index} />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
-    const totalTasks =
-        tasks.overdue.length +
-        tasks.today.length +
-        tasks.this_week.length +
-        tasks.later.length +
-        tasks.no_date.length;
+    const totalTasks = allTasks.length;
 
     return (
         <motion.div
@@ -111,7 +73,7 @@ export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
                     )}
                 </CardHeader>
 
-                <CardContent className="flex flex-1 flex-col space-y-6">
+                <CardContent className="flex flex-1 flex-col">
                     {totalTasks === 0 ? (
                         <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
                             <div className="rounded-full bg-primary/10 p-3">
@@ -125,47 +87,7 @@ export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
                             </p>
                         </div>
                     ) : (
-                        <ScrollArea className="flex-1 pr-4">
-                            <div className="space-y-6">
-                                {/* Overdue */}
-                                <TaskGroup
-                                    title="Overdue"
-                                    icon={<AlertTriangle className="size-4" />}
-                                    tasks={tasks.overdue}
-                                    variant="warning"
-                                />
-
-                                {/* Today */}
-                                <TaskGroup
-                                    title="Today"
-                                    icon={<Clock className="size-4" />}
-                                    tasks={tasks.today}
-                                />
-
-                                {/* This Week */}
-                                <TaskGroup
-                                    title="This Week"
-                                    icon={<Calendar className="size-4" />}
-                                    tasks={tasks.this_week}
-                                />
-
-                                {/* Later */}
-                                <TaskGroup
-                                    title="Later"
-                                    icon={<CalendarClock className="size-4" />}
-                                    tasks={tasks.later}
-                                    variant="muted"
-                                />
-
-                                {/* No Date */}
-                                <TaskGroup
-                                    title="No Due Date"
-                                    icon={<ListTodo className="size-4" />}
-                                    tasks={tasks.no_date}
-                                    variant="muted"
-                                />
-                            </div>
-                        </ScrollArea>
+                        <MyTasksTable data={allTasks} groupedData={groupedData} />
                     )}
                 </CardContent>
             </Card>
