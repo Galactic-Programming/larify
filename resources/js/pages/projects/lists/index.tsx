@@ -73,6 +73,12 @@ export default function ListsIndex({ project, permissions }: Props) {
     const [editingList, setEditingList] = useState<TaskList | null>(null);
     const [deletingList, setDeletingList] = useState<TaskList | null>(null);
 
+    // Debug: Log permissions to see what's being passed
+    console.log('ListsIndex permissions:', permissions);
+    console.log('canCreateList:', permissions.canCreateList);
+    console.log('maxLists:', permissions.maxLists);
+    console.log('currentLists:', permissions.currentLists);
+
     // Note: Real-time updates are handled in each view component (BoardView, ListView, TableView)
     // to properly handle task deletion when detail sheet is open
 
