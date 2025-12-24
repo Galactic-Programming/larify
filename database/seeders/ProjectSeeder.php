@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TaskPriority;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
@@ -111,10 +110,9 @@ class ProjectSeeder extends Seeder
                 'project_id' => $project->id,
                 'name' => $name,
                 'position' => $position,
-                'is_done_list' => $name === 'Done', // Set Done list as the done list
+                'is_done_list' => $name === 'Done',
             ]);
 
-            // Add sample tasks to each list
             $this->createSampleTasks($project, $list, $position);
         }
     }
@@ -135,13 +133,12 @@ class ProjectSeeder extends Seeder
                 'is_done_list' => $name === 'Done',
             ]);
 
-            // Add sample tasks to each list
             $this->createSampleTasks($project, $list, $position);
         }
     }
 
     /**
-     * Create sample tasks for a list.
+     * Create sample tasks for a list using TaskFactory.
      */
     private function createSampleTasks(Project $project, TaskList $list, int $listPosition): void
     {
@@ -153,20 +150,20 @@ class ProjectSeeder extends Seeder
             default => 2,
         };
 
-        for ($i = 0; $i < $taskCount; $i++) {
-            $isCompleted = $listPosition === 3;
+        $isCompleted = $listPosition === 3;
 
-            Task::create([
-                'project_id' => $project->id,
-                'list_id' => $list->id,
-                'title' => fake()->sentence(rand(3, 6)),
-                'description' => fake()->optional(0.5)->paragraph(),
-                'position' => $i,
-                'priority' => fake()->randomElement(TaskPriority::cases()),
-                'due_date' => fake()->dateTimeBetween('now', '+30 days'),
-                'due_time' => fake()->time('H:i:s'),
-                'completed_at' => $isCompleted ? fake()->dateTimeBetween('-1 day', 'now') : null,
-            ]);
+        // Use TaskFactory with appropriate state
+        $factory = Task::factory()
+            ->for($project)
+            ->for($list, 'list');
+
+        if ($isCompleted) {
+            $factory = $factory->completed();
+        }
+
+        // Create tasks with sequential positions
+        for ($i = 0; $i < $taskCount; $i++) {
+            $factory->create(['position' => $i]);
         }
     }
 }
