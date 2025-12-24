@@ -25,9 +25,14 @@ class NotificationController extends Controller
             ->latest()
             ->paginate(20);
 
+        // Get activity retention days based on user's plan
+        $retentionDays = $user->plan->activityRetentionDays();
+        $cutoffDate = now()->subDays($retentionDays);
+
         // Get activities from user's projects
         $projectIds = $user->allProjects()->pluck('id');
         $activities = Activity::whereIn('project_id', $projectIds)
+            ->where('created_at', '>=', $cutoffDate)
             ->with(['user:id,name,avatar', 'project:id,name,color,icon'])
             ->latest()
             ->paginate(30);

@@ -24,7 +24,12 @@ class ActivityController extends Controller
         // Get project IDs the user has access to
         $projectIds = $user->allProjects()->pluck('id');
 
+        // Get activity retention days based on user's plan
+        $retentionDays = $user->plan->activityRetentionDays();
+        $cutoffDate = now()->subDays($retentionDays);
+
         $activities = Activity::whereIn('project_id', $projectIds)
+            ->where('created_at', '>=', $cutoffDate)
             ->with(['user:id,name,avatar', 'project:id,name,color,icon'])
             ->latest()
             ->paginate(30);
@@ -42,7 +47,12 @@ class ActivityController extends Controller
     {
         Gate::authorize('view', $project);
 
+        $user = $request->user();
+        $retentionDays = $user->plan->activityRetentionDays();
+        $cutoffDate = now()->subDays($retentionDays);
+
         $activities = $project->activities()
+            ->where('created_at', '>=', $cutoffDate)
             ->with(['user:id,name,avatar'])
             ->latest()
             ->paginate(30);
@@ -66,10 +76,15 @@ class ActivityController extends Controller
         $user = $request->user();
         $projectId = $request->query('project_id');
 
+        // Get activity retention days based on user's plan
+        $retentionDays = $user->plan->activityRetentionDays();
+        $cutoffDate = now()->subDays($retentionDays);
+
         // Get project IDs the user has access to
         $projectIds = $user->allProjects()->pluck('id');
 
         $query = Activity::whereIn('project_id', $projectIds)
+            ->where('created_at', '>=', $cutoffDate)
             ->with(['user:id,name,avatar', 'project:id,name,color,icon'])
             ->latest();
 
