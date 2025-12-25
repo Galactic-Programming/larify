@@ -190,60 +190,44 @@ export function CreateConversationDialog({
         return name.trim() && selectedUsers.length >= 1;
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!canSubmit() || isSubmitting) return;
 
         setIsSubmitting(true);
         setErrors({});
 
-        try {
-            const response = await fetch('/conversations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN':
-                        document.querySelector<HTMLMetaElement>(
-                            'meta[name="csrf-token"]',
-                        )?.content ?? '',
+        router.post(
+            '/conversations',
+            {
+                type,
+                name: type === 'group' ? name : '',
+                participant_ids: selectedUsers.map((u) => u.id),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    setOpen(false);
+                    resetForm();
+                    softToastSuccess('Conversation created successfully');
+
+                    // Get the conversation ID from flash or redirect
+                    const props = page.props as { conversation?: { id: number } };
+                    if (props.conversation?.id) {
+                        router.visit(`/conversations/${props.conversation.id}`);
+                    }
                 },
-                body: JSON.stringify({
-                    type,
-                    name: type === 'group' ? name : '',
-                    participant_ids: selectedUsers.map((u) => u.id),
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (data.errors) {
-                    // Laravel returns errors as arrays, convert to strings
+                onError: (errors) => {
                     const formattedErrors: Record<string, string> = {};
-                    for (const [key, value] of Object.entries(data.errors)) {
+                    for (const [key, value] of Object.entries(errors)) {
                         formattedErrors[key] = Array.isArray(value) ? value[0] : String(value);
                     }
                     setErrors(formattedErrors);
-                } else if (data.message) {
-                    // Handle general error message
-                    setErrors({ general: data.message });
-                }
-                return;
-            }
-
-            // Success - close dialog and navigate to the new conversation
-            setOpen(false);
-            resetForm();
-            softToastSuccess('Conversation created successfully');
-
-            if (data.conversation?.id) {
-                router.visit(`/conversations/${data.conversation.id}`);
-            }
-        } catch (error) {
-            console.error('Failed to create conversation:', error);
-        } finally {
-            setIsSubmitting(false);
-        }
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
     };
 
     return (

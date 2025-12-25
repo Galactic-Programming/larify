@@ -11,14 +11,31 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MessageInput } from '@/components/ui/message-input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import {
     Tooltip,
     TooltipContent,
@@ -37,6 +54,7 @@ import {
     ArrowLeft,
     Check,
     CheckCheck,
+    Crown,
     Edit2,
     MoreVertical,
     Paperclip,
@@ -326,6 +344,10 @@ export default function ConversationShow({
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConversation, setShowDeleteConversation] = useState(false);
     const [isDeletingConversation, setIsDeletingConversation] = useState(false);
+    const [showMembers, setShowMembers] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const [groupName, setGroupName] = useState(conversation.raw_name || conversation.name);
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastTypingRef = useRef<number>(0);
@@ -668,6 +690,26 @@ export default function ConversationShow({
         });
     };
 
+    // Save group settings
+    const handleSaveSettings = () => {
+        if (!groupName.trim()) return;
+
+        setIsSavingSettings(true);
+        router.patch(
+            `/conversations/${conversation.id}`,
+            { name: groupName.trim() },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowSettings(false);
+                },
+                onFinish: () => {
+                    setIsSavingSettings(false);
+                },
+            },
+        );
+    };
+
     return (
         <ChatLayout
             breadcrumbs={breadcrumbs}
@@ -717,7 +759,11 @@ export default function ConversationShow({
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="icon">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setShowMembers(true)}
+                                            >
                                                 <Users className="h-5 w-5" />
                                             </Button>
                                         </TooltipTrigger>
@@ -736,7 +782,7 @@ export default function ConversationShow({
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setShowSettings(true)}>
                                             <Settings className="mr-2 h-4 w-4" />
                                             Settings
                                         </DropdownMenuItem>
@@ -991,6 +1037,114 @@ export default function ConversationShow({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Members Sheet */}
+            <Sheet open={showMembers} onOpenChange={setShowMembers}>
+                <SheetContent>
+                    <SheetHeader>
+                        <SheetTitle>Group Members</SheetTitle>
+                        <SheetDescription>
+                            {conversation.participants.length} members in this group
+                        </SheetDescription>
+                    </SheetHeader>
+                    <ScrollArea className="mt-4 h-[calc(100vh-10rem)]">
+                        <div className="space-y-3 pr-4">
+                            {conversation.participants.map((participant) => (
+                                <div
+                                    key={participant.id}
+                                    className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50"
+                                >
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage
+                                            src={participant.avatar}
+                                            alt={participant.name}
+                                        />
+                                        <AvatarFallback>
+                                            {participant.name.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">
+                                            {participant.name}
+                                            {participant.id === auth.user.id && (
+                                                <span className="ml-2 text-xs text-muted-foreground">
+                                                    (You)
+                                                </span>
+                                            )}
+                                        </p>
+                                        {participant.email && (
+                                            <p className="text-sm text-muted-foreground truncate">
+                                                {participant.email}
+                                            </p>
+                                        )}
+                                    </div>
+                                    {participant.role === 'owner' && (
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger>
+                                                    <Crown className="h-4 w-4 text-yellow-500" />
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    Group Owner
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </SheetContent>
+            </Sheet>
+
+            {/* Settings Dialog */}
+            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {conversation.type === 'group'
+                                ? 'Group Settings'
+                                : 'Conversation Settings'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {conversation.type === 'group'
+                                ? 'Manage your group conversation settings'
+                                : 'Manage your conversation settings'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {conversation.type === 'group' && (
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="group-name">Group Name</Label>
+                                <Input
+                                    id="group-name"
+                                    value={groupName}
+                                    onChange={(e) => setGroupName(e.target.value)}
+                                    placeholder="Enter group name..."
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowSettings(false)}
+                        >
+                            Cancel
+                        </Button>
+                        {conversation.type === 'group' && (
+                            <Button
+                                onClick={handleSaveSettings}
+                                disabled={isSavingSettings || !groupName.trim()}
+                            >
+                                {isSavingSettings ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </ChatLayout>
     );
 }
