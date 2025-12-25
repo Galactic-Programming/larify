@@ -366,22 +366,27 @@ export default function ConversationShow({
         [],
     );
 
+    // Function to mark messages as read and broadcast read receipt
+    const markMessagesAsRead = useCallback(() => {
+        fetch(`/conversations/${conversation.id}/messages/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN':
+                    document.querySelector<HTMLMetaElement>(
+                        'meta[name="csrf-token"]',
+                    )?.content ?? '',
+            },
+        });
+    }, [conversation.id]);
+
     // Mark as read when component mounts
     useEffect(() => {
         if (!hasMarkedAsReadRef.current) {
-            fetch(`/conversations/${conversation.id}/messages/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN':
-                        document.querySelector<HTMLMetaElement>(
-                            'meta[name="csrf-token"]',
-                        )?.content ?? '',
-                },
-            });
+            markMessagesAsRead();
             hasMarkedAsReadRef.current = true;
         }
         scrollToBottom('instant');
-    }, [conversation.id, scrollToBottom]);
+    }, [conversation.id, scrollToBottom, markMessagesAsRead]);
 
     useEffect(() => {
         scrollToBottom();
@@ -402,10 +407,12 @@ export default function ConversationShow({
                     }
                     return [...prev, data.message];
                 });
-                // Note: Don't auto mark as read - only mark when user actively views/interacts
+                // Mark as read since user is actively viewing this conversation
+                // This broadcasts read receipt back to the sender
+                markMessagesAsRead();
             }
         },
-        [auth.user.id],
+        [auth.user.id, markMessagesAsRead],
         'private',
     );
 
