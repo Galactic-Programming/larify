@@ -38,7 +38,7 @@ class ConversationPolicy
 
     /**
      * Determine whether the user can update the conversation settings.
-     * Only group owners can update (group name, avatar).
+     * Any participant of a group can update (group name, avatar).
      * Direct conversations cannot be updated.
      */
     public function update(User $user, Conversation $conversation): bool
@@ -48,24 +48,19 @@ class ConversationPolicy
             return false;
         }
 
-        // Must be the owner of the group
-        return $this->isOwner($user, $conversation);
+        // Any participant can update group settings
+        return $conversation->hasParticipant($user);
     }
 
     /**
-     * Determine whether the user can delete the conversation.
-     * Group owners can delete groups.
-     * Direct conversation participants can archive (hide for themselves only).
+     * Determine whether the user can delete (soft delete) the conversation.
+     * Any participant can delete the conversation for themselves.
+     * When a new message is sent, the conversation reappears for participants who deleted it.
+     * The conversation is only fully deleted when all participants have deleted it.
      */
     public function delete(User $user, Conversation $conversation): bool
     {
-        // Direct conversations: any participant can archive
-        if ($conversation->isDirect()) {
-            return $conversation->hasParticipant($user);
-        }
-
-        // Groups: only owners can delete
-        return $this->isOwner($user, $conversation);
+        return $conversation->hasParticipant($user);
     }
 
     /**
@@ -79,7 +74,8 @@ class ConversationPolicy
 
     /**
      * Determine whether the user can manage participants (add/remove).
-     * Only group owners can manage participants.
+     * Any participant of a group can add new members.
+     * Only the owner can remove members.
      */
     public function manageParticipants(User $user, Conversation $conversation): bool
     {
@@ -88,27 +84,33 @@ class ConversationPolicy
             return false;
         }
 
+        return $conversation->hasParticipant($user);
+    }
+
+    /**
+     * Determine whether the user can remove a participant from the conversation.
+     * Only the owner can remove members.
+     */
+    public function removeParticipant(User $user, Conversation $conversation): bool
+    {
+        if ($conversation->isDirect()) {
+            return false;
+        }
+
         return $this->isOwner($user, $conversation);
     }
 
     /**
-     * Determine whether the user can leave the conversation.
-     * Owners of groups cannot leave (must transfer ownership or delete).
+     * Determine whether the user can transfer ownership.
+     * Only the owner can transfer ownership.
      */
-    public function leave(User $user, Conversation $conversation): bool
+    public function transferOwnership(User $user, Conversation $conversation): bool
     {
-        // Must be a participant first
-        if (! $conversation->hasParticipant($user)) {
+        if ($conversation->isDirect()) {
             return false;
         }
 
-        // Direct conversations: you can leave (archive)
-        if ($conversation->isDirect()) {
-            return true;
-        }
-
-        // Group owners cannot leave without transferring ownership
-        return ! $this->isOwner($user, $conversation);
+        return $this->isOwner($user, $conversation);
     }
 
     /**

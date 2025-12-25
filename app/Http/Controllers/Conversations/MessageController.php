@@ -103,6 +103,12 @@ class MessageController extends Controller
             }
         }
 
+        // Unarchive the conversation for all participants who have deleted it
+        // This makes the conversation reappear when a new message is sent
+        $conversation->participantRecords()
+            ->whereNotNull('archived_at')
+            ->update(['archived_at' => null]);
+
         // Load relationships for broadcasting
         $message->load(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name']);
 

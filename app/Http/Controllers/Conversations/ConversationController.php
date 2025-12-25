@@ -256,7 +256,6 @@ class ConversationController extends Controller
                 }),
                 'can_update' => Gate::allows('update', $conversation),
                 'can_manage_participants' => Gate::allows('manageParticipants', $conversation),
-                'can_leave' => Gate::allows('leave', $conversation),
                 'can_delete' => Gate::allows('delete', $conversation),
             ],
         ]);
@@ -273,41 +272,36 @@ class ConversationController extends Controller
     }
 
     /**
-     * Remove the specified conversation (soft delete/archive).
-     * For direct conversations: archive (hide) for current user only.
-     * For groups: delete entirely.
+     * Remove the specified conversation (archive for current user).
+     * Each participant can archive the conversation for themselves.
+     * When ALL participants have archived, the conversation is fully deleted.
      */
     public function destroy(Request $request, Conversation $conversation): RedirectResponse
     {
         Gate::authorize('delete', $conversation);
 
-        if ($conversation->isDirect()) {
-            // For direct conversations: archive for current user only
-            $conversation->participantRecords()
-                ->where('user_id', $request->user()->id)
-                ->update(['archived_at' => now()]);
-
-            return to_route('conversations.index')->with('success', 'Conversation archived.');
-        }
-
-        // For groups: delete the conversation entirely
-        $conversation->delete();
-
-        return to_route('conversations.index')->with('success', 'Conversation deleted.');
-    }
-
-    /**
-     * Leave the conversation.
-     */
-    public function leave(Request $request, Conversation $conversation): RedirectResponse
-    {
-        Gate::authorize('leave', $conversation);
-
-        // Mark participant as left
+        // Archive the conversation for the current user
         $conversation->participantRecords()
             ->where('user_id', $request->user()->id)
-            ->update(['left_at' => now()]);
+            ->update(['archived_at' => now()]);
 
-        return to_route('conversations.index')->with('success', 'You have left the conversation.');
+        // Check if ALL active participants have archived the conversation
+        $activeParticipants = $conversation->participantRecords()
+            ->whereNull('left_at')
+            ->count();
+
+        $archivedParticipants = $conversation->participantRecords()
+            ->whereNull('left_at')
+            ->whereNotNull('archived_at')
+            ->count();
+
+        // If all participants have archived, fully delete the conversation
+        if ($activeParticipants > 0 && $activeParticipants === $archivedParticipants) {
+            $conversation->delete();
+
+            return to_route('conversations.index')->with('success', 'Conversation deleted.');
+        }
+
+        return to_route('conversations.index')->with('success', 'Conversation deleted.');
     }
 }

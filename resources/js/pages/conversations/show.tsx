@@ -50,7 +50,6 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import {
-    Archive,
     ArrowLeft,
     Check,
     CheckCheck,
@@ -781,7 +780,7 @@ export default function ConversationShow({
                                 </TooltipProvider>
                             )}
 
-                            {conversation.can_update && (
+                            {(conversation.can_update || conversation.can_delete) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon">
@@ -789,34 +788,15 @@ export default function ConversationShow({
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => setShowSettings(true)}>
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            Settings
-                                        </DropdownMenuItem>
-                                        {conversation.can_leave && (
-                                            <>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        if (
-                                                            confirm(
-                                                                'Leave this conversation?',
-                                                            )
-                                                        ) {
-                                                            router.post(
-                                                                `/conversations/${conversation.id}/leave`,
-                                                            );
-                                                        }
-                                                    }}
-                                                    className="text-destructive"
-                                                >
-                                                    Leave conversation
-                                                </DropdownMenuItem>
-                                            </>
+                                        {conversation.can_update && (
+                                            <DropdownMenuItem onClick={() => setShowSettings(true)}>
+                                                <Settings className="mr-2 h-4 w-4" />
+                                                Settings
+                                            </DropdownMenuItem>
                                         )}
                                         {conversation.can_delete && (
                                             <>
-                                                <DropdownMenuSeparator />
+                                                {conversation.can_update && <DropdownMenuSeparator />}
                                                 <DropdownMenuItem
                                                     onClick={() =>
                                                         setShowDeleteConversation(
@@ -825,18 +805,8 @@ export default function ConversationShow({
                                                     }
                                                     className="text-destructive"
                                                 >
-                                                    {conversation.type ===
-                                                        'direct' ? (
-                                                        <>
-                                                            <Archive className="mr-2 h-4 w-4" />
-                                                            Archive conversation
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Delete conversation
-                                                        </>
-                                                    )}
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete conversation
                                                 </DropdownMenuItem>
                                             </>
                                         )}
@@ -1006,7 +976,7 @@ export default function ConversationShow({
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Delete/Archive Conversation Confirmation Dialog */}
+            {/* Delete Conversation Confirmation Dialog */}
             <AlertDialog
                 open={showDeleteConversation}
                 onOpenChange={(open) => !open && setShowDeleteConversation(false)}
@@ -1014,14 +984,10 @@ export default function ConversationShow({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {conversation.type === 'direct'
-                                ? 'Archive Conversation'
-                                : 'Delete Conversation'}
+                            Delete Conversation
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {conversation.type === 'direct'
-                                ? 'Are you sure you want to archive this conversation? It will be hidden from your list but the other person can still see it.'
-                                : 'Are you sure you want to delete this conversation? All messages and attachments will be permanently deleted. This action cannot be undone.'}
+                            Are you sure you want to delete this conversation? It will be hidden from your list. Other participants can still see it until they also delete it. If someone sends a new message, the conversation will reappear.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -1033,13 +999,7 @@ export default function ConversationShow({
                             disabled={isDeletingConversation}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {isDeletingConversation
-                                ? conversation.type === 'direct'
-                                    ? 'Archiving...'
-                                    : 'Deleting...'
-                                : conversation.type === 'direct'
-                                    ? 'Archive'
-                                    : 'Delete Conversation'}
+                            {isDeletingConversation ? 'Deleting...' : 'Delete'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -146,8 +146,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('conversations.update');
     Route::delete('conversations/{conversation}', [ConversationController::class, 'destroy'])
         ->name('conversations.destroy');
-    Route::post('conversations/{conversation}/leave', [ConversationController::class, 'leave'])
-        ->name('conversations.leave');
 
     // Conversation Participants
     Route::post('conversations/{conversation}/participants', [ConversationParticipantController::class, 'store'])

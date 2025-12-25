@@ -39,7 +39,7 @@ it('allows owner to add participant to group', function () {
     expect($this->groupConversation->hasParticipant($newMember))->toBeTrue();
 });
 
-it('prevents member from adding participant', function () {
+it('allows member to add participant to group', function () {
     $newMember = User::factory()->create();
 
     $response = $this->actingAs($this->member1)->post(
@@ -47,8 +47,9 @@ it('prevents member from adding participant', function () {
         ['user_id' => $newMember->id]
     );
 
-    $response->assertForbidden();
-    expect($this->groupConversation->activeParticipants)->toHaveCount(2);
+    $response->assertRedirect();
+    expect($this->groupConversation->activeParticipants)->toHaveCount(3);
+    expect($this->groupConversation->hasParticipant($newMember))->toBeTrue();
 });
 
 it('prevents adding existing participant', function () {

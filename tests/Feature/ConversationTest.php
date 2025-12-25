@@ -174,7 +174,7 @@ it('allows group owner to update conversation name', function () {
     expect($conversation->name)->toBe('New Name');
 });
 
-it('prevents member from updating group conversation', function () {
+it('allows member to update group conversation', function () {
     $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
@@ -189,12 +189,12 @@ it('prevents member from updating group conversation', function () {
     ]);
 
     $response = $this->actingAs($member)->patch(route('conversations.update', $conversation), [
-        'name' => 'Hacked Name',
+        'name' => 'Member Updated Name',
     ]);
 
-    $response->assertForbidden();
+    $response->assertRedirect();
     $conversation->refresh();
-    expect($conversation->name)->toBe('Old Name');
+    expect($conversation->name)->toBe('Member Updated Name');
 });
 
 it('prevents updating direct conversation', function () {
@@ -219,7 +219,7 @@ it('prevents updating direct conversation', function () {
 
 // === CONVERSATION DELETION ===
 
-it('allows group owner to delete conversation', function () {
+it('allows group owner to archive conversation', function () {
     $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
@@ -233,15 +233,23 @@ it('allows group owner to delete conversation', function () {
         ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
     ]);
 
-    $conversationId = $conversation->id;
-
     $response = $this->actingAs($owner)->delete(route('conversations.destroy', $conversation));
 
     $response->assertRedirect();
-    expect(Conversation::find($conversationId))->toBeNull();
+
+    // Conversation should still exist (only archived for owner)
+    expect(Conversation::find($conversation->id))->not->toBeNull();
+
+    // Owner's participant record should be archived
+    $ownerParticipant = $conversation->participantRecords()->where('user_id', $owner->id)->first();
+    expect($ownerParticipant->archived_at)->not->toBeNull();
+
+    // Member's participant record should NOT be archived
+    $memberParticipant = $conversation->participantRecords()->where('user_id', $member->id)->first();
+    expect($memberParticipant->archived_at)->toBeNull();
 });
 
-it('prevents member from deleting group conversation', function () {
+it('allows member to archive group conversation', function () {
     $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
@@ -257,34 +265,17 @@ it('prevents member from deleting group conversation', function () {
 
     $response = $this->actingAs($member)->delete(route('conversations.destroy', $conversation));
 
-    $response->assertForbidden();
-});
-
-// === LEAVING CONVERSATION ===
-
-it('allows member to leave group conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Test Group',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
-
-    $response = $this->actingAs($member)->post(route('conversations.leave', $conversation));
-
     $response->assertRedirect();
 
-    $participant = $conversation->participantRecords()->where('user_id', $member->id)->first();
-    expect($participant->left_at)->not->toBeNull();
+    // Conversation should still exist (only archived for member)
+    expect(Conversation::find($conversation->id))->not->toBeNull();
+
+    // Member's participant record should be archived
+    $memberParticipant = $conversation->participantRecords()->where('user_id', $member->id)->first();
+    expect($memberParticipant->archived_at)->not->toBeNull();
 });
 
-it('prevents owner from leaving group conversation', function () {
+it('deletes conversation when all participants have archived', function () {
     $owner = User::factory()->create(['plan' => UserPlan::Pro]);
     $member = User::factory()->create(['plan' => UserPlan::Pro]);
 
@@ -298,14 +289,45 @@ it('prevents owner from leaving group conversation', function () {
         ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
     ]);
 
-    $response = $this->actingAs($owner)->post(route('conversations.leave', $conversation));
+    $conversationId = $conversation->id;
 
-    $response->assertForbidden();
+    // Owner archives first
+    $this->actingAs($owner)->delete(route('conversations.destroy', $conversation));
+    expect(Conversation::find($conversationId))->not->toBeNull();
+
+    // Member archives second - now conversation should be deleted
+    $response = $this->actingAs($member)->delete(route('conversations.destroy', $conversation));
+
+    $response->assertRedirect();
+    expect(Conversation::find($conversationId))->toBeNull();
 });
 
-// === ARCHIVING DIRECT CONVERSATION ===
+it('unarchives conversation when new message is sent', function () {
+    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 
-it('allows user to archive direct conversation', function () {
+    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+
+    // User1 deletes (archives) the conversation
+    $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
+
+    // Verify user1's record is archived
+    $participant1 = $conversation->participantRecords()->where('user_id', $user1->id)->first();
+    expect($participant1->archived_at)->not->toBeNull();
+
+    // User2 sends a new message
+    $this->actingAs($user2)->post(route('conversations.messages.store', $conversation), [
+        'content' => 'Hello again!',
+    ]);
+
+    // User1's record should be unarchived now
+    $participant1->refresh();
+    expect($participant1->archived_at)->toBeNull();
+});
+
+// === DELETING DIRECT CONVERSATION ===
+
+it('allows user to delete direct conversation', function () {
     $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
     $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
 

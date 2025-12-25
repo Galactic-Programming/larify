@@ -95,10 +95,11 @@ class ConversationParticipantController extends Controller
 
     /**
      * Remove a participant from the conversation.
+     * Only the owner can remove participants.
      */
     public function destroy(Conversation $conversation, ConversationParticipant $participant): RedirectResponse
     {
-        Gate::authorize('manageParticipants', $conversation);
+        Gate::authorize('removeParticipant', $conversation);
 
         // Verify participant belongs to this conversation
         if ($participant->conversation_id !== $conversation->id) {
@@ -110,9 +111,9 @@ class ConversationParticipantController extends Controller
             return back()->with('error', 'Cannot remove the owner from the conversation.');
         }
 
-        // Cannot remove yourself (use leave instead)
+        // Cannot remove yourself
         if ($participant->user_id === auth()->id()) {
-            return back()->with('error', 'Use the leave option to remove yourself.');
+            return back()->with('error', 'You cannot remove yourself from the conversation.');
         }
 
         $removedUser = $participant->user;
@@ -133,10 +134,11 @@ class ConversationParticipantController extends Controller
 
     /**
      * Transfer ownership to another participant.
+     * Only the owner can transfer ownership.
      */
     public function transferOwnership(Conversation $conversation, ConversationParticipant $participant): RedirectResponse
     {
-        Gate::authorize('manageParticipants', $conversation);
+        Gate::authorize('transferOwnership', $conversation);
 
         // Verify participant belongs to this conversation
         if ($participant->conversation_id !== $conversation->id) {
