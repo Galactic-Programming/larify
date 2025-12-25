@@ -53,7 +53,7 @@ class MemberRoleChanged extends Notification implements ShouldQueue
             ->line("Your role in \"{$this->project->name}\" has been changed from {$this->oldRole->label()} to {$this->newRole->label()}.")
             ->line("This change was made by {$this->changedBy->name}.")
             ->action('View Project', url("/projects/{$this->project->id}"))
-            ->line('Thank you for using Larify!');
+            ->line('Thank you for using LaraFlow!');
     }
 
     /**

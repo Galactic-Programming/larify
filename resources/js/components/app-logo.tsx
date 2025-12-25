@@ -15,7 +15,7 @@ export default function AppLogo() {
             <div className="ml-1 grid flex-1 text-left text-sm">
                 <div className="flex items-center gap-2">
                     <span className="mb-0.5 truncate leading-tight font-semibold">
-                        Larify
+                        LaraFlow
                     </span>
                     <Badge
                         variant={plan === 'pro' ? 'default' : 'secondary'}

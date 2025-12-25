@@ -76,7 +76,7 @@ export default function Dashboard({
                             transition={{ delay: 0.5, duration: 0.4 }}
                             className="mt-2 text-muted-foreground"
                         >
-                            Welcome back to Larify. Here's what's happening today.
+                            Welcome back to LaraFlow. Here's what's happening today.
                         </motion.p>
                     </div>
                     {/* Decorative gradient circles */}

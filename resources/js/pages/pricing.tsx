@@ -82,7 +82,7 @@ export default function Pricing({
                         <Link href="/" className="flex items-center gap-2">
                             <AppLogoIcon className="size-8" />
                             <span className="text-lg font-semibold">
-                                Larify
+                                LaraFlow
                             </span>
                         </Link>
                         <div className="flex items-center gap-4">
@@ -383,7 +383,7 @@ export default function Pricing({
                 <footer className="border-t py-8">
                     <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                         <p>
-                            © {new Date().getFullYear()} Larify. All rights
+                            © {new Date().getFullYear()} LaraFlow. All rights
                             reserved.
                         </p>
                     </div>

@@ -49,7 +49,7 @@ class TaskCompleted extends Notification implements ShouldQueue
             ->greeting("Hello {$notifiable->name}!")
             ->line("{$this->completedBy->name} completed the task \"{$this->task->title}\" in project \"{$this->task->project->name}\".")
             ->action('View Project', url("/projects/{$this->task->project_id}"))
-            ->line('Thank you for using Larify!');
+            ->line('Thank you for using LaraFlow!');
     }
 
     /**

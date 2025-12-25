@@ -105,7 +105,7 @@ export default function ErrorPage({ error }: ErrorPageProps) {
                         className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
                     >
                         <AppLogoIcon className="size-6" />
-                        <span className="text-sm">Larify</span>
+                        <span className="text-sm">LaraFlow</span>
                     </Link>
                 </motion.div>
 

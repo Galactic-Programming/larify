@@ -38,7 +38,7 @@ function UpgradePrompt() {
                 </span>
             </div>
             <p className="mb-6 max-w-sm text-muted-foreground">
-                Communicate with your team directly within Larify. Share updates,
+                Communicate with your team directly within LaraFlow. Share updates,
                 discuss tasks, and collaborate in real-time.
             </p>
             <Button

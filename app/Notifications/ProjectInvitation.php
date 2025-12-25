@@ -51,7 +51,7 @@ class ProjectInvitation extends Notification implements ShouldQueue
             ->greeting("Hello {$notifiable->name}!")
             ->line("{$this->invitedBy->name} invited you to join the project \"{$this->project->name}\" as {$this->role->label()}.")
             ->action('View Project', url("/projects/{$this->project->id}"))
-            ->line('Thank you for using Larify!');
+            ->line('Thank you for using LaraFlow!');
     }
 
     /**

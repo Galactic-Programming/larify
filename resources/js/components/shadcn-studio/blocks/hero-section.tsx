@@ -31,7 +31,7 @@ const HeroSection = ({
             Boost Your Productivity
             <br />
             <span className="relative">
-                Larify
+                LaraFlow
                 <svg
                     width="223"
                     height="12"

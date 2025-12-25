@@ -236,7 +236,7 @@ export function CreateConversationDialog({
                 open={upgradeOpen}
                 onOpenChange={setUpgradeOpen}
                 title="Chat is a Pro Feature"
-                description="Upgrade to Pro to communicate with your team directly within Larify."
+                description="Upgrade to Pro to communicate with your team directly within LaraFlow."
                 feature="Team Chat"
             />
 

@@ -50,7 +50,7 @@ class TaskAssigned extends Notification implements ShouldQueue
             ->line("{$this->assignedBy->name} assigned you a task in project \"{$this->task->project->name}\".")
             ->line("Task: {$this->task->title}")
             ->action('View Task', url("/projects/{$this->task->project_id}"))
-            ->line('Thank you for using Larify!');
+            ->line('Thank you for using LaraFlow!');
     }
 
     /**

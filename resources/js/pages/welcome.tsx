@@ -125,7 +125,7 @@ const contactInfo: ContactInfo[] = [
     {
         title: 'Email Us',
         icon: MailIcon,
-        description: 'Larify@gmail.com',
+        description: 'LaraFlow@gmail.com',
     },
     {
         title: 'Call Us',
@@ -148,7 +148,7 @@ const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
         rating: 5,
         content:
-            'Larify has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
+            'LaraFlow has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
     },
     {
         name: 'Michael Rodriguez',
@@ -166,7 +166,7 @@ const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
         rating: 4.5,
         content:
-            'As a freelancer, tracking time across multiple projects was always a pain. Larify makes it effortless and even enjoyable.',
+            'As a freelancer, tracking time across multiple projects was always a pain. LaraFlow makes it effortless and even enjoyable.',
     },
     {
         name: 'David Kim',
@@ -181,24 +181,24 @@ const testimonials: Testimonial[] = [
 
 const faqItems: FAQItem[] = [
     {
-        question: 'What is Larify?',
-        answer: 'Larify is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
+        question: 'What is LaraFlow?',
+        answer: 'LaraFlow is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
     },
     {
         question: 'Is there a free plan available?',
-        answer: 'Yes! We offer a free plan with essential features to get you started. You can explore Larify and upgrade to a paid plan anytime for access to premium features.',
+        answer: 'Yes! We offer a free plan with essential features to get you started. You can explore LaraFlow and upgrade to a paid plan anytime for access to premium features.',
     },
     {
         question: 'How does the Focus Mode work?',
         answer: 'Focus Mode creates a distraction-free environment by blocking notifications, muting non-essential apps, and tracking your focus sessions. You can customize the duration and intensity of your focus sessions based on your preferences.',
     },
     {
-        question: 'Can I use Larify with my team?',
-        answer: 'Absolutely! Larify offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
+        question: 'Can I use LaraFlow with my team?',
+        answer: 'Absolutely! LaraFlow offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
     },
     {
-        question: 'What platforms does Larify support?',
-        answer: 'Larify is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
+        question: 'What platforms does LaraFlow support?',
+        answer: 'LaraFlow is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
     },
     {
         question: 'How secure is my data?',
@@ -290,7 +290,7 @@ function Header({ canRegister = true }: { canRegister?: boolean }) {
                 >
                     <Link href="/" className="flex items-center gap-2">
                         <LarifyLogo className="size-8" />
-                        <span className="text-xl font-bold">Larify</span>
+                        <span className="text-xl font-bold">LaraFlow</span>
                     </Link>
                 </motion.div>
 
@@ -507,7 +507,7 @@ function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
                     transition={{ delay: 0.7, duration: 0.5 }}
                     className="max-w-2xl text-lg text-muted-foreground"
                 >
-                    Larify helps you focus, plan, and accomplish more with
+                    LaraFlow helps you focus, plan, and accomplish more with
                     intelligent task management and distraction-free work
                     sessions. Get more done in less time.
                 </motion.p>
@@ -691,7 +691,7 @@ function TestimonialsSection() {
                         What Our Users Say
                     </h2>
                     <p className="text-lg text-muted-foreground">
-                        Discover how Larify has helped thousands achieve their
+                        Discover how LaraFlow has helped thousands achieve their
                         productivity goals.
                     </p>
                     <div className="flex items-center gap-4">
@@ -801,7 +801,7 @@ function FAQSection() {
                         Frequently Asked Questions
                     </h2>
                     <p className="text-lg text-muted-foreground">
-                        Everything you need to know about Larify. Can't find
+                        Everything you need to know about LaraFlow. Can't find
                         what you're looking for? Contact us.
                     </p>
                 </motion.div>
@@ -910,13 +910,13 @@ function SocialProofSection() {
                     >
                         <div className="space-y-4">
                             <p className="text-sm font-medium text-primary uppercase">
-                                Why Larify
+                                Why LaraFlow
                             </p>
                             <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
                                 Everything You Need to Achieve Peak Productivity
                             </h2>
                             <p className="text-lg text-muted-foreground">
-                                Larify combines the best productivity techniques
+                                LaraFlow combines the best productivity techniques
                                 with modern AI to help you work smarter, not
                                 harder. Join thousands of professionals who have
                                 transformed their workflow.
@@ -1026,7 +1026,7 @@ function ContactSection() {
                             Happy to help you!
                         </h3>
                         <p className="mb-10 text-lg font-medium text-muted-foreground">
-                            Have questions about Larify? Want to learn more
+                            Have questions about LaraFlow? Want to learn more
                             about our team plans? Or just want to say hello?
                             We're here for you.
                         </p>
@@ -1116,7 +1116,7 @@ function Footer() {
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 max-md:flex-col sm:px-6 sm:py-6 md:gap-6 md:py-8">
                 <Link href="/" className="flex items-center gap-2">
                     <LarifyLogo className="size-6" />
-                    <span className="font-semibold">Larify</span>
+                    <span className="font-semibold">LaraFlow</span>
                 </Link>
 
                 <div className="flex items-center gap-5 text-sm whitespace-nowrap text-muted-foreground">
@@ -1140,7 +1140,7 @@ function Footer() {
 
             <div className="mx-auto flex max-w-7xl justify-center px-4 py-6 sm:px-6">
                 <p className="text-center text-sm text-balance text-muted-foreground">
-                    © {new Date().getFullYear()} Larify - All rights reserved.
+                    © {new Date().getFullYear()} LaraFlow - All rights reserved.
                 </p>
             </div>
         </motion.footer>
@@ -1158,7 +1158,7 @@ export default function Welcome({
 }) {
     return (
         <>
-            <Head title="Welcome to Larify" />
+            <Head title="Welcome to LaraFlow" />
             <div className="min-h-screen bg-background text-foreground">
                 <Header canRegister={canRegister} />
                 <main>
