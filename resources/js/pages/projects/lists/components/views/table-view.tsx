@@ -756,7 +756,7 @@ export function TableView({ project, permissions }: TableViewProps) {
                                 ))}
                             </div>
                         </div>
-                        {permissions.canEdit && (
+                        {permissions.canEdit && permissions.canCreateList !== false && (
                             <CreateListDialog
                                 project={project}
                                 canCreateList={permissions.canCreateList}

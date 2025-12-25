@@ -198,8 +198,8 @@ export function ListView({
                         ))}
                     </Accordion>
 
-                    {/* Add new list button at bottom - Only for editors */}
-                    {permissions.canEdit && (
+                    {/* Add new list button at bottom - Only for editors who can still create lists */}
+                    {permissions.canEdit && permissions.canCreateList !== false && (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}

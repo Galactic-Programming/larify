@@ -468,8 +468,8 @@ export function BoardView({
                             </motion.div>
                         ))}
 
-                        {/* Add List Card - Only for editors and owners */}
-                        {permissions.canEdit && (
+                        {/* Add List Card - Only for editors and owners who can still create lists */}
+                        {permissions.canEdit && permissions.canCreateList !== false && (
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
