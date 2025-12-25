@@ -18,7 +18,6 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $today = now()->startOfDay();
-        $endOfWeek = now()->endOfWeek();
 
         // Get all projects the user has access to
         $projectIds = $user->allProjects()->pluck('id');
@@ -35,9 +34,7 @@ class DashboardController extends Controller
         // Group tasks by deadline
         $overdueTasks = $myTasks->filter(fn ($task) => $task->isOverdue())->values();
         $todayTasks = $myTasks->filter(fn ($task) => ! $task->isOverdue() && $task->due_date && $task->due_date->isSameDay($today))->values();
-        $thisWeekTasks = $myTasks->filter(fn ($task) => ! $task->isOverdue() && $task->due_date && $task->due_date->isAfter($today) && $task->due_date->lte($endOfWeek))->values();
-        $laterTasks = $myTasks->filter(fn ($task) => ! $task->isOverdue() && $task->due_date && $task->due_date->isAfter($endOfWeek))->values();
-        $noDateTasks = $myTasks->filter(fn ($task) => ! $task->due_date)->values();
+        $laterTasks = $myTasks->filter(fn ($task) => ! $task->isOverdue() && $task->due_date && $task->due_date->isAfter($today))->values();
 
         // Get upcoming deadlines (5 nearest tasks with due dates)
         $upcomingDeadlines = Task::where('assigned_to', $user->id)
@@ -174,9 +171,7 @@ class DashboardController extends Controller
             'myTasks' => [
                 'overdue' => $this->formatTasks($overdueTasks),
                 'today' => $this->formatTasks($todayTasks),
-                'this_week' => $this->formatTasks($thisWeekTasks),
                 'later' => $this->formatTasks($laterTasks),
-                'no_date' => $this->formatTasks($noDateTasks),
             ],
             'upcomingDeadlines' => $this->formatTasks($upcomingDeadlines),
             'recentActivities' => $recentActivities,

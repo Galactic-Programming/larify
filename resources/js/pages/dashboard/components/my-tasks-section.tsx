@@ -25,9 +25,7 @@ export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
     const allTasks: DashboardTask[] = [
         ...tasks.overdue,
         ...tasks.today,
-        ...tasks.this_week,
         ...tasks.later,
-        ...tasks.no_date,
     ];
 
     // Create grouped data for tabs
@@ -35,9 +33,7 @@ export function MyTasksSection({ tasks, overdueCount }: MyTasksSectionProps) {
         all: allTasks,
         overdue: tasks.overdue,
         today: tasks.today,
-        this_week: tasks.this_week,
         later: tasks.later,
-        no_date: tasks.no_date,
     };
 
     const totalTasks = allTasks.length;

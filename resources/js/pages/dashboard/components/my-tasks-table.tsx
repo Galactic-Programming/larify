@@ -344,15 +344,13 @@ function DraggableRow({ row, index }: { row: Row<DashboardTask>; index: number }
     );
 }
 
-type TaskGroup = 'all' | 'overdue' | 'today' | 'this_week' | 'later' | 'no_date';
+type TaskGroup = 'all' | 'overdue' | 'today' | 'later';
 
 interface GroupedTaskData {
     all: DashboardTask[];
     overdue: DashboardTask[];
     today: DashboardTask[];
-    this_week: DashboardTask[];
     later: DashboardTask[];
-    no_date: DashboardTask[];
 }
 
 interface MyTasksTableProps {
@@ -434,15 +432,13 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
     // Get counts for each tab
     const tabCounts = React.useMemo(() => {
         if (!groupedData) {
-            return { all: data.length, overdue: 0, today: 0, this_week: 0, later: 0, no_date: 0 };
+            return { all: data.length, overdue: 0, today: 0, later: 0 };
         }
         return {
             all: data.length,
             overdue: groupedData.overdue.length,
             today: groupedData.today.length,
-            this_week: groupedData.this_week.length,
             later: groupedData.later.length,
-            no_date: groupedData.no_date.length,
         };
     }, [data, groupedData]);
     const sortableId = React.useId();
@@ -556,17 +552,11 @@ export function MyTasksTable({ data: initialData, groupedData }: MyTasksTablePro
                             <Badge variant="secondary">{tabCounts.today}</Badge>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="this_week" className="hidden sm:inline-flex">
-                        This Week
-                        {tabCounts.this_week > 0 && (
-                            <Badge variant="secondary">{tabCounts.this_week}</Badge>
-                        )}
-                    </TabsTrigger>
-                    <TabsTrigger value="later" className="hidden md:inline-flex">
+                    <TabsTrigger value="later" className="hidden sm:inline-flex">
                         Later
-                    </TabsTrigger>
-                    <TabsTrigger value="no_date" className="hidden md:inline-flex">
-                        No Date
+                        {tabCounts.later > 0 && (
+                            <Badge variant="secondary">{tabCounts.later}</Badge>
+                        )}
                     </TabsTrigger>
                 </TabsList>
                 <DropdownMenu>

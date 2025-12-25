@@ -23,9 +23,7 @@ export interface DashboardTask {
 export interface GroupedTasks {
     overdue: DashboardTask[];
     today: DashboardTask[];
-    this_week: DashboardTask[];
     later: DashboardTask[];
-    no_date: DashboardTask[];
 }
 
 export interface DashboardStats {
