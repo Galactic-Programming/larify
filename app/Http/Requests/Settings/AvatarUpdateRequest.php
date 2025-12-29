@@ -26,7 +26,7 @@ class AvatarUpdateRequest extends FormRequest
                 'required',
                 'file',
                 'image',
-                'mimes:jpg,jpeg,png,webp,gif',
+                'mimes:jpg,jpeg,png,webp',
                 'max:10240', // 10 MB
             ],
         ];
