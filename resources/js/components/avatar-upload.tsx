@@ -235,7 +235,7 @@ export default function AvatarUpload({ className }: AvatarUploadProps) {
 
                     {/* Help text */}
                     <p className="text-xs text-muted-foreground">
-                        JPG, PNG, WebP. Max 10MB.
+                        JPG, PNG, WebP or GIF. Max 10MB.
                     </p>
 
                     {/* Success message */}
