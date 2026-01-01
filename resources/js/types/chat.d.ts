@@ -2,15 +2,11 @@
 // Backend Types (matching Laravel responses)
 // ============================================
 
-export type ConversationType = 'direct' | 'group';
-export type ParticipantRole = 'owner' | 'member';
-
 export interface Participant {
     id: number;
     name: string;
     email?: string;
     avatar?: string;
-    role?: ParticipantRole;
 }
 
 export interface MessageAttachment {
@@ -56,12 +52,19 @@ export interface ConversationLastMessage {
     created_at: string;
 }
 
+export interface ConversationProject {
+    id: number;
+    name: string;
+    color: string;
+    icon?: string;
+}
+
 export interface Conversation {
     id: number;
-    type: ConversationType;
     name: string;
-    avatar?: string;
-    raw_name?: string;
+    color: string;
+    icon?: string;
+    project_id: number;
     participants: Participant[];
     last_message?: ConversationLastMessage;
     unread_count: number;
@@ -70,11 +73,18 @@ export interface Conversation {
 }
 
 export interface ConversationDetail extends Conversation {
-    raw_name?: string;
+    project?: ConversationProject;
     messages: Message[];
-    can_update: boolean;
-    can_manage_participants: boolean;
-    can_delete: boolean;
+}
+
+// Project with chat status (for empty state)
+export interface ProjectChatInfo {
+    id: number;
+    name: string;
+    color: string;
+    icon?: string;
+    member_count: number;
+    has_chat_enabled: boolean;
 }
 
 // ============================================

@@ -10,11 +10,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { getProjectIcon } from '@/pages/projects/lib/project-icons';
 import type { Project } from '@/pages/projects/lib/types';
+import { showByProject } from '@/actions/App/Http/Controllers/Conversations/ConversationController';
+import { Link } from '@inertiajs/react';
 import {
     Archive,
     Calendar,
     CheckSquare,
     LayoutList,
+    MessageCircle,
     Users,
 } from 'lucide-react';
 import { createElement, memo } from 'react';
@@ -166,7 +169,16 @@ export function ShowProjectDialog({
                     </div>
                 </div>
 
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end gap-2">
+                    {/* Only show chat button if project has 2+ members (including owner) */}
+                    {project.members_count + 1 >= 2 && (
+                        <Button asChild variant="outline">
+                            <Link href={showByProject(project).url}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Open Chat
+                            </Link>
+                        </Button>
+                    )}
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

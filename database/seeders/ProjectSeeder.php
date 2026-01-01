@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskList;
@@ -27,81 +28,188 @@ class ProjectSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get Pro user for projects (Pro can invite members)
-        $proUser = User::where('email', 'pro@example.com')->first();
+        // Get users by email
+        $alice = User::where('email', 'alice@laraflow.test')->first();
+        $bob = User::where('email', 'bob@laraflow.test')->first();
+        $charlie = User::where('email', 'charlie@laraflow.test')->first();
+        $diana = User::where('email', 'diana@laraflow.test')->first();
+        $edward = User::where('email', 'edward@laraflow.test')->first();
 
-        // Get Free user
-        $freeUser = User::where('email', 'free@example.com')->first();
+        $frank = User::where('email', 'frank@laraflow.test')->first();
+        $grace = User::where('email', 'grace@laraflow.test')->first();
+        $henry = User::where('email', 'henry@laraflow.test')->first();
 
-        // Project 1: Website Redesign (owned by Pro user)
-        $project1 = Project::create([
-            'user_id' => $proUser->id,
+        // ============================================================
+        // PRO USER PROJECTS (unlimited projects, can invite members)
+        // ============================================================
+
+        // Frank's Projects (3 projects, 2 with team members)
+        $websiteRedesign = $this->createProject($frank, [
             'name' => 'Website Redesign',
             'description' => 'Redesign company website with modern UI/UX',
-            'color' => self::PRO_COLORS[0], // Teal - Pro color
-            'icon' => self::PRO_ICONS[0], // Globe - Pro icon
+            'color' => self::PRO_COLORS[0],
+            'icon' => self::PRO_ICONS[0],
         ]);
+        $this->addMembers($websiteRedesign, [$alice, $bob]);
 
-        $this->createDefaultLists($project1);
-
-        // Project 2: Mobile App (owned by Pro user)
-        $project2 = Project::create([
-            'user_id' => $proUser->id,
+        $mobileApp = $this->createProject($frank, [
             'name' => 'Mobile App Development',
-            'description' => 'Build iOS and Android app',
-            'color' => self::PRO_COLORS[2], // Pink - Pro color
-            'icon' => self::PRO_ICONS[6], // Smartphone - Pro icon
+            'description' => 'Build iOS and Android app using React Native',
+            'color' => self::PRO_COLORS[2],
+            'icon' => self::PRO_ICONS[6],
+        ]);
+        $this->addMembers($mobileApp, [$charlie]);
+
+        $this->createProject($frank, [
+            'name' => 'API Integration',
+            'description' => 'Integrate third-party APIs and services',
+            'color' => self::FREE_COLORS[1],
+            'icon' => self::FREE_ICONS[3],
         ]);
 
-        $this->createDefaultLists($project2);
-
-        // Project 3: Marketing Campaign (owned by Pro user)
-        $project3 = Project::create([
-            'user_id' => $proUser->id,
+        // Grace's Projects (3 projects, 1 with team members)
+        $marketing = $this->createProject($grace, [
             'name' => 'Q1 Marketing Campaign',
-            'description' => null,
-            'color' => self::FREE_COLORS[3], // Orange
-            'icon' => self::FREE_ICONS[5], // Target
+            'description' => 'Plan and execute quarterly marketing initiatives',
+            'color' => self::FREE_COLORS[3],
+            'icon' => self::FREE_ICONS[5],
+        ]);
+        $this->addMembers($marketing, [$diana]);
+
+        $this->createProject($grace, [
+            'name' => 'E-commerce Platform',
+            'description' => 'Develop full-featured online shopping platform',
+            'color' => self::PRO_COLORS[1],
+            'icon' => self::PRO_ICONS[7],
         ]);
 
-        $this->createDefaultLists($project3);
+        $this->createProject($grace, [
+            'name' => 'Customer Portal',
+            'description' => 'Create self-service portal for customers',
+            'color' => self::PRO_COLORS[3],
+            'icon' => self::PRO_ICONS[2],
+        ]);
+
+        // Henry's Projects (2 projects, 1 with team members)
+        $dashboard = $this->createProject($henry, [
+            'name' => 'Dashboard Analytics',
+            'description' => 'Build real-time analytics dashboard with charts',
+            'color' => self::PRO_COLORS[4],
+            'icon' => self::PRO_ICONS[1],
+        ]);
+        $this->addMembers($dashboard, [$edward]);
+
+        $this->createProject($henry, [
+            'name' => 'Content Management',
+            'description' => 'Develop CMS for marketing team',
+            'color' => self::FREE_COLORS[5],
+            'icon' => self::PRO_ICONS[9],
+        ]);
 
         // ============================================================
-        // Free user projects - respects Free plan limits:
-        // - Max 3 projects
-        // - Max 5 lists per project
-        // - Only Free colors/icons
+        // FREE USER PROJECTS (max 3 projects, no team features)
         // ============================================================
 
-        // Project 4: Personal Tasks (owned by Free user)
-        $project4 = Project::create([
-            'user_id' => $freeUser->id,
+        // Alice's Projects (2/3 - room to test limit)
+        $this->createProject($alice, [
             'name' => 'Personal Tasks',
             'description' => 'My personal task list',
-            'color' => self::FREE_COLORS[5], // Purple - Free color
-            'icon' => self::FREE_ICONS[0], // Folder Kanban - Free icon
-        ]);
+            'color' => self::FREE_COLORS[5],
+            'icon' => self::FREE_ICONS[0],
+        ], isFree: true);
 
-        $this->createFreePlanLists($project4); // Only 4 lists (within Free limit of 5)
-
-        // Project 5: Side Project (owned by Free user - 2nd project)
-        $project5 = Project::create([
-            'user_id' => $freeUser->id,
+        $this->createProject($alice, [
             'name' => 'Side Project',
             'description' => 'Weekend coding project',
-            'color' => self::FREE_COLORS[1], // Blue - Free color
-            'icon' => self::FREE_ICONS[3], // Code - Free icon
+            'color' => self::FREE_COLORS[1],
+            'icon' => self::FREE_ICONS[3],
+        ], isFree: true);
+
+        // Bob's Projects (2/3)
+        $this->createProject($bob, [
+            'name' => 'Home Renovation',
+            'description' => 'Track home improvement tasks',
+            'color' => self::FREE_COLORS[2],
+            'icon' => self::FREE_ICONS[1],
+        ], isFree: true);
+
+        $this->createProject($bob, [
+            'name' => 'Book Club',
+            'description' => 'Reading list and discussions',
+            'color' => self::FREE_COLORS[4],
+            'icon' => self::FREE_ICONS[6],
+        ], isFree: true);
+
+        // Charlie's Project (1/3)
+        $this->createProject($charlie, [
+            'name' => 'Fitness Tracker',
+            'description' => 'Workout routines and progress',
+            'color' => self::FREE_COLORS[2],
+            'icon' => self::FREE_ICONS[4],
+        ], isFree: true);
+
+        // Diana's Project (1/3)
+        $this->createProject($diana, [
+            'name' => 'Travel Planning',
+            'description' => 'Trip itineraries and bookings',
+            'color' => self::FREE_COLORS[3],
+            'icon' => self::FREE_ICONS[7],
+        ], isFree: true);
+
+        // Edward's Projects (2/3)
+        $this->createProject($edward, [
+            'name' => 'Study Notes',
+            'description' => 'Course materials and assignments',
+            'color' => self::FREE_COLORS[0],
+            'icon' => self::FREE_ICONS[2],
+        ], isFree: true);
+
+        $this->createProject($edward, [
+            'name' => 'Recipe Collection',
+            'description' => 'Favorite recipes to try',
+            'color' => self::FREE_COLORS[1],
+            'icon' => self::FREE_ICONS[5],
+        ], isFree: true);
+    }
+
+    /**
+     * Create a project with default lists and tasks.
+     */
+    private function createProject(User $owner, array $data, bool $isFree = false): Project
+    {
+        $project = Project::create([
+            'user_id' => $owner->id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'color' => $data['color'],
+            'icon' => $data['icon'],
         ]);
 
-        $this->createFreePlanLists($project5);
+        $this->createLists($project, $isFree);
 
-        // Free user has 2 projects, leaving room for 1 more to test the limit
+        return $project;
     }
 
     /**
-     * Create default lists and sample tasks for a project (Pro users - no limit).
+     * Add members to a project and sync conversation.
      */
-    private function createDefaultLists(Project $project): void
+    private function addMembers(Project $project, array $users): void
+    {
+        foreach ($users as $user) {
+            $project->members()->attach($user->id, [
+                'role' => ProjectRole::Editor->value,
+                'joined_at' => now(),
+            ]);
+        }
+
+        // Create/sync conversation for projects with 2+ members
+        $project->getOrCreateConversation();
+    }
+
+    /**
+     * Create lists for a project.
+     */
+    private function createLists(Project $project, bool $isFree = false): void
     {
         $listNames = ['To Do', 'In Progress', 'Review', 'Done'];
 
@@ -113,34 +221,14 @@ class ProjectSeeder extends Seeder
                 'is_done_list' => $name === 'Done',
             ]);
 
-            $this->createSampleTasks($project, $list, $position);
+            $this->createTasks($project, $list, $position);
         }
     }
 
     /**
-     * Create lists for Free plan users (max 5 lists).
+     * Create sample tasks for a list.
      */
-    private function createFreePlanLists(Project $project): void
-    {
-        // Free plan: max 5 lists, seeding 4 to leave room for testing
-        $listNames = ['To Do', 'In Progress', 'Review', 'Done'];
-
-        foreach ($listNames as $position => $name) {
-            $list = TaskList::create([
-                'project_id' => $project->id,
-                'name' => $name,
-                'position' => $position,
-                'is_done_list' => $name === 'Done',
-            ]);
-
-            $this->createSampleTasks($project, $list, $position);
-        }
-    }
-
-    /**
-     * Create sample tasks for a list using TaskFactory.
-     */
-    private function createSampleTasks(Project $project, TaskList $list, int $listPosition): void
+    private function createTasks(Project $project, TaskList $list, int $listPosition): void
     {
         $taskCount = match ($listPosition) {
             0 => 4, // To Do: 4 tasks
@@ -152,7 +240,6 @@ class ProjectSeeder extends Seeder
 
         $isCompleted = $listPosition === 3;
 
-        // Use TaskFactory with appropriate state
         $factory = Task::factory()
             ->for($project)
             ->for($list, 'list');
@@ -161,7 +248,6 @@ class ProjectSeeder extends Seeder
             $factory = $factory->completed();
         }
 
-        // Create tasks with sequential positions
         for ($i = 0; $i < $taskCount; $i++) {
             $factory->create(['position' => $i]);
         }

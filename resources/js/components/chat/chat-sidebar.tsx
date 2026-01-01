@@ -1,17 +1,15 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-// import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { CreateConversationDialog } from '@/pages/conversations/components/create-conversation-dialog';
 import type { SharedData } from '@/types';
-import type { Conversation, ConversationType } from '@/types/chat';
+import type { Conversation } from '@/types/chat';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessagesSquare, Search, User, Users } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { MessagesSquare, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 export interface ChatSidebarProps {
@@ -24,6 +22,27 @@ function formatTime(dateString?: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
     return formatDistanceToNow(date, { addSuffix: false });
+}
+
+// Dynamic icon component based on icon name
+function ProjectIcon({ icon, className }: { icon?: string; className?: string }) {
+    if (!icon) {
+        return <MessagesSquare className={className} />;
+    }
+
+    // Convert kebab-case to PascalCase for lucide-react
+    const iconName = icon
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('');
+
+    const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
+
+    if (!IconComponent) {
+        return <MessagesSquare className={className} />;
+    }
+
+    return <IconComponent className={className} />;
 }
 
 interface ConversationItemProps {
@@ -47,12 +66,11 @@ function ConversationItem({ conversation, isActive }: ConversationItemProps) {
             )}
         >
             <Avatar className="h-10 w-10 shrink-0">
-                <AvatarImage
-                    src={conversation.avatar}
-                    alt={conversation.name}
-                />
-                <AvatarFallback className="text-sm">
-                    {conversation.name.charAt(0).toUpperCase()}
+                <AvatarFallback
+                    className="text-sm text-white"
+                    style={{ backgroundColor: conversation.color }}
+                >
+                    <ProjectIcon icon={conversation.icon} className="h-5 w-5" />
                 </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 overflow-hidden">
@@ -86,13 +104,7 @@ function ConversationItem({ conversation, isActive }: ConversationItemProps) {
     );
 }
 
-function EmptyState({
-    type,
-    searchQuery,
-}: {
-    type: ConversationType | 'all';
-    searchQuery: string;
-}) {
+function EmptyState({ searchQuery }: { searchQuery: string }) {
     if (searchQuery) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -107,12 +119,11 @@ function EmptyState({
     return (
         <div className="flex flex-col items-center justify-center py-8 text-center">
             <MessagesSquare className="mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-                {type === 'direct'
-                    ? 'No direct messages'
-                    : type === 'group'
-                        ? 'No group chats'
-                        : 'No conversations yet'}
+            <p className="mb-1 text-sm text-muted-foreground">
+                No team conversations yet
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+                Join a project with team members to start chatting
             </p>
         </div>
     );
@@ -126,19 +137,7 @@ export function ChatSidebar({
     const { auth } = usePage<SharedData>().props;
     const [conversations, setConversations] =
         useState<Conversation[]>(initialConversations);
-    const [activeTab, setActiveTab] = useState<'all' | ConversationType>('all');
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Real-time: Listen for new conversations
-    useEcho(
-        `user.${auth.user.id}.conversations`,
-        '.conversation.created',
-        (data: { conversation: Conversation }) => {
-            setConversations((prev) => [data.conversation, ...prev]);
-        },
-        [auth.user.id],
-        'private',
-    );
 
     // Real-time: Listen for message updates to refresh last_message
     useEcho(
@@ -169,7 +168,6 @@ export function ChatSidebar({
     );
 
     // Reset unread count when viewing a conversation
-    // This happens when activeConversationId changes (user clicks on conversation)
     useEffect(() => {
         if (activeConversationId) {
             setConversations((prev) =>
@@ -182,36 +180,27 @@ export function ChatSidebar({
         }
     }, [activeConversationId]);
 
-    const filteredConversations = useMemo(() => {
-        return conversations.filter((conversation) => {
-            if (activeTab !== 'all' && conversation.type !== activeTab) {
-                return false;
-            }
-            if (searchQuery) {
-                return conversation.name
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase());
-            }
-            return true;
-        });
-    }, [conversations, activeTab, searchQuery]);
+    // Update conversations when props change
+    useEffect(() => {
+        setConversations(initialConversations);
+    }, [initialConversations]);
 
-    const counts = useMemo(
-        () => ({
-            all: conversations.length,
-            direct: conversations.filter((c) => c.type === 'direct').length,
-            group: conversations.filter((c) => c.type === 'group').length,
-        }),
-        [conversations],
-    );
+    const filteredConversations = useMemo(() => {
+        if (!searchQuery) return conversations;
+        return conversations.filter((conversation) =>
+            conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+    }, [conversations, searchQuery]);
 
     return (
         <div className={cn('flex flex-col bg-background', className)}>
             {/* Header */}
             <div className="shrink-0 space-y-3 border-b p-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Messages</h2>
-                    <CreateConversationDialog />
+                    <h2 className="text-lg font-semibold">Team Chat</h2>
+                    <Badge variant="secondary" className="text-xs">
+                        {conversations.length} {conversations.length === 1 ? 'project' : 'projects'}
+                    </Badge>
                 </div>
 
                 {/* Search */}
@@ -219,61 +208,12 @@ export function ChatSidebar({
                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="h-9 pl-9 text-sm"
                     />
                 </div>
-
-                {/* Tabs */}
-                <Tabs
-                    value={activeTab}
-                    onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-                    className="w-full"
-                >
-                    <TabsList className="w-full">
-                        <TabsTrigger
-                            value="all"
-                            className="flex-1 gap-1 text-xs"
-                        >
-                            <MessagesSquare className="h-3 w-3" />
-                            All
-                            <Badge
-                                variant="secondary"
-                                className="ml-1 h-4 px-1 text-[10px]"
-                            >
-                                {counts.all}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="direct"
-                            className="flex-1 gap-1 text-xs"
-                        >
-                            <User className="h-3 w-3" />
-                            Direct Messages
-                            <Badge
-                                variant="secondary"
-                                className="ml-1 h-4 px-1 text-[10px]"
-                            >
-                                {counts.direct}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="group"
-                            className="flex-1 gap-1 text-xs"
-                        >
-                            <Users className="h-3 w-3" />
-                            Groups
-                            <Badge
-                                variant="secondary"
-                                className="ml-1 h-4 px-1 text-[10px]"
-                            >
-                                {counts.group}
-                            </Badge>
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
             </div>
 
             {/* Conversations List */}
@@ -290,10 +230,7 @@ export function ChatSidebar({
                             />
                         ))
                     ) : (
-                        <EmptyState
-                            type={activeTab}
-                            searchQuery={searchQuery}
-                        />
+                        <EmptyState searchQuery={searchQuery} />
                     )}
                 </div>
             </ScrollArea>

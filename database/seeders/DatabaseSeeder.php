@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserPlan;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,30 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Free plan test user
-        User::firstOrCreate(
-            ['email' => 'free@example.com'],
-            [
-                'name' => 'Test Free',
-                'password' => 'password',
-                'email_verified_at' => now(),
-                'plan' => UserPlan::Free,
-            ]
-        );
-
-        // Create Pro plan test user
-        User::firstOrCreate(
-            ['email' => 'pro@example.com'],
-            [
-                'name' => 'Test Pro',
-                'password' => 'password',
-                'email_verified_at' => now(),
-                'plan' => UserPlan::Pro,
-            ]
-        );
-
         $this->call([
             PlanSeeder::class,
+            UserSeeder::class,
             ProjectSeeder::class,
         ]);
     }

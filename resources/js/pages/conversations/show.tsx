@@ -1,77 +1,25 @@
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { MessageInput } from '@/components/ui/message-input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import ChatLayout from '@/layouts/chat/chat-layout';
-import { cn } from '@/lib/utils';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import type { Conversation, ConversationDetail, Message } from '@/types/chat';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
-import {
-    ArrowLeft,
-    Check,
-    CheckCheck,
-    Crown,
-    Edit2,
-    MoreVertical,
-    Paperclip,
-    Reply,
-    Settings,
-    Trash2,
-    Users,
-} from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+
+import {
+    ConversationHeader,
+    DeleteMessageDialog,
+    MembersSheet,
+    MessageBubble,
+    ReplyEditIndicator,
+    TypingIndicator,
+} from './components';
 
 interface Props {
     conversations: Conversation[];
     conversation: ConversationDetail;
-}
-
-function formatMessageTime(dateString: string): string {
-    const date = new Date(dateString);
-    return format(date, 'HH:mm');
 }
 
 function formatDateSeparator(dateString: string): string {
@@ -91,240 +39,6 @@ function shouldShowDateSeparator(
     return currentDate !== prevDate;
 }
 
-interface MessageBubbleProps {
-    message: Message;
-    showAvatar: boolean;
-    onReply?: () => void;
-    onEdit?: () => void;
-    onDelete?: () => void;
-    canEdit?: boolean;
-    canDelete?: boolean;
-}
-
-function MessageBubble({
-    message,
-    showAvatar,
-    onReply,
-    onEdit,
-    onDelete,
-    canEdit,
-    canDelete,
-}: MessageBubbleProps) {
-    const isMine = message.is_mine;
-
-    return (
-        <div
-            className={cn(
-                'group flex items-end gap-2',
-                isMine && 'flex-row-reverse',
-            )}
-        >
-            {/* Avatar */}
-            {!isMine && showAvatar ? (
-                <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage
-                        src={message.sender?.avatar}
-                        alt={message.sender?.name ?? 'User'}
-                    />
-                    <AvatarFallback className="text-xs">
-                        {message.sender?.name?.charAt(0).toUpperCase() ?? 'U'}
-                    </AvatarFallback>
-                </Avatar>
-            ) : !isMine ? (
-                <div className="w-8" />
-            ) : null}
-
-            {/* Message Content */}
-            <div
-                className={cn(
-                    'flex max-w-[70%] flex-col gap-1',
-                    isMine && 'items-end',
-                )}
-            >
-                {/* Sender name (for group chats, non-own messages) */}
-                {!isMine && showAvatar && message.sender && (
-                    <span className="text-xs text-muted-foreground">
-                        {message.sender.name}
-                    </span>
-                )}
-
-                {/* Reply reference */}
-                {message.parent && (
-                    <div
-                        className={cn(
-                            'max-w-full truncate rounded border-l-2 px-2 py-1 text-xs',
-                            isMine
-                                ? 'border-primary-foreground/50 bg-primary/80 text-primary-foreground/80'
-                                : 'border-muted-foreground/50 bg-muted/80 text-muted-foreground',
-                        )}
-                    >
-                        {message.parent.is_deleted ? (
-                            <p className="truncate italic opacity-70">
-                                Deleted message
-                            </p>
-                        ) : (
-                            <>
-                                <span className="font-medium">
-                                    {message.parent.sender_name}
-                                </span>
-                                <p className="truncate">
-                                    {message.parent.content}
-                                </p>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {/* Bubble */}
-                <div className="relative flex items-center gap-1">
-                    {/* Actions (visible on hover) */}
-                    <div
-                        className={cn(
-                            'flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100',
-                            isMine ? 'order-first' : 'order-last',
-                        )}
-                    >
-                        <TooltipProvider>
-                            {onReply && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                            onClick={onReply}
-                                        >
-                                            <Reply className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Reply</TooltipContent>
-                                </Tooltip>
-                            )}
-
-                            {(canEdit || canDelete) && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                        >
-                                            <MoreVertical className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align={isMine ? 'end' : 'start'}
-                                    >
-                                        {canEdit && (
-                                            <DropdownMenuItem onClick={onEdit}>
-                                                <Edit2 className="mr-2 h-4 w-4" />
-                                                Edit
-                                            </DropdownMenuItem>
-                                        )}
-                                        {canDelete && (
-                                            <DropdownMenuItem
-                                                onClick={onDelete}
-                                                className="text-destructive"
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            )}
-                        </TooltipProvider>
-                    </div>
-
-                    <div
-                        className={cn(
-                            'rounded-2xl px-4 py-2',
-                            isMine
-                                ? 'rounded-br-md bg-primary text-primary-foreground'
-                                : 'rounded-bl-md bg-muted',
-                        )}
-                    >
-                        <p className="text-sm wrap-break-word whitespace-pre-wrap">
-                            {message.content}
-                        </p>
-
-                        {/* Attachments */}
-                        {message.attachments.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                                {message.attachments.map((attachment) => (
-                                    <a
-                                        key={attachment.id}
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={cn(
-                                            'flex items-center gap-2 rounded p-2 text-xs hover:underline',
-                                            isMine
-                                                ? 'bg-primary-foreground/10'
-                                                : 'bg-background/50',
-                                        )}
-                                    >
-                                        <Paperclip className="h-3 w-3 shrink-0" />
-                                        <span className="truncate">
-                                            {attachment.original_name}
-                                        </span>
-                                        <span className="shrink-0 text-muted-foreground">
-                                            ({attachment.human_size})
-                                        </span>
-                                    </a>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Time & Status */}
-                        <div
-                            className={cn(
-                                'mt-1 flex items-center gap-1 text-xs',
-                                isMine
-                                    ? 'text-primary-foreground/70'
-                                    : 'text-muted-foreground',
-                            )}
-                        >
-                            <span>{formatMessageTime(message.created_at)}</span>
-                            {message.is_edited && <span>(edited)</span>}
-                            {/* Read status checkmarks (only for own messages) */}
-                            {isMine && (
-                                message.is_read ? (
-                                    <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
-                                ) : (
-                                    <Check className="h-3.5 w-3.5" />
-                                )
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function TypingIndicator({ names }: { names: string[] }) {
-    if (names.length === 0) return null;
-
-    const text =
-        names.length === 1
-            ? `${names[0]} is typing...`
-            : names.length === 2
-                ? `${names[0]} and ${names[1]} are typing...`
-                : `${names[0]} and ${names.length - 1} others are typing...`;
-
-    return (
-        <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
-            <div className="flex gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
-            </div>
-            <span>{text}</span>
-        </div>
-    );
-}
-
 export default function ConversationShow({
     conversations,
     conversation,
@@ -341,12 +55,7 @@ export default function ConversationShow({
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [showDeleteConversation, setShowDeleteConversation] = useState(false);
-    const [isDeletingConversation, setIsDeletingConversation] = useState(false);
     const [showMembers, setShowMembers] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [groupName, setGroupName] = useState(conversation.raw_name || conversation.name);
-    const [isSavingSettings, setIsSavingSettings] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastTypingRef = useRef<number>(0);
@@ -396,18 +105,13 @@ export default function ConversationShow({
         `conversation.${conversation.id}`,
         '.message.sent',
         (data: { message: Message }) => {
-            // Only add message if it's not from the current user
-            // (the sender already adds their message from the API response)
             if (data.message.sender?.id !== auth.user.id) {
                 setMessages((prev) => {
-                    // Also check for duplicates by message ID
                     if (prev.some((m) => m.id === data.message.id)) {
                         return prev;
                     }
                     return [...prev, data.message];
                 });
-                // Mark as read since user is actively viewing this conversation
-                // This broadcasts read receipt back to the sender
                 markMessagesAsRead();
             }
         },
@@ -418,11 +122,23 @@ export default function ConversationShow({
     useEcho(
         `conversation.${conversation.id}`,
         '.message.edited',
-        (data: { message: { id: number; content: string; is_edited: boolean; edited_at: string } }) => {
+        (data: {
+            message: {
+                id: number;
+                content: string;
+                is_edited: boolean;
+                edited_at: string;
+            };
+        }) => {
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === data.message.id
-                        ? { ...m, content: data.message.content, is_edited: data.message.is_edited, edited_at: data.message.edited_at }
+                        ? {
+                              ...m,
+                              content: data.message.content,
+                              is_edited: data.message.is_edited,
+                              edited_at: data.message.edited_at,
+                          }
                         : m,
                 ),
             );
@@ -439,7 +155,6 @@ export default function ConversationShow({
                 prev
                     .filter((m) => m.id !== data.message_id)
                     .map((m) => {
-                        // Update parent reference for replies to the deleted message
                         if (m.parent?.id === data.message_id) {
                             return {
                                 ...m,
@@ -452,7 +167,7 @@ export default function ConversationShow({
                             };
                         }
                         return m;
-                    })
+                    }),
             );
         },
         [],
@@ -471,7 +186,6 @@ export default function ConversationShow({
                 return next;
             });
 
-            // Remove typing indicator after 3 seconds
             setTimeout(() => {
                 setTypingUsers((prev) => {
                     const next = new Map(prev);
@@ -484,18 +198,19 @@ export default function ConversationShow({
         'private',
     );
 
-    // Listen for messages read event
     useEcho(
         `conversation.${conversation.id}`,
         '.messages.read',
         (data: { reader_id: number; read_at: string }) => {
-            // Don't process if the reader is the current user
             if (data.reader_id === auth.user.id) return;
 
-            // Mark all own messages as read that were sent before read_at
             setMessages((prev) =>
                 prev.map((msg) => {
-                    if (msg.is_mine && !msg.is_read && new Date(msg.created_at) <= new Date(data.read_at)) {
+                    if (
+                        msg.is_mine &&
+                        !msg.is_read &&
+                        new Date(msg.created_at) <= new Date(data.read_at)
+                    ) {
                         return { ...msg, is_read: true };
                     }
                     return msg;
@@ -509,7 +224,7 @@ export default function ConversationShow({
     // Send typing indicator
     const sendTypingIndicator = useCallback(() => {
         const now = Date.now();
-        if (now - lastTypingRef.current < 2000) return; // Throttle to every 2 seconds
+        if (now - lastTypingRef.current < 2000) return;
         lastTypingRef.current = now;
 
         fetch(`/conversations/${conversation.id}/typing`, {
@@ -571,7 +286,6 @@ export default function ConversationShow({
             if (response.ok) {
                 const data = await response.json();
                 setMessages((prev) => {
-                    // Prevent duplicates
                     if (prev.some((m) => m.id === data.message.id)) {
                         return prev;
                     }
@@ -650,7 +364,6 @@ export default function ConversationShow({
                     prev
                         .filter((m) => m.id !== deleteMessageId)
                         .map((m) => {
-                            // Update parent reference for replies to the deleted message
                             if (m.parent?.id === deleteMessageId) {
                                 return {
                                     ...m,
@@ -663,7 +376,7 @@ export default function ConversationShow({
                                 };
                             }
                             return m;
-                        })
+                        }),
                 );
             }
         } catch (error) {
@@ -685,35 +398,9 @@ export default function ConversationShow({
         setInputValue('');
     };
 
-    // Delete conversation
-    const confirmDeleteConversation = () => {
-        setIsDeletingConversation(true);
-        router.delete(`/conversations/${conversation.id}`, {
-            onFinish: () => {
-                setIsDeletingConversation(false);
-                setShowDeleteConversation(false);
-            },
-        });
-    };
-
-    // Save group settings
-    const handleSaveSettings = () => {
-        if (!groupName.trim()) return;
-
-        setIsSavingSettings(true);
-        router.patch(
-            `/conversations/${conversation.id}`,
-            { name: groupName.trim() },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setShowSettings(false);
-                },
-                onFinish: () => {
-                    setIsSavingSettings(false);
-                },
-            },
-        );
+    const handleCancelReplyEdit = () => {
+        setReplyingTo(null);
+        cancelEditing();
     };
 
     return (
@@ -726,96 +413,13 @@ export default function ConversationShow({
             <Head title={conversation.name} />
             <div className="flex h-full flex-1 flex-col overflow-hidden">
                 {/* Header */}
-                <div className="border-b p-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                asChild
-                                className="md:hidden"
-                            >
-                                <Link href="/conversations">
-                                    <ArrowLeft className="h-5 w-5" />
-                                </Link>
-                            </Button>
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage
-                                    src={conversation.avatar}
-                                    alt={conversation.name}
-                                />
-                                <AvatarFallback>
-                                    {conversation.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h2 className="font-semibold">
-                                    {conversation.name}
-                                </h2>
-                                <p className="text-sm text-muted-foreground">
-                                    {conversation.type === 'group'
-                                        ? `${conversation.participants.length} members`
-                                        : 'Direct message'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            {conversation.type === 'group' && (
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => setShowMembers(true)}
-                                            >
-                                                <Users className="h-5 w-5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            View members
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
-
-                            {(conversation.can_update || conversation.can_delete) && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreVertical className="h-5 w-5" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {conversation.can_update && (
-                                            <DropdownMenuItem onClick={() => setShowSettings(true)}>
-                                                <Settings className="mr-2 h-4 w-4" />
-                                                Settings
-                                            </DropdownMenuItem>
-                                        )}
-                                        {conversation.can_delete && (
-                                            <>
-                                                {conversation.can_update && <DropdownMenuSeparator />}
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        setShowDeleteConversation(
-                                                            true,
-                                                        )
-                                                    }
-                                                    className="text-destructive"
-                                                >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete conversation
-                                                </DropdownMenuItem>
-                                            </>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <ConversationHeader
+                    name={conversation.name}
+                    icon={conversation.icon}
+                    color={conversation.color}
+                    participantsCount={conversation.participants.length}
+                    onShowMembers={() => setShowMembers(true)}
+                />
 
                 {/* Messages */}
                 <div className="min-h-0 flex-1">
@@ -823,13 +427,15 @@ export default function ConversationShow({
                         <div className="space-y-4 p-4">
                             {messages.map((message, index) => {
                                 const prevMessage = messages[index - 1];
-                                const showDateSeparator = shouldShowDateSeparator(
-                                    message,
-                                    prevMessage,
-                                );
+                                const showDateSeparator =
+                                    shouldShowDateSeparator(
+                                        message,
+                                        prevMessage,
+                                    );
                                 const showAvatar =
                                     !prevMessage ||
-                                    prevMessage.sender?.id !== message.sender?.id ||
+                                    prevMessage.sender?.id !==
+                                        message.sender?.id ||
                                     showDateSeparator;
 
                                 return (
@@ -857,10 +463,7 @@ export default function ConversationShow({
                                                 setDeleteMessageId(message.id)
                                             }
                                             canEdit={message.is_mine}
-                                            canDelete={
-                                                message.is_mine ||
-                                                conversation.can_manage_participants
-                                            }
+                                            canDelete={message.is_mine}
                                         />
                                     </div>
                                 );
@@ -874,38 +477,11 @@ export default function ConversationShow({
                 <TypingIndicator names={Array.from(typingUsers.values())} />
 
                 {/* Reply/Edit indicator */}
-                {(replyingTo || editingMessage) && (
-                    <div className="flex items-center justify-between border-t bg-muted/50 px-4 py-2">
-                        <div className="flex items-center gap-2 text-sm">
-                            {editingMessage ? (
-                                <>
-                                    <Edit2 className="h-4 w-4 text-muted-foreground" />
-                                    <span>Editing message</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Reply className="h-4 w-4 text-muted-foreground" />
-                                    <span>
-                                        Replying to{' '}
-                                        <span className="font-medium">
-                                            {replyingTo?.sender?.name}
-                                        </span>
-                                    </span>
-                                </>
-                            )}
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                                setReplyingTo(null);
-                                cancelEditing();
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                    </div>
-                )}
+                <ReplyEditIndicator
+                    replyingTo={replyingTo}
+                    editingMessage={editingMessage}
+                    onCancel={handleCancelReplyEdit}
+                />
 
                 {/* Input */}
                 <div className="border-t p-4">
@@ -913,9 +489,9 @@ export default function ConversationShow({
                         onSubmit={
                             editingMessage
                                 ? (e) => {
-                                    e.preventDefault();
-                                    handleEdit();
-                                }
+                                      e.preventDefault();
+                                      handleEdit();
+                                  }
                                 : handleSubmit
                         }
                     >
@@ -929,12 +505,20 @@ export default function ConversationShow({
                             onChange={(e) => handleInputChange(e.target.value)}
                             isGenerating={isSending}
                             allowAttachments={true}
-                            files={editingMessage ? null : (selectedFiles.length > 0 ? selectedFiles : null)}
+                            files={
+                                editingMessage
+                                    ? null
+                                    : selectedFiles.length > 0
+                                      ? selectedFiles
+                                      : null
+                            }
                             setFiles={(files) => {
-                                if (editingMessage) return; // Don't allow file changes while editing
+                                if (editingMessage) return;
                                 if (typeof files === 'function') {
                                     setSelectedFiles((prev) => {
-                                        const result = files(prev.length > 0 ? prev : null);
+                                        const result = files(
+                                            prev.length > 0 ? prev : null,
+                                        );
                                         return result ?? [];
                                     });
                                 } else {
@@ -949,169 +533,20 @@ export default function ConversationShow({
             </div>
 
             {/* Delete Message Confirmation Dialog */}
-            <AlertDialog
+            <DeleteMessageDialog
                 open={deleteMessageId !== null}
                 onOpenChange={(open) => !open && setDeleteMessageId(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Message</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete this message? This
-                            action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Delete Conversation Confirmation Dialog */}
-            <AlertDialog
-                open={showDeleteConversation}
-                onOpenChange={(open) => !open && setShowDeleteConversation(false)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Delete Conversation
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete this conversation? It will be hidden from your list. Other participants can still see it until they also delete it. If someone sends a new message, the conversation will reappear.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeletingConversation}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDeleteConversation}
-                            disabled={isDeletingConversation}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {isDeletingConversation ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                onConfirm={confirmDelete}
+                isDeleting={isDeleting}
+            />
 
             {/* Members Sheet */}
-            <Sheet open={showMembers} onOpenChange={setShowMembers}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Group Members</SheetTitle>
-                        <SheetDescription>
-                            {conversation.participants.length} members in this group
-                        </SheetDescription>
-                    </SheetHeader>
-                    <ScrollArea className="mt-4 h-[calc(100vh-10rem)]">
-                        <div className="space-y-3 pr-4">
-                            {conversation.participants.map((participant) => (
-                                <div
-                                    key={participant.id}
-                                    className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50"
-                                >
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage
-                                            src={participant.avatar}
-                                            alt={participant.name}
-                                        />
-                                        <AvatarFallback>
-                                            {participant.name.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate">
-                                            {participant.name}
-                                            {participant.id === auth.user.id && (
-                                                <span className="ml-2 text-xs text-muted-foreground">
-                                                    (You)
-                                                </span>
-                                            )}
-                                        </p>
-                                        {participant.email && (
-                                            <p className="text-sm text-muted-foreground truncate">
-                                                {participant.email}
-                                            </p>
-                                        )}
-                                    </div>
-                                    {participant.role === 'owner' && (
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger>
-                                                    <Crown className="h-4 w-4 text-yellow-500" />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    Group Owner
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </SheetContent>
-            </Sheet>
-
-            {/* Settings Dialog */}
-            <Dialog open={showSettings} onOpenChange={setShowSettings}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {conversation.type === 'group'
-                                ? 'Group Settings'
-                                : 'Conversation Settings'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {conversation.type === 'group'
-                                ? 'Manage your group conversation settings'
-                                : 'Manage your conversation settings'}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {conversation.type === 'group' && (
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="group-name">Group Name</Label>
-                                <Input
-                                    id="group-name"
-                                    value={groupName}
-                                    onChange={(e) => setGroupName(e.target.value)}
-                                    placeholder="Enter group name..."
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowSettings(false)}
-                        >
-                            Cancel
-                        </Button>
-                        {conversation.type === 'group' && (
-                            <Button
-                                onClick={handleSaveSettings}
-                                disabled={isSavingSettings || !groupName.trim()}
-                            >
-                                {isSavingSettings ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                        )}
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <MembersSheet
+                open={showMembers}
+                onOpenChange={setShowMembers}
+                participants={conversation.participants}
+                currentUserId={auth.user.id}
+            />
         </ChatLayout>
     );
 }
