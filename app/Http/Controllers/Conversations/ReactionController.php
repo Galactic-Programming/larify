@@ -14,7 +14,8 @@ class ReactionController extends Controller
     /**
      * Toggle a reaction on a message.
      * If the user already has this reaction, remove it.
-     * If they don't have it, add it.
+     * If they have a different reaction, replace it.
+     * Each user can only have ONE reaction per message.
      */
     public function toggle(Request $request, Message $message): JsonResponse
     {
@@ -28,15 +29,23 @@ class ReactionController extends Controller
         $user = $request->user();
         $emoji = $request->input('emoji');
 
+        // Find any existing reaction from this user on this message
         $existingReaction = MessageReaction::where('message_id', $message->id)
             ->where('user_id', $user->id)
-            ->where('emoji', $emoji)
             ->first();
 
         if ($existingReaction) {
-            $existingReaction->delete();
-            $added = false;
+            if ($existingReaction->emoji === $emoji) {
+                // Same emoji - toggle off (remove)
+                $existingReaction->delete();
+                $added = false;
+            } else {
+                // Different emoji - replace the reaction
+                $existingReaction->update(['emoji' => $emoji]);
+                $added = true;
+            }
         } else {
+            // No existing reaction - create new one
             MessageReaction::create([
                 'message_id' => $message->id,
                 'user_id' => $user->id,
