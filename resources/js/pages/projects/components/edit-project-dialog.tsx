@@ -77,6 +77,7 @@ export function EditProjectDialog({
                                         name="name"
                                         defaultValue={project.name}
                                         placeholder="My Awesome Project"
+                                        maxLength={50}
                                         autoFocus
                                         autoComplete="off"
                                     />
@@ -96,6 +97,7 @@ export function EditProjectDialog({
                                         name="description"
                                         defaultValue={project.description ?? ''}
                                         placeholder="Describe what this project is about..."
+                                        maxLength={500}
                                         rows={3}
                                     />
                                     <InputError message={errors.description} />
@@ -117,8 +119,8 @@ export function EditProjectDialog({
                                                 className={cn(
                                                     'flex size-8 items-center justify-center rounded-full transition-all hover:scale-110',
                                                     selectedColor.toLowerCase() ===
-                                                        color.value.toLowerCase() &&
-                                                        'ring-2 ring-offset-2 ring-offset-background',
+                                                    color.value.toLowerCase() &&
+                                                    'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
                                                 style={
                                                     {
@@ -132,8 +134,8 @@ export function EditProjectDialog({
                                             >
                                                 {selectedColor.toLowerCase() ===
                                                     color.value.toLowerCase() && (
-                                                    <Check className="size-4 text-white" />
-                                                )}
+                                                        <Check className="size-4 text-white" />
+                                                    )}
                                             </button>
                                         ))}
                                         {/* Custom color picker */}
@@ -155,7 +157,7 @@ export function EditProjectDialog({
                                                     !isPresetColor(
                                                         selectedColor,
                                                     ) &&
-                                                        'ring-2 ring-offset-2 ring-offset-background',
+                                                    'ring-2 ring-offset-2 ring-offset-background',
                                                 )}
                                                 style={
                                                     {
@@ -217,7 +219,7 @@ export function EditProjectDialog({
                                                         className={cn(
                                                             'size-4 transition-transform duration-200',
                                                             !isSelected &&
-                                                                'group-hover:scale-110',
+                                                            'group-hover:scale-110',
                                                         )}
                                                     />
                                                     {isSelected && (

@@ -15,7 +15,6 @@ import {
     Calendar,
     CheckSquare,
     LayoutList,
-    Palette,
     Users,
 } from 'lucide-react';
 import { createElement, memo } from 'react';
@@ -57,11 +56,11 @@ export function ShowProjectDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="overflow-hidden sm:max-w-lg">
                 <DialogHeader>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                         <div
-                            className="flex h-10 w-10 items-center justify-center rounded-lg"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
                             style={{ backgroundColor: project.color }}
                         >
                             <ProjectIconDisplay
@@ -69,8 +68,8 @@ export function ShowProjectDialog({
                                 className="h-5 w-5 text-white"
                             />
                         </div>
-                        <div className="flex-1">
-                            <DialogTitle className="text-xl">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                            <DialogTitle className="line-clamp-2 break-all text-xl">
                                 {project.name}
                             </DialogTitle>
                             <DialogDescription className="sr-only">
@@ -92,7 +91,7 @@ export function ShowProjectDialog({
                         <h4 className="text-sm font-medium text-muted-foreground">
                             Description
                         </h4>
-                        <p className="text-sm leading-relaxed">
+                        <p className="line-clamp-3 break-all text-sm leading-relaxed">
                             {project.description || (
                                 <span className="text-muted-foreground italic">
                                     No description
@@ -104,7 +103,7 @@ export function ShowProjectDialog({
                     <Separator />
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <div className="flex flex-col items-center rounded-lg border bg-muted/30 p-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                                 <LayoutList className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -138,27 +137,6 @@ export function ShowProjectDialog({
                             </span>
                             <span className="text-xs text-muted-foreground">
                                 Members
-                            </span>
-                        </div>
-
-                        <div className="flex flex-col items-center rounded-lg border bg-muted/30 p-4">
-                            <div
-                                className="flex h-10 w-10 items-center justify-center rounded-full"
-                                style={{
-                                    backgroundColor: `${project.color}20`,
-                                }}
-                            >
-                                <Palette
-                                    className="h-5 w-5"
-                                    style={{ color: project.color }}
-                                />
-                            </div>
-                            <div
-                                className="mt-2 h-6 w-6 rounded-full border-2 border-white shadow-sm dark:border-gray-800"
-                                style={{ backgroundColor: project.color }}
-                            />
-                            <span className="text-xs text-muted-foreground">
-                                Color
                             </span>
                         </div>
                     </div>

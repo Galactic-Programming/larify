@@ -77,10 +77,10 @@ export function ProjectCard({
                 <div className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-linear-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
 
                 <CardHeader className="pt-4 pb-3">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex w-full items-start justify-between gap-2">
                         <Link
                             href={listsIndex(project).url}
-                            className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80"
+                            className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden transition-opacity hover:opacity-80"
                         >
                             <div
                                 className="flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
@@ -94,11 +94,11 @@ export function ProjectCard({
                                     style={{ color: project.color }}
                                 />
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <CardTitle className="truncate text-base">
+                            <div className="min-w-0 w-0 flex-1 overflow-hidden">
+                                <CardTitle className="w-full truncate text-base" title={project.name}>
                                     {project.name}
                                 </CardTitle>
-                                <div className="mt-1 flex items-center gap-1.5">
+                                <div className="mt-1 flex h-5.5 items-center gap-1.5">
                                     {project.is_archived && (
                                         <Badge
                                             variant="secondary"
@@ -115,19 +115,19 @@ export function ProjectCard({
                                                     variant="outline"
                                                     className={
                                                         project.my_role ===
-                                                        'editor'
+                                                            'editor'
                                                             ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
                                                             : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400'
                                                     }
                                                 >
                                                     {project.my_role ===
-                                                    'editor' ? (
+                                                        'editor' ? (
                                                         <Shield className="mr-1 size-3" />
                                                     ) : (
                                                         <Eye className="mr-1 size-3" />
                                                     )}
                                                     {project.my_role ===
-                                                    'editor'
+                                                        'editor'
                                                         ? 'Editor'
                                                         : 'Viewer'}
                                                 </Badge>
@@ -142,15 +142,17 @@ export function ProjectCard({
                                 </div>
                             </div>
                         </Link>
-                        <ProjectDropdownMenu
-                            project={project}
-                            onView={onView}
-                            onEdit={onEdit}
-                            onArchive={onArchive}
-                            onDelete={onDelete}
-                        />
+                        <div className="shrink-0">
+                            <ProjectDropdownMenu
+                                project={project}
+                                onView={onView}
+                                onEdit={onEdit}
+                                onArchive={onArchive}
+                                onDelete={onDelete}
+                            />
+                        </div>
                     </div>
-                    <CardDescription className="line-clamp-2 min-h-10 pt-2">
+                    <CardDescription className="line-clamp-2 min-h-10 overflow-hidden pt-2" title={project.description || undefined}>
                         {project.description || (
                             <span className="text-transparent">-</span>
                         )}

@@ -46,9 +46,9 @@ export function DeleteProjectDialog({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Delete Project</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogDescription className="wrap-break-word">
                         Are you sure you want to delete{' '}
-                        <span className="font-semibold text-foreground">
+                        <span className="inline-block max-w-full break-all font-semibold text-foreground">
                             "{project.name}"
                         </span>
                         ? This will permanently remove the project and all its
