@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ConversationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,27 +14,23 @@ class Conversation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'type',
-        'name',
-        'avatar',
-        'created_by',
+        'project_id',
         'last_message_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'type' => ConversationType::class,
             'last_message_at' => 'datetime',
         ];
     }
 
     /**
-     * Get the user who created the conversation.
+     * Get the project that owns this conversation.
      */
-    public function creator(): BelongsTo
+    public function project(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(Project::class);
     }
 
     /**
@@ -44,16 +39,8 @@ class Conversation extends Model
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'conversation_participants')
-            ->withPivot(['role', 'nickname', 'last_read_at', 'notifications_muted', 'joined_at', 'left_at'])
+            ->withPivot(['last_read_at', 'notifications_muted'])
             ->withTimestamps();
-    }
-
-    /**
-     * Get active participants (not left).
-     */
-    public function activeParticipants(): BelongsToMany
-    {
-        return $this->participants()->whereNull('conversation_participants.left_at');
     }
 
     /**
@@ -81,71 +68,35 @@ class Conversation extends Model
     }
 
     /**
-     * Check if the conversation is a direct message.
-     */
-    public function isDirect(): bool
-    {
-        return $this->type === ConversationType::Direct;
-    }
-
-    /**
-     * Check if the conversation is a group.
-     */
-    public function isGroup(): bool
-    {
-        return $this->type === ConversationType::Group;
-    }
-
-    /**
      * Check if a user is a participant.
      */
     public function hasParticipant(User $user): bool
     {
-        return $this->activeParticipants()->where('users.id', $user->id)->exists();
+        return $this->participants()->where('users.id', $user->id)->exists();
     }
 
     /**
-     * Get the other participant in a direct conversation.
+     * Get display name for the conversation (= project name).
      */
-    public function getOtherParticipant(User $user): ?User
+    public function getDisplayName(): string
     {
-        if (! $this->isDirect()) {
-            return null;
-        }
-
-        return $this->activeParticipants()
-            ->where('users.id', '!=', $user->id)
-            ->first();
+        return $this->project?->name ?? 'Unknown Project';
     }
 
     /**
-     * Get display name for the conversation.
-     * For direct: other user's name
-     * For group: group name
+     * Get display color for the conversation (= project color).
      */
-    public function getDisplayName(User $forUser): string
+    public function getDisplayColor(): string
     {
-        if ($this->isGroup()) {
-            return $this->name ?? 'Unnamed Group';
-        }
-
-        $otherParticipant = $this->getOtherParticipant($forUser);
-
-        return $otherParticipant?->name ?? 'Unknown User';
+        return $this->project?->color ?? '#6366f1';
     }
 
     /**
-     * Get display avatar for the conversation.
+     * Get display icon for the conversation (= project icon).
      */
-    public function getDisplayAvatar(User $forUser): ?string
+    public function getDisplayIcon(): ?string
     {
-        if ($this->isGroup()) {
-            return $this->avatar;
-        }
-
-        $otherParticipant = $this->getOtherParticipant($forUser);
-
-        return $otherParticipant?->avatar;
+        return $this->project?->icon;
     }
 
     /**
@@ -168,36 +119,20 @@ class Conversation extends Model
     }
 
     /**
-     * Find or create a direct conversation between two users.
+     * Sync participants with project members.
+     * This should be called whenever project members change.
      */
-    public static function findOrCreateDirect(User $user1, User $user2): self
+    public function syncWithProjectMembers(): void
     {
-        // Find existing direct conversation
-        $conversation = self::where('type', ConversationType::Direct)
-            ->whereHas('activeParticipants', function ($query) use ($user1) {
-                $query->where('users.id', $user1->id);
-            })
-            ->whereHas('activeParticipants', function ($query) use ($user2) {
-                $query->where('users.id', $user2->id);
-            })
-            ->first();
-
-        if ($conversation) {
-            return $conversation;
+        if (! $this->project) {
+            return;
         }
 
-        // Create new direct conversation
-        $conversation = self::create([
-            'type' => ConversationType::Direct,
-            'created_by' => $user1->id,
-        ]);
+        // Get all project member IDs (including owner)
+        $memberIds = $this->project->members()->pluck('users.id')->toArray();
+        $memberIds[] = $this->project->user_id; // Add owner
 
-        // Add both participants
-        $conversation->participantRecords()->createMany([
-            ['user_id' => $user1->id, 'role' => 'owner'],
-            ['user_id' => $user2->id, 'role' => 'member'],
-        ]);
-
-        return $conversation;
+        // Sync participants - this will add new members and remove old ones
+        $this->participants()->sync($memberIds);
     }
 }

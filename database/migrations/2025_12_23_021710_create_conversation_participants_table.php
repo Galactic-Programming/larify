@@ -15,19 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('role', ['owner', 'member'])->default('member');
-            $table->string('nickname')->nullable(); // Custom nickname in group
             $table->timestamp('last_read_at')->nullable();
             $table->boolean('notifications_muted')->default(false);
-            $table->timestamp('joined_at')->useCurrent();
-            $table->timestamp('left_at')->nullable(); // When user leaves group
-            $table->timestamp('archived_at')->nullable(); // When user archives/hides conversation
             $table->timestamps();
 
             $table->unique(['conversation_id', 'user_id']);
-            $table->index(['user_id', 'left_at']);
-            $table->index(['user_id', 'archived_at']);
-            $table->index(['conversation_id', 'role']);
+            $table->index(['user_id']);
         });
     }
 

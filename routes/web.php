@@ -4,7 +4,6 @@ use App\Http\Controllers\Activities\ActivityController;
 use App\Http\Controllers\Api\UserSearchController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Conversations\ConversationController;
-use App\Http\Controllers\Conversations\ConversationParticipantController;
 use App\Http\Controllers\Conversations\MessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Notifications\NotificationController;
@@ -136,26 +135,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Conversations (Chat)
     Route::get('conversations', [ConversationController::class, 'index'])
         ->name('conversations.index');
-    Route::get('api/users/search', [ConversationController::class, 'users'])
-        ->name('api.users.search');
-    Route::post('conversations', [ConversationController::class, 'store'])
-        ->name('conversations.store');
     Route::get('conversations/{conversation}', [ConversationController::class, 'show'])
         ->name('conversations.show');
-    Route::patch('conversations/{conversation}', [ConversationController::class, 'update'])
-        ->name('conversations.update');
-    Route::delete('conversations/{conversation}', [ConversationController::class, 'destroy'])
-        ->name('conversations.destroy');
-
-    // Conversation Participants
-    Route::post('conversations/{conversation}/participants', [ConversationParticipantController::class, 'store'])
-        ->name('conversations.participants.store');
-    Route::patch('conversations/{conversation}/participants/{participant}', [ConversationParticipantController::class, 'update'])
-        ->name('conversations.participants.update');
-    Route::delete('conversations/{conversation}/participants/{participant}', [ConversationParticipantController::class, 'destroy'])
-        ->name('conversations.participants.destroy');
-    Route::post('conversations/{conversation}/participants/{participant}/transfer-ownership', [ConversationParticipantController::class, 'transferOwnership'])
-        ->name('conversations.participants.transfer-ownership');
+    Route::get('projects/{project}/chat', [ConversationController::class, 'showByProject'])
+        ->name('projects.chat');
 
     // Messages
     Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])

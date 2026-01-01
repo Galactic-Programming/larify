@@ -187,18 +187,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function conversations(): BelongsToMany
     {
         return $this->belongsToMany(Conversation::class, 'conversation_participants')
-            ->withPivot(['role', 'nickname', 'last_read_at', 'notifications_muted', 'joined_at', 'left_at', 'archived_at'])
+            ->withPivot(['last_read_at', 'notifications_muted'])
             ->withTimestamps();
-    }
-
-    /**
-     * Get active conversations (not left and not archived).
-     */
-    public function activeConversations(): BelongsToMany
-    {
-        return $this->conversations()
-            ->whereNull('conversation_participants.left_at')
-            ->whereNull('conversation_participants.archived_at');
     }
 
     /**

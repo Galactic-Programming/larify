@@ -13,14 +13,10 @@ return new class extends Migration
     {
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['direct', 'group'])->default('direct');
-            $table->string('name')->nullable(); // Only for group conversations
-            $table->string('avatar')->nullable(); // Only for group conversations
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('project_id')->unique()->constrained()->cascadeOnDelete();
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
 
-            $table->index(['type']);
             $table->index(['last_message_at']);
         });
     }

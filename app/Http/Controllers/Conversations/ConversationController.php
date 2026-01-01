@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers\Conversations;
 
-use App\Enums\ConversationType;
-use App\Enums\ParticipantRole;
-use App\Events\ConversationCreated;
+use App\Events\MessagesRead;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Conversations\StoreConversationRequest;
-use App\Http\Requests\Conversations\UpdateConversationRequest;
 use App\Models\Conversation;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -20,23 +15,29 @@ class ConversationController extends Controller
 {
     /**
      * Get formatted conversations list for the current user.
+     * Only returns conversations from projects the user is a member of.
      *
      * @return \Illuminate\Support\Collection<int, array<string, mixed>>
      */
     protected function getConversationsList(Request $request): \Illuminate\Support\Collection
     {
         return $request->user()
-            ->activeConversations()
-            ->with(['latestMessage.sender:id,name,avatar', 'activeParticipants:id,name,avatar'])
+            ->conversations()
+            ->with([
+                'project:id,name,color,icon',
+                'latestMessage.sender:id,name,avatar',
+                'participants:id,name,avatar',
+            ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($conversation) use ($request) {
                 return [
                     'id' => $conversation->id,
-                    'type' => $conversation->type->value,
-                    'name' => $conversation->getDisplayName($request->user()),
-                    'avatar' => $conversation->getDisplayAvatar($request->user()),
+                    'name' => $conversation->getDisplayName(),
+                    'color' => $conversation->getDisplayColor(),
+                    'icon' => $conversation->getDisplayIcon(),
+                    'project_id' => $conversation->project_id,
                     'last_message' => $conversation->latestMessage ? [
                         'id' => $conversation->latestMessage->id,
                         'content' => $conversation->latestMessage->content,
@@ -47,7 +48,7 @@ class ConversationController extends Controller
                         'created_at' => $conversation->latestMessage->created_at->toISOString(),
                     ] : null,
                     'unread_count' => $conversation->getUnreadCount($request->user()),
-                    'participants' => $conversation->activeParticipants->map(fn ($user) => [
+                    'participants' => $conversation->participants->map(fn ($user) => [
                         'id' => $user->id,
                         'name' => $user->name,
                         'avatar' => $user->avatar,
@@ -63,112 +64,9 @@ class ConversationController extends Controller
      */
     public function index(Request $request): Response
     {
-        Gate::authorize('viewAny', Conversation::class);
-
         return Inertia::render('conversations/index', [
             'conversations' => $this->getConversationsList($request),
         ]);
-    }
-
-    /**
-     * Search users by email for creating conversations (JSON API).
-     * Requires at least 3 characters to search for privacy.
-     * Only returns Pro users (users who can participate in chat).
-     */
-    public function users(Request $request): JsonResponse
-    {
-        $request->validate([
-            'query' => ['required', 'string', 'min:3', 'max:100'],
-        ]);
-
-        $query = $request->input('query');
-
-        // Search users by email (exact or partial match)
-        // Only return Pro users who can participate in chat
-        $users = \App\Models\User::query()
-            ->where('id', '!=', $request->user()->id)
-            ->where('plan', \App\Enums\UserPlan::Pro) // Only Pro users can be messaged
-            ->where(function ($q) use ($query) {
-                $q->where('email', $query) // Exact match first
-                    ->orWhere('email', 'like', "{$query}%"); // Or starts with
-            })
-            ->select('id', 'name', 'email', 'avatar')
-            ->orderByRaw('CASE WHEN email = ? THEN 0 ELSE 1 END', [$query])
-            ->orderBy('name')
-            ->limit(10)
-            ->get();
-
-        return response()->json([
-            'users' => $users,
-        ]);
-    }
-
-    /**
-     * Store a newly created conversation.
-     */
-    public function store(StoreConversationRequest $request): RedirectResponse|JsonResponse
-    {
-        $validated = $request->validated();
-        $type = ConversationType::from($validated['type']);
-        $participantIds = $validated['participant_ids'];
-
-        // For direct messages, check if conversation already exists
-        if ($type === ConversationType::Direct && count($participantIds) === 1) {
-            $existingConversation = Conversation::findOrCreateDirect(
-                $request->user(),
-                \App\Models\User::find($participantIds[0])
-            );
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'conversation' => [
-                        'id' => $existingConversation->id,
-                    ],
-                ]);
-            }
-
-            return to_route('conversations.show', $existingConversation);
-        }
-
-        // Create new group conversation
-        $conversation = Conversation::create([
-            'type' => $type,
-            'name' => $validated['name'] ?? null,
-            'avatar' => $validated['avatar'] ?? null,
-            'created_by' => $request->user()->id,
-        ]);
-
-        // Add creator as owner
-        $conversation->participantRecords()->create([
-            'user_id' => $request->user()->id,
-            'role' => ParticipantRole::Owner,
-            'joined_at' => now(),
-        ]);
-
-        // Add other participants as members
-        foreach ($participantIds as $userId) {
-            $conversation->participantRecords()->create([
-                'user_id' => $userId,
-                'role' => ParticipantRole::Member,
-                'joined_at' => now(),
-            ]);
-        }
-
-        // Reload with participants for broadcasting
-        $conversation->load('activeParticipants');
-
-        // Broadcast to all participants
-        broadcast(new ConversationCreated($conversation))->toOthers();
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'conversation' => [
-                    'id' => $conversation->id,
-                ],
-            ]);
-        }
-
-        return to_route('conversations.show', $conversation);
     }
 
     /**
@@ -185,12 +83,13 @@ class ConversationController extends Controller
             ->update(['last_read_at' => $now]);
 
         // Broadcast that messages were read
-        event(new \App\Events\MessagesRead($conversation, $request->user(), $now->toISOString()));
+        event(new MessagesRead($conversation, $request->user(), $now->toISOString()));
 
-        // Load conversation with messages and participants (including last_read_at)
+        // Load conversation with messages and participants
         $conversation->load([
-            'activeParticipants:id,name,email,avatar',
-            'participantRecords' => fn ($query) => $query->whereNull('left_at'),
+            'project:id,name,color,icon',
+            'participants:id,name,email,avatar',
+            'participantRecords',
             'messages' => fn ($query) => $query
                 ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name'])
                 ->orderBy('created_at', 'asc')
@@ -206,16 +105,21 @@ class ConversationController extends Controller
             'conversations' => $this->getConversationsList($request),
             'conversation' => [
                 'id' => $conversation->id,
-                'type' => $conversation->type->value,
-                'name' => $conversation->getDisplayName($request->user()),
-                'avatar' => $conversation->getDisplayAvatar($request->user()),
-                'raw_name' => $conversation->name,
-                'participants' => $conversation->activeParticipants->map(fn ($user) => [
+                'name' => $conversation->getDisplayName(),
+                'color' => $conversation->getDisplayColor(),
+                'icon' => $conversation->getDisplayIcon(),
+                'project_id' => $conversation->project_id,
+                'project' => $conversation->project ? [
+                    'id' => $conversation->project->id,
+                    'name' => $conversation->project->name,
+                    'color' => $conversation->project->color,
+                    'icon' => $conversation->project->icon,
+                ] : null,
+                'participants' => $conversation->participants->map(fn ($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,
-                    'role' => $user->pivot->role,
                 ]),
                 'messages' => $conversation->messages->map(function ($message) use ($request, $otherParticipantsReadAt) {
                     $isMine = $message->sender_id === $request->user()->id;
@@ -254,54 +158,38 @@ class ConversationController extends Controller
                         ]),
                     ];
                 }),
-                'can_update' => Gate::allows('update', $conversation),
-                'can_manage_participants' => Gate::allows('manageParticipants', $conversation),
-                'can_delete' => Gate::allows('delete', $conversation),
             ],
         ]);
     }
 
     /**
-     * Update the specified conversation.
+     * Show conversation for a specific project.
+     * This is the entry point from the project view.
      */
-    public function update(UpdateConversationRequest $request, Conversation $conversation): RedirectResponse
+    public function showByProject(Request $request, Project $project): Response
     {
-        $conversation->update($request->validated());
+        Gate::authorize('view', $project);
 
-        return back()->with('success', 'Conversation updated.');
-    }
+        // Get or create conversation for this project
+        $conversation = $project->getOrCreateConversation();
 
-    /**
-     * Remove the specified conversation (archive for current user).
-     * Each participant can archive the conversation for themselves.
-     * When ALL participants have archived, the conversation is fully deleted.
-     */
-    public function destroy(Request $request, Conversation $conversation): RedirectResponse
-    {
-        Gate::authorize('delete', $conversation);
-
-        // Archive the conversation for the current user
-        $conversation->participantRecords()
-            ->where('user_id', $request->user()->id)
-            ->update(['archived_at' => now()]);
-
-        // Check if ALL active participants have archived the conversation
-        $activeParticipants = $conversation->participantRecords()
-            ->whereNull('left_at')
-            ->count();
-
-        $archivedParticipants = $conversation->participantRecords()
-            ->whereNull('left_at')
-            ->whereNotNull('archived_at')
-            ->count();
-
-        // If all participants have archived, fully delete the conversation
-        if ($activeParticipants > 0 && $activeParticipants === $archivedParticipants) {
-            $conversation->delete();
-
-            return to_route('conversations.index')->with('success', 'Conversation deleted.');
+        // If no conversation (project has < 2 members), show empty state
+        if (! $conversation) {
+            return Inertia::render('conversations/show', [
+                'conversations' => $this->getConversationsList($request),
+                'conversation' => null,
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'color' => $project->color,
+                    'icon' => $project->icon,
+                    'member_count' => $project->getTotalMemberCount(),
+                    'has_chat_enabled' => false,
+                ],
+            ]);
         }
 
-        return to_route('conversations.index')->with('success', 'Conversation deleted.');
+        // Redirect to the conversation view
+        return $this->show($request, $conversation);
     }
 }

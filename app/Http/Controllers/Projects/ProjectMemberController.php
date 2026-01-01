@@ -93,6 +93,9 @@ class ProjectMemberController extends Controller
         // Notify the added user
         $addedUser->notify(new ProjectInvitation($project, auth()->user(), $role));
 
+        // Sync conversation participants
+        $project->syncConversationParticipants();
+
         return back()->with('success', 'Member added successfully.');
     }
 
@@ -164,6 +167,9 @@ class ProjectMemberController extends Controller
         );
 
         $member->delete();
+
+        // Sync conversation participants (will remove this member)
+        $project->syncConversationParticipants();
 
         // Notify the removed member
         $memberUser->notify(new RemovedFromProject($project, auth()->user()));

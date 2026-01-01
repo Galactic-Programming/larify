@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
@@ -245,5 +246,76 @@ class Project extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class)->latest();
+    }
+
+    /**
+     * Get the conversation for this project.
+     */
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class);
+    }
+
+    /**
+     * Get or create conversation for this project.
+     * Creates conversation only if project has 2+ members (including owner).
+     */
+    public function getOrCreateConversation(): ?Conversation
+    {
+        // Return existing conversation if exists
+        if ($this->conversation) {
+            return $this->conversation;
+        }
+
+        // Count total members (owner + invited members)
+        $totalMembers = 1 + $this->members()->count();
+
+        // Only create conversation if there are 2+ members
+        if ($totalMembers < 2) {
+            return null;
+        }
+
+        // Create new conversation
+        $conversation = $this->conversation()->create([
+            'last_message_at' => now(),
+        ]);
+
+        // Sync participants with project members
+        $conversation->syncWithProjectMembers();
+
+        return $conversation;
+    }
+
+    /**
+     * Sync conversation participants when project members change.
+     */
+    public function syncConversationParticipants(): void
+    {
+        $conversation = $this->conversation;
+
+        if (! $conversation) {
+            // Try to create conversation if we now have enough members
+            $this->getOrCreateConversation();
+
+            return;
+        }
+
+        $conversation->syncWithProjectMembers();
+    }
+
+    /**
+     * Get total member count (including owner).
+     */
+    public function getTotalMemberCount(): int
+    {
+        return 1 + $this->members()->count();
+    }
+
+    /**
+     * Check if project has chat enabled (2+ members).
+     */
+    public function hasChatEnabled(): bool
+    {
+        return $this->getTotalMemberCount() >= 2;
     }
 }
