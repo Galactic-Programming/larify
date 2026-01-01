@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, Info, Loader2, Mic, Paperclip, Square, X } from "lucide-react"
+import { ArrowUp, Info, Loader2, Mic, Paperclip, Smile, Square } from "lucide-react"
 import { omit } from "remeda"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +10,12 @@ import { AudioVisualizer } from "@/components/ui/audio-visualizer"
 import { Button } from "@/components/ui/button"
 import { FilePreview } from "@/components/ui/file-preview"
 import { InterruptPrompt } from "@/components/ui/interrupt-prompt"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface MessageInputBaseProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -86,6 +92,18 @@ export function MessageInput({
     }
   }
 
+  const addFilesWithValidation = (files: File[]) => {
+    const { valid, blocked } = filterBlockedFiles(files)
+
+    if (blocked.length > 0) {
+      alert(`The following files are not allowed for security reasons:\n${blocked.join('\n')}`)
+    }
+
+    if (valid.length > 0) {
+      addFiles(valid)
+    }
+  }
+
   const onDragOver = (event: React.DragEvent) => {
     if (props.allowAttachments !== true) return
     event.preventDefault()
@@ -104,7 +122,7 @@ export function MessageInput({
     event.preventDefault()
     const dataTransfer = event.dataTransfer
     if (dataTransfer.files.length) {
-      addFiles(Array.from(dataTransfer.files))
+      addFilesWithValidation(Array.from(dataTransfer.files))
     }
   }
 
@@ -116,7 +134,7 @@ export function MessageInput({
     if (text && text.length > 500 && props.allowAttachments) {
       event.preventDefault()
       const blob = new Blob([text], { type: "text/plain" })
-      const file = new File([blob], "Pasted text", {
+      const file = new File([blob], "Pasted text.txt", {
         type: "text/plain",
         lastModified: Date.now(),
       })
@@ -129,7 +147,7 @@ export function MessageInput({
       .filter((file) => file !== null)
 
     if (props.allowAttachments && files.length > 0) {
-      addFiles(files)
+      addFilesWithValidation(files)
     }
   }
 
@@ -204,7 +222,7 @@ export function MessageInput({
             onPaste={onPaste}
             onKeyDown={onKeyDown}
             className={cn(
-              "z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+              "z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-44 text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
               showFileList && "pb-16",
               className
             )}
@@ -244,6 +262,28 @@ export function MessageInput({
       </div>
 
       <div className="absolute right-3 top-3 z-20 flex gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="h-8 w-8"
+                aria-label="Insert emoji"
+                onClick={() => textAreaRef.current?.focus()}
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-50 text-center">
+              <p className="text-xs">
+                <span className="font-medium">Win + .</span> (Windows) or{" "}
+                <span className="font-medium">Cmd + Ctrl + Space</span> (Mac)
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         {props.allowAttachments && (
           <Button
             type="button"
@@ -332,6 +372,61 @@ function FileUploadOverlay({ isDragging }: FileUploadOverlayProps) {
   )
 }
 
+/**
+ * Blocked file extensions for security reasons.
+ * These include executables, scripts, and system files that could be malicious.
+ */
+const BLOCKED_EXTENSIONS = new Set([
+  // Executables
+  'exe', 'msi', 'bat', 'cmd', 'com', 'scr', 'pif', 'application',
+  // Scripts
+  'php', 'php3', 'php4', 'php5', 'phtml', 'phar',
+  'js', 'mjs', 'jsx', 'ts', 'tsx',
+  'py', 'pyc', 'pyw',
+  'rb', 'erb',
+  'pl', 'pm', 'cgi',
+  'sh', 'bash', 'zsh', 'fish',
+  'ps1', 'psm1', 'psd1',
+  'vbs', 'vbe', 'wsf', 'wsh',
+  // System/Config
+  'dll', 'sys', 'drv', 'ocx',
+  'htaccess', 'htpasswd',
+  'env', 'ini', 'cfg', 'conf',
+  // Java
+  'jar', 'class', 'jsp', 'jspx',
+  // ASP
+  'asp', 'aspx', 'ascx', 'ashx', 'asmx',
+  // Other dangerous
+  'reg', 'inf', 'lnk', 'url', 'scf',
+  'hta', 'cpl', 'msc', 'gadget',
+])
+
+/**
+ * Check if a file has a blocked extension.
+ */
+function isBlockedFile(file: File): boolean {
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  return BLOCKED_EXTENSIONS.has(extension)
+}
+
+/**
+ * Filter out blocked files and return valid files + blocked file names.
+ */
+function filterBlockedFiles(files: File[]): { valid: File[]; blocked: string[] } {
+  const valid: File[] = []
+  const blocked: string[] = []
+
+  for (const file of files) {
+    if (isBlockedFile(file)) {
+      blocked.push(file.name)
+    } else {
+      valid.push(file)
+    }
+  }
+
+  return { valid, blocked }
+}
+
 function showFileUploadDialog() {
   const input = document.createElement("input")
 
@@ -345,7 +440,14 @@ function showFileUploadDialog() {
       const files = (e.currentTarget as HTMLInputElement).files
 
       if (files) {
-        resolve(Array.from(files))
+        const fileArray = Array.from(files)
+        const { valid, blocked } = filterBlockedFiles(fileArray)
+
+        if (blocked.length > 0) {
+          alert(`The following files are not allowed for security reasons:\n${blocked.join('\n')}`)
+        }
+
+        resolve(valid.length > 0 ? valid : null)
         return
       }
 
