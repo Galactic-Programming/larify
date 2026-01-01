@@ -262,9 +262,10 @@ class Project extends Model
      */
     public function getOrCreateConversation(): ?Conversation
     {
-        // Return existing conversation if exists
-        if ($this->conversation) {
-            return $this->conversation;
+        // Check for existing conversation in database
+        $existingConversation = Conversation::where('project_id', $this->id)->first();
+        if ($existingConversation) {
+            return $existingConversation;
         }
 
         // Count total members (owner + invited members)

@@ -1,31 +1,29 @@
 <?php
 
-use App\Enums\ConversationType;
-use App\Enums\ParticipantRole;
-use App\Enums\UserPlan;
+use App\Enums\ProjectRole;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Project;
 use App\Models\User;
 
 beforeEach(function () {
-    // Chat is a Pro feature, so we need Pro users for these tests
-    $this->user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $this->user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+    $this->owner = User::factory()->create();
+    $this->member = User::factory()->create();
 
-    $this->conversation = Conversation::create([
-        'type' => ConversationType::Direct,
-        'created_by' => $this->user1->id,
+    $this->project = Project::factory()->create(['user_id' => $this->owner->id]);
+    $this->project->members()->attach($this->member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
     ]);
-    $this->conversation->participantRecords()->createMany([
-        ['user_id' => $this->user1->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $this->user2->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+
+    // Create conversation for the project
+    $this->conversation = $this->project->getOrCreateConversation();
 });
 
 // === SENDING MESSAGES ===
 
 it('allows participant to send a message', function () {
-    $response = $this->actingAs($this->user1)->post(
+    $response = $this->actingAs($this->owner)->post(
         route('conversations.messages.store', $this->conversation),
         ['content' => 'Hello World!']
     );
@@ -35,11 +33,11 @@ it('allows participant to send a message', function () {
     $message = Message::where('conversation_id', $this->conversation->id)->first();
     expect($message)->not->toBeNull();
     expect($message->content)->toBe('Hello World!');
-    expect($message->sender_id)->toBe($this->user1->id);
+    expect($message->sender_id)->toBe($this->owner->id);
 });
 
 it('prevents non-participant from sending message', function () {
-    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
+    $outsider = User::factory()->create();
 
     $response = $this->actingAs($outsider)->post(
         route('conversations.messages.store', $this->conversation),
@@ -51,7 +49,7 @@ it('prevents non-participant from sending message', function () {
 });
 
 it('requires content or attachments for message', function () {
-    $response = $this->actingAs($this->user1)->post(
+    $response = $this->actingAs($this->owner)->post(
         route('conversations.messages.store', $this->conversation),
         ['content' => '']
     );
@@ -60,7 +58,7 @@ it('requires content or attachments for message', function () {
 });
 
 it('enforces max message length', function () {
-    $response = $this->actingAs($this->user1)->post(
+    $response = $this->actingAs($this->owner)->post(
         route('conversations.messages.store', $this->conversation),
         ['content' => str_repeat('a', 10001)]
     );
@@ -73,11 +71,11 @@ it('enforces max message length', function () {
 it('allows replying to a message', function () {
     $originalMessage = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user2->id,
+        'sender_id' => $this->member->id,
         'content' => 'Original message',
     ]);
 
-    $response = $this->actingAs($this->user1)->post(
+    $response = $this->actingAs($this->owner)->post(
         route('conversations.messages.store', $this->conversation),
         [
             'content' => 'This is a reply',
@@ -93,24 +91,23 @@ it('allows replying to a message', function () {
 });
 
 it('prevents replying to message from different conversation', function () {
-    $otherUser = User::factory()->create();
-    $otherConversation = Conversation::create([
-        'type' => ConversationType::Direct,
-        'created_by' => $otherUser->id,
-    ]);
-    $otherConversation->participantRecords()->create([
-        'user_id' => $otherUser->id,
-        'role' => ParticipantRole::Owner,
+    // Create another project with conversation
+    $otherOwner = User::factory()->create();
+    $otherMember = User::factory()->create();
+    $otherProject = Project::factory()->create(['user_id' => $otherOwner->id]);
+    $otherProject->members()->attach($otherMember->id, [
+        'role' => ProjectRole::Editor->value,
         'joined_at' => now(),
     ]);
+    $otherConversation = $otherProject->getOrCreateConversation();
 
     $otherMessage = Message::create([
         'conversation_id' => $otherConversation->id,
-        'sender_id' => $otherUser->id,
+        'sender_id' => $otherOwner->id,
         'content' => 'Message in other conversation',
     ]);
 
-    $response = $this->actingAs($this->user1)->post(
+    $response = $this->actingAs($this->owner)->post(
         route('conversations.messages.store', $this->conversation),
         [
             'content' => 'Trying to reply to wrong conversation',
@@ -126,12 +123,12 @@ it('prevents replying to message from different conversation', function () {
 it('allows sender to edit their message within time limit', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user1->id,
+        'sender_id' => $this->owner->id,
         'content' => 'Original content',
-        'created_at' => now(), // Within time limit
+        'created_at' => now(),
     ]);
 
-    $response = $this->actingAs($this->user1)->patch(
+    $response = $this->actingAs($this->owner)->patch(
         route('conversations.messages.update', [$this->conversation, $message]),
         ['content' => 'Edited content']
     );
@@ -145,10 +142,9 @@ it('allows sender to edit their message within time limit', function () {
 });
 
 it('prevents editing message after time limit', function () {
-    // Create a message that's older than the edit limit
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user1->id,
+        'sender_id' => $this->owner->id,
         'content' => 'Original content',
     ]);
 
@@ -157,7 +153,7 @@ it('prevents editing message after time limit', function () {
         'created_at' => now()->subMinutes(20),
     ]);
 
-    $response = $this->actingAs($this->user1)->patch(
+    $response = $this->actingAs($this->owner)->patch(
         route('conversations.messages.update', [$this->conversation, $message]),
         ['content' => 'Too late edit']
     );
@@ -172,11 +168,11 @@ it('prevents editing message after time limit', function () {
 it('prevents user from editing others message', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user2->id,
-        'content' => 'User 2 message',
+        'sender_id' => $this->member->id,
+        'content' => 'Member message',
     ]);
 
-    $response = $this->actingAs($this->user1)->patch(
+    $response = $this->actingAs($this->owner)->patch(
         route('conversations.messages.update', [$this->conversation, $message]),
         ['content' => 'Hacked content']
     );
@@ -184,7 +180,7 @@ it('prevents user from editing others message', function () {
     $response->assertForbidden();
 
     $message->refresh();
-    expect($message->content)->toBe('User 2 message');
+    expect($message->content)->toBe('Member message');
 });
 
 // === DELETING MESSAGES ===
@@ -192,13 +188,13 @@ it('prevents user from editing others message', function () {
 it('allows sender to delete their message', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user1->id,
+        'sender_id' => $this->owner->id,
         'content' => 'To be deleted',
     ]);
 
     $messageId = $message->id;
 
-    $response = $this->actingAs($this->user1)->delete(
+    $response = $this->actingAs($this->owner)->delete(
         route('conversations.messages.destroy', [$this->conversation, $message])
     );
 
@@ -206,66 +202,35 @@ it('allows sender to delete their message', function () {
     $this->assertSoftDeleted('messages', ['id' => $messageId]);
 });
 
-it('prevents user from deleting others message in direct conversation', function () {
+it('prevents user from deleting others message', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user2->id,
-        'content' => 'User 2 message',
+        'sender_id' => $this->member->id,
+        'content' => 'Member message',
     ]);
 
-    $response = $this->actingAs($this->user1)->delete(
+    $response = $this->actingAs($this->owner)->delete(
         route('conversations.messages.destroy', [$this->conversation, $message])
     );
 
     $response->assertForbidden();
 });
 
-it('allows group owner to delete any message', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
-
-    $groupConversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Test Group',
-        'created_by' => $owner->id,
-    ]);
-    $groupConversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
-
-    $message = Message::create([
-        'conversation_id' => $groupConversation->id,
-        'sender_id' => $member->id,
-        'content' => 'Member message',
-    ]);
-
-    $messageId = $message->id;
-
-    $response = $this->actingAs($owner)->delete(
-        route('conversations.messages.destroy', [$groupConversation, $message])
-    );
-
-    $response->assertRedirect();
-    $this->assertSoftDeleted('messages', ['id' => $messageId]);
-});
-
 // === FETCHING MESSAGES ===
 
 it('allows participant to fetch messages via API', function () {
-    // Create some messages
     Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user1->id,
+        'sender_id' => $this->owner->id,
         'content' => 'Message 1',
     ]);
     Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user2->id,
+        'sender_id' => $this->member->id,
         'content' => 'Message 2',
     ]);
 
-    $response = $this->actingAs($this->user1)->getJson(
+    $response = $this->actingAs($this->owner)->getJson(
         route('api.conversations.messages.index', $this->conversation)
     );
 
@@ -274,7 +239,7 @@ it('allows participant to fetch messages via API', function () {
 });
 
 it('prevents non-participant from fetching messages', function () {
-    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
+    $outsider = User::factory()->create();
 
     $response = $this->actingAs($outsider)->getJson(
         route('api.conversations.messages.index', $this->conversation)
@@ -288,11 +253,11 @@ it('prevents non-participant from fetching messages', function () {
 it('allows participant to mark messages as read', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->user2->id,
+        'sender_id' => $this->member->id,
         'content' => 'New message',
     ]);
 
-    $response = $this->actingAs($this->user1)->postJson(
+    $response = $this->actingAs($this->owner)->postJson(
         route('conversations.messages.read', $this->conversation),
         ['last_message_id' => $message->id]
     );
@@ -300,7 +265,7 @@ it('allows participant to mark messages as read', function () {
     $response->assertOk();
 
     $participant = $this->conversation->participantRecords()
-        ->where('user_id', $this->user1->id)
+        ->where('user_id', $this->owner->id)
         ->first();
 
     expect($participant->last_read_at)->not->toBeNull();
@@ -309,7 +274,7 @@ it('allows participant to mark messages as read', function () {
 // === TYPING INDICATOR ===
 
 it('allows participant to send typing indicator', function () {
-    $response = $this->actingAs($this->user1)->postJson(
+    $response = $this->actingAs($this->owner)->postJson(
         route('conversations.typing', $this->conversation),
         ['is_typing' => true]
     );
@@ -319,7 +284,7 @@ it('allows participant to send typing indicator', function () {
 });
 
 it('prevents non-participant from sending typing indicator', function () {
-    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
+    $outsider = User::factory()->create();
 
     $response = $this->actingAs($outsider)->postJson(
         route('conversations.typing', $this->conversation),

@@ -32,7 +32,7 @@ class MessageSent implements ShouldBroadcastNow
         ];
 
         // Also broadcast to each participant's user channel for sidebar updates
-        $participants = $this->message->conversation->activeParticipants()
+        $participants = $this->message->conversation->participants()
             ->where('users.id', '!=', $this->message->sender_id)
             ->pluck('users.id');
 

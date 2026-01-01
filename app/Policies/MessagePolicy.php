@@ -36,28 +36,13 @@ class MessagePolicy
 
     /**
      * Determine whether the user can delete the message.
-     * Sender can delete their own messages.
-     * Group owners can delete any message in their groups.
+     * Only the sender can delete their own messages.
+     * (In project-based chat, there's no owner distinction - only sender can delete)
      */
     public function delete(User $user, Message $message): bool
     {
-        // Sender can always delete their own messages
-        if ($message->sender_id === $user->id) {
-            return true;
-        }
-
-        // Group owners can delete any message in the conversation
-        $conversation = $message->conversation;
-        if ($conversation->isGroup()) {
-            $participant = $conversation->participantRecords()
-                ->where('user_id', $user->id)
-                ->whereNull('left_at')
-                ->first();
-
-            return $participant && $participant->isOwner();
-        }
-
-        return false;
+        // Only the sender can delete their own messages
+        return $message->sender_id === $user->id;
     }
 
     /**

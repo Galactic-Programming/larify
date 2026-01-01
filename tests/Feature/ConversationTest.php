@@ -1,382 +1,250 @@
 <?php
 
-use App\Enums\ConversationType;
-use App\Enums\ParticipantRole;
-use App\Enums\UserPlan;
+use App\Enums\ProjectRole;
 use App\Models\Conversation;
+use App\Models\Project;
 use App\Models\User;
 
-// === CONVERSATION CREATION ===
+/**
+ * Helper to create a project with members and conversation.
+ */
+function createProjectWithConversation(User $owner, array $members = []): array
+{
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+
+    foreach ($members as $member) {
+        $project->members()->attach($member->id, [
+            'role' => ProjectRole::Editor->value,
+            'joined_at' => now(),
+        ]);
+    }
+
+    // Trigger conversation creation if there are 2+ members
+    $conversation = $project->getOrCreateConversation();
+
+    return [$project, $conversation];
+}
+
+// === CONVERSATION LIST ===
 
 it('allows authenticated user to view conversations list', function () {
-    // Chat is a Pro feature
-    $user = User::factory()->create(['plan' => UserPlan::Pro]);
+    $user = User::factory()->create();
 
     $response = $this->actingAs($user)->get(route('conversations.index'));
 
-    expect($response->status())->not->toBe(403);
-    expect($response->status())->not->toBe(404);
+    $response->assertOk();
 });
 
-it('allows free user to view conversations page (shows upgrade prompt)', function () {
-    // Free users can access the page but will see upgrade prompt
-    $user = User::factory()->create(['plan' => UserPlan::Free]);
+it('shows conversations from user projects', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('conversations.index'));
+    [$project, $conversation] = createProjectWithConversation($owner, [$member]);
 
-    expect($response->status())->toBe(200);
-});
+    $response = $this->actingAs($owner)->get(route('conversations.index'));
 
-it('allows user to create a direct conversation', function () {
-    // Chat is a Pro feature
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $response = $this->actingAs($user1)->post(route('conversations.store'), [
-        'type' => 'direct',
-        'participant_ids' => [$user2->id],
-    ]);
-
-    $response->assertRedirect();
-
-    $conversation = Conversation::where('type', ConversationType::Direct)->first();
+    $response->assertOk();
     expect($conversation)->not->toBeNull();
-    expect($conversation->activeParticipants)->toHaveCount(2);
 });
 
-it('reuses existing direct conversation when creating duplicate', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+it('does not show conversations from projects user is not a member of', function () {
+    $user = User::factory()->create();
+    $otherOwner = User::factory()->create();
+    $otherMember = User::factory()->create();
 
-    // Create first conversation
-    $this->actingAs($user1)->post(route('conversations.store'), [
-        'type' => 'direct',
-        'participant_ids' => [$user2->id],
-    ]);
+    // Other user's project with conversation
+    createProjectWithConversation($otherOwner, [$otherMember]);
 
-    $countBefore = Conversation::count();
+    // Get user's conversations
+    $conversations = $user->conversations;
 
-    // Try to create again
-    $this->actingAs($user1)->post(route('conversations.store'), [
-        'type' => 'direct',
-        'participant_ids' => [$user2->id],
-    ]);
-
-    $countAfter = Conversation::count();
-
-    expect($countAfter)->toBe($countBefore);
-});
-
-it('allows user to create a group conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member2 = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $response = $this->actingAs($owner)->post(route('conversations.store'), [
-        'type' => 'group',
-        'name' => 'Test Group',
-        'participant_ids' => [$member1->id, $member2->id],
-    ]);
-
-    $response->assertRedirect();
-
-    $conversation = Conversation::where('type', ConversationType::Group)->first();
-    expect($conversation)->not->toBeNull();
-    expect($conversation->name)->toBe('Test Group');
-    expect($conversation->activeParticipants)->toHaveCount(3); // owner + 2 members
-});
-
-it('requires name for group conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $response = $this->actingAs($owner)->post(route('conversations.store'), [
-        'type' => 'group',
-        'participant_ids' => [$member->id],
-    ]);
-
-    $response->assertSessionHasErrors('name');
-});
-
-it('prevents adding yourself as participant', function () {
-    $user = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $response = $this->actingAs($user)->post(route('conversations.store'), [
-        'type' => 'direct',
-        'participant_ids' => [$user->id],
-    ]);
-
-    $response->assertSessionHasErrors('participant_ids.0');
+    expect($conversations)->toHaveCount(0);
 });
 
 // === CONVERSATION ACCESS ===
 
-it('allows participant to view conversation', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+it('allows project member to view conversation', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Direct,
-        'created_by' => $user1->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $user1->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $user2->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    [$project, $conversation] = createProjectWithConversation($owner, [$member]);
 
-    $response = $this->actingAs($user1)->get(route('conversations.show', $conversation));
+    $response = $this->actingAs($owner)->get(route('conversations.show', $conversation));
+    $response->assertOk();
 
-    expect($response->status())->not->toBe(403);
-    expect($response->status())->not->toBe(404);
+    $response = $this->actingAs($member)->get(route('conversations.show', $conversation));
+    $response->assertOk();
 });
 
-it('prevents non-participant from viewing conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
-    $outsider = User::factory()->create(['plan' => UserPlan::Pro]);
+it('prevents non-member from viewing conversation', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $outsider = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Direct,
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    [$project, $conversation] = createProjectWithConversation($owner, [$member]);
 
     $response = $this->actingAs($outsider)->get(route('conversations.show', $conversation));
 
     $response->assertForbidden();
 });
 
-// === CONVERSATION UPDATE ===
+// === SHOW BY PROJECT ===
 
-it('allows group owner to update conversation name', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+it('allows project member to access chat via project route', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Old Name',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    [$project, $conversation] = createProjectWithConversation($owner, [$member]);
 
-    $response = $this->actingAs($owner)->patch(route('conversations.update', $conversation), [
-        'name' => 'New Name',
-    ]);
+    $response = $this->actingAs($owner)->get(route('projects.chat', $project));
 
-    $response->assertRedirect();
-    $conversation->refresh();
-    expect($conversation->name)->toBe('New Name');
+    // showByProject returns Inertia render (not redirect) when conversation exists
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('conversations/show')
+        ->has('conversation')
+    );
 });
 
-it('allows member to update group conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+it('shows empty state for single-member project chat', function () {
+    $owner = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Old Name',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    // Project has only owner, no conversation should exist
+    $response = $this->actingAs($owner)->get(route('projects.chat', $project));
 
-    $response = $this->actingAs($member)->patch(route('conversations.update', $conversation), [
-        'name' => 'Member Updated Name',
-    ]);
-
-    $response->assertRedirect();
-    $conversation->refresh();
-    expect($conversation->name)->toBe('Member Updated Name');
+    // Should render empty state (conversation is null)
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('conversations/show')
+        ->has('project')
+        ->where('conversation', null)
+    );
 });
 
-it('prevents updating direct conversation', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+it('prevents non-member from accessing project chat', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $outsider = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Direct,
-        'created_by' => $user1->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $user1->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $user2->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    [$project, $conversation] = createProjectWithConversation($owner, [$member]);
 
-    $response = $this->actingAs($user1)->patch(route('conversations.update', $conversation), [
-        'name' => 'Should Not Work',
-    ]);
+    $response = $this->actingAs($outsider)->get(route('projects.chat', $project));
 
     $response->assertForbidden();
 });
 
-// === CONVERSATION DELETION ===
+// === CONVERSATION CREATION ===
 
-it('allows group owner to archive conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+it('creates conversation when project has 2+ members', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Test Group',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
     ]);
 
-    $response = $this->actingAs($owner)->delete(route('conversations.destroy', $conversation));
+    // Conversation should be created when getOrCreateConversation is called
+    $conversation = $project->getOrCreateConversation();
 
-    $response->assertRedirect();
-
-    // Conversation should still exist (only archived for owner)
-    expect(Conversation::find($conversation->id))->not->toBeNull();
-
-    // Owner's participant record should be archived
-    $ownerParticipant = $conversation->participantRecords()->where('user_id', $owner->id)->first();
-    expect($ownerParticipant->archived_at)->not->toBeNull();
-
-    // Member's participant record should NOT be archived
-    $memberParticipant = $conversation->participantRecords()->where('user_id', $member->id)->first();
-    expect($memberParticipant->archived_at)->toBeNull();
+    expect($conversation)->not->toBeNull();
+    expect(Conversation::where('project_id', $project->id)->count())->toBe(1);
 });
 
-it('allows member to archive group conversation', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+it('does not create conversation for single-member project', function () {
+    $owner = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Test Group',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
-    ]);
+    // Should return null for single-member project
+    $conversation = $project->getOrCreateConversation();
 
-    $response = $this->actingAs($member)->delete(route('conversations.destroy', $conversation));
-
-    $response->assertRedirect();
-
-    // Conversation should still exist (only archived for member)
-    expect(Conversation::find($conversation->id))->not->toBeNull();
-
-    // Member's participant record should be archived
-    $memberParticipant = $conversation->participantRecords()->where('user_id', $member->id)->first();
-    expect($memberParticipant->archived_at)->not->toBeNull();
+    expect($conversation)->toBeNull();
+    expect(Conversation::where('project_id', $project->id)->count())->toBe(0);
 });
 
-it('deletes conversation when all participants have archived', function () {
-    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
-    $member = User::factory()->create(['plan' => UserPlan::Pro]);
+it('reuses existing conversation for same project', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::create([
-        'type' => ConversationType::Group,
-        'name' => 'Test Group',
-        'created_by' => $owner->id,
-    ]);
-    $conversation->participantRecords()->createMany([
-        ['user_id' => $owner->id, 'role' => ParticipantRole::Owner, 'joined_at' => now()],
-        ['user_id' => $member->id, 'role' => ParticipantRole::Member, 'joined_at' => now()],
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
     ]);
 
-    $conversationId = $conversation->id;
+    $conversation1 = $project->getOrCreateConversation();
+    $conversation2 = $project->getOrCreateConversation();
 
-    // Owner archives first
-    $this->actingAs($owner)->delete(route('conversations.destroy', $conversation));
-    expect(Conversation::find($conversationId))->not->toBeNull();
-
-    // Member archives second - now conversation should be deleted
-    $response = $this->actingAs($member)->delete(route('conversations.destroy', $conversation));
-
-    $response->assertRedirect();
-    expect(Conversation::find($conversationId))->toBeNull();
+    expect($conversation1->id)->toBe($conversation2->id);
+    expect(Conversation::where('project_id', $project->id)->count())->toBe(1);
 });
 
-it('unarchives conversation when new message is sent', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+// === PARTICIPANT SYNC ===
 
-    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+it('syncs participants when members are added', function () {
+    $owner = User::factory()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
 
-    // User1 deletes (archives) the conversation
-    $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
-
-    // Verify user1's record is archived
-    $participant1 = $conversation->participantRecords()->where('user_id', $user1->id)->first();
-    expect($participant1->archived_at)->not->toBeNull();
-
-    // User2 sends a new message
-    $this->actingAs($user2)->post(route('conversations.messages.store', $conversation), [
-        'content' => 'Hello again!',
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $project->members()->attach($member1->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
     ]);
 
-    // User1's record should be unarchived now
-    $participant1->refresh();
-    expect($participant1->archived_at)->toBeNull();
+    // Create conversation with initial members
+    $conversation = $project->getOrCreateConversation();
+    expect($conversation->participants)->toHaveCount(2);
+
+    // Add another member and sync
+    $project->members()->attach($member2->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+    $project->syncConversationParticipants();
+
+    $conversation->refresh();
+    expect($conversation->participants)->toHaveCount(3);
 });
 
-// === DELETING DIRECT CONVERSATION ===
+// === CONVERSATION DISPLAY ===
 
-it('allows user to delete direct conversation', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+it('displays project name as conversation name', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+    $project = Project::factory()->create([
+        'user_id' => $owner->id,
+        'name' => 'My Test Project',
+    ]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
 
-    $response = $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
+    $conversation = $project->getOrCreateConversation();
 
-    $response->assertRedirect(route('conversations.index'));
-
-    // Conversation should still exist
-    expect(Conversation::find($conversation->id))->not->toBeNull();
-
-    // User1's participant record should be archived
-    $participant1 = $conversation->participantRecords()->where('user_id', $user1->id)->first();
-    expect($participant1->archived_at)->not->toBeNull();
-
-    // User2's participant record should NOT be archived
-    $participant2 = $conversation->participantRecords()->where('user_id', $user2->id)->first();
-    expect($participant2->archived_at)->toBeNull();
+    expect($conversation->getDisplayName())->toBe('My Test Project');
 });
 
-it('hides archived conversation from user list', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
+it('displays project color and icon', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
 
-    $conversation = Conversation::findOrCreateDirect($user1, $user2);
+    $project = Project::factory()->create([
+        'user_id' => $owner->id,
+        'color' => 'blue',
+        'icon' => 'Folder',
+    ]);
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
 
-    // Archive the conversation for user1
-    $conversation->participantRecords()
-        ->where('user_id', $user1->id)
-        ->update(['archived_at' => now()]);
+    $conversation = $project->getOrCreateConversation();
 
-    // User1 should not see the conversation
-    expect($user1->activeConversations()->count())->toBe(0);
-
-    // User2 should still see the conversation
-    expect($user2->activeConversations()->count())->toBe(1);
-});
-
-it('allows other user to still see archived conversation', function () {
-    $user1 = User::factory()->create(['plan' => UserPlan::Pro]);
-    $user2 = User::factory()->create(['plan' => UserPlan::Pro]);
-
-    $conversation = Conversation::findOrCreateDirect($user1, $user2);
-
-    // User1 archives the conversation
-    $this->actingAs($user1)->delete(route('conversations.destroy', $conversation));
-
-    // User2 can still view the conversation
-    $response = $this->actingAs($user2)->get(route('conversations.show', $conversation));
-    $response->assertOk();
+    expect($conversation->getDisplayColor())->toBe('blue');
+    expect($conversation->getDisplayIcon())->toBe('Folder');
 });
