@@ -175,7 +175,7 @@ export const MessageBubble = memo(function MessageBubble({
                                 className={cn(
                                     'mb-2 rounded-md border-l-2 py-1 pl-2 pr-3',
                                     isMine
-                                        ? 'border-white/70 bg-black/20'
+                                        ? 'border-slate-300 bg-slate-700'
                                         : 'border-primary bg-primary/10 dark:border-primary/70 dark:bg-primary/20',
                                 )}
                             >
@@ -189,7 +189,7 @@ export const MessageBubble = memo(function MessageBubble({
                                             className={cn(
                                                 'text-xs font-semibold',
                                                 isMine
-                                                    ? 'text-white'
+                                                    ? 'text-slate-200'
                                                     : 'text-primary dark:text-primary',
                                             )}
                                         >
@@ -199,7 +199,7 @@ export const MessageBubble = memo(function MessageBubble({
                                             className={cn(
                                                 'truncate text-xs',
                                                 isMine
-                                                    ? 'text-white/80'
+                                                    ? 'text-slate-300'
                                                     : 'text-slate-600 dark:text-slate-300',
                                             )}
                                         >
