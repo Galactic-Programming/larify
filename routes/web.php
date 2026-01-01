@@ -6,6 +6,7 @@ use App\Http\Controllers\Attachments\AttachmentController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Conversations\ConversationController;
 use App\Http\Controllers\Conversations\MessageController;
+use App\Http\Controllers\Conversations\ReactionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Projects\ProjectController;
@@ -144,6 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Messages
     Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])
         ->name('api.conversations.messages.index');
+    Route::get('api/conversations/{conversation}/messages/search', [MessageController::class, 'search'])
+        ->name('api.conversations.messages.search');
     Route::post('conversations/{conversation}/messages', [MessageController::class, 'store'])
         ->middleware('throttle:60,1') // 60 messages per minute
         ->name('conversations.messages.store');
@@ -158,6 +161,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('conversations/{conversation}/typing', [MessageController::class, 'typing'])
         ->middleware('throttle:30,1') // 30 typing events per minute
         ->name('conversations.typing');
+
+    // Reactions
+    Route::post('messages/{message}/reactions', [ReactionController::class, 'toggle'])
+        ->middleware('throttle:60,1') // 60 reaction toggles per minute
+        ->name('messages.reactions.toggle');
 
     // Attachments (secure access with authorization)
     Route::get('attachments/{attachment}', [AttachmentController::class, 'show'])

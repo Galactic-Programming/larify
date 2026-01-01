@@ -116,7 +116,7 @@ class ConversationController extends Controller
             'participants:id,name,email,avatar',
             'participantRecords',
             'messages' => fn ($query) => $query
-                ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name'])
+                ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name', 'reactions.user:id,name'])
                 ->orderBy('created_at', 'asc')
                 ->limit(50),
         ]);
@@ -181,6 +181,7 @@ class ConversationController extends Controller
                             'human_size' => $a->human_size,
                             'url' => $a->url,
                         ]),
+                        'reactions' => $this->getGroupedReactions($message, $request->user()->id),
                     ];
                 }),
             ],
@@ -216,5 +217,36 @@ class ConversationController extends Controller
 
         // Redirect to the conversation view
         return $this->show($request, $conversation);
+    }
+
+    /**
+     * Get reactions grouped by emoji.
+     *
+     * @return array<int, array{emoji: string, count: int, users: array, reacted_by_me: bool}>
+     */
+    private function getGroupedReactions(Message $message, int $currentUserId): array
+    {
+        $grouped = [];
+        foreach ($message->reactions as $reaction) {
+            $emoji = $reaction->emoji;
+            if (! isset($grouped[$emoji])) {
+                $grouped[$emoji] = [
+                    'emoji' => $emoji,
+                    'count' => 0,
+                    'users' => [],
+                    'reacted_by_me' => false,
+                ];
+            }
+            $grouped[$emoji]['count']++;
+            $grouped[$emoji]['users'][] = [
+                'id' => $reaction->user_id,
+                'name' => $reaction->user?->name,
+            ];
+            if ($reaction->user_id === $currentUserId) {
+                $grouped[$emoji]['reacted_by_me'] = true;
+            }
+        }
+
+        return array_values($grouped);
     }
 }

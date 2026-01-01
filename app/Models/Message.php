@@ -85,6 +85,14 @@ class Message extends Model
     }
 
     /**
+     * Get the reactions.
+     */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
+    /**
      * Check if the message has attachments.
      */
     public function hasAttachments(): bool

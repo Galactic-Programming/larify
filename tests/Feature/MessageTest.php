@@ -357,3 +357,187 @@ it('enforces rate limit on message sending', function () {
     // Skip this test in normal runs as it's slow
     // Uncomment to test rate limiting manually
 })->skip('Rate limiting test is slow - run manually when needed');
+
+// === MESSAGE SEARCH ===
+
+it('allows participant to search messages', function () {
+    // Create messages with different content
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Hello world']);
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Testing search feature']);
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Another message about testing']);
+
+    $response = $this->actingAs($this->owner)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'testing'])
+    );
+
+    $response->assertOk();
+    $messages = $response->json('messages');
+
+    // Should find messages containing "testing"
+    expect($messages)->toHaveCount(2);
+});
+
+it('requires minimum query length for search', function () {
+    $response = $this->actingAs($this->owner)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'a'])
+    );
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors('q');
+});
+
+it('prevents non-participant from searching messages', function () {
+    $outsider = User::factory()->create();
+
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Secret message']);
+
+    $response = $this->actingAs($outsider)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'secret'])
+    );
+
+    $response->assertForbidden();
+});
+
+it('returns empty array when no messages match search', function () {
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Hello world']);
+
+    $response = $this->actingAs($this->owner)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'nonexistent'])
+    );
+
+    $response->assertOk();
+    $messages = $response->json('messages');
+    expect($messages)->toBeEmpty();
+});
+
+it('searches case insensitively', function () {
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'UPPERCASE message']);
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'lowercase message']);
+
+    $response = $this->actingAs($this->owner)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'message'])
+    );
+
+    $response->assertOk();
+    $messages = $response->json('messages');
+    expect($messages)->toHaveCount(2);
+});
+
+it('includes sender information in search results', function () {
+    Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id, 'content' => 'Test message']);
+
+    $response = $this->actingAs($this->owner)->getJson(
+        route('api.conversations.messages.search', ['conversation' => $this->conversation->id, 'q' => 'test'])
+    );
+
+    $response->assertOk();
+    $messages = $response->json('messages');
+
+    expect($messages)->toHaveCount(1);
+    expect($messages[0]['sender'])->not->toBeNull();
+    expect($messages[0]['sender']['id'])->toBe($this->owner->id);
+});
+
+// === MESSAGE REACTIONS ===
+
+it('allows participant to add a reaction', function () {
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
+
+    $response = $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '👍']
+    );
+
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'added',
+        'emoji',
+        'reactions' => [
+            '*' => ['emoji', 'count', 'users', 'reacted_by_me'],
+        ],
+    ]);
+    expect($response->json('added'))->toBeTrue();
+    expect($response->json('emoji'))->toBe('👍');
+});
+
+it('allows participant to remove their own reaction', function () {
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
+
+    // First add the reaction
+    $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '❤️']
+    );
+
+    // Then toggle it off
+    $response = $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '❤️']
+    );
+
+    $response->assertOk();
+    expect($response->json('added'))->toBeFalse();
+});
+
+it('prevents non-participant from reacting to message', function () {
+    $outsider = User::factory()->create();
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
+
+    $response = $this->actingAs($outsider)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '👍']
+    );
+
+    $response->assertForbidden();
+});
+
+it('validates emoji is required for reaction', function () {
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
+
+    $response = $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        []
+    );
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors('emoji');
+});
+
+it('allows multiple users to react with same emoji', function () {
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
+
+    // Owner reacts
+    $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '🎉']
+    );
+
+    // Member reacts with same emoji
+    $response = $this->actingAs($this->member)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '🎉']
+    );
+
+    $response->assertOk();
+    $reactions = $response->json('reactions');
+    expect($reactions[0]['count'])->toBe(2);
+    expect($reactions[0]['users'])->toHaveCount(2);
+});
+
+it('allows user to add multiple different reactions', function () {
+    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
+
+    $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '👍']
+    );
+
+    $response = $this->actingAs($this->owner)->postJson(
+        route('messages.reactions.toggle', $message),
+        ['emoji' => '❤️']
+    );
+
+    $response->assertOk();
+    $reactions = $response->json('reactions');
+    expect($reactions)->toHaveCount(2);
+});

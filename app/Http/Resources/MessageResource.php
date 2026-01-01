@@ -40,7 +40,43 @@ class MessageResource extends JsonResource
                 'is_deleted' => $this->parent->trashed(),
             ]),
             'attachments' => MessageAttachmentResource::collection($this->attachments),
+            'reactions' => $this->getGroupedReactions($request->user()?->id),
         ];
+    }
+
+    /**
+     * Get reactions grouped by emoji.
+     *
+     * @return array<int, array{emoji: string, count: int, users: array, reacted_by_me: bool}>
+     */
+    private function getGroupedReactions(?int $currentUserId): array
+    {
+        if (! $this->relationLoaded('reactions')) {
+            return [];
+        }
+
+        $grouped = [];
+        foreach ($this->reactions as $reaction) {
+            $emoji = $reaction->emoji;
+            if (! isset($grouped[$emoji])) {
+                $grouped[$emoji] = [
+                    'emoji' => $emoji,
+                    'count' => 0,
+                    'users' => [],
+                    'reacted_by_me' => false,
+                ];
+            }
+            $grouped[$emoji]['count']++;
+            $grouped[$emoji]['users'][] = [
+                'id' => $reaction->user_id,
+                'name' => $reaction->user?->name,
+            ];
+            if ($reaction->user_id === $currentUserId) {
+                $grouped[$emoji]['reacted_by_me'] = true;
+            }
+        }
+
+        return array_values($grouped);
     }
 
     /**

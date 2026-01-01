@@ -25,6 +25,13 @@ export interface MessageParent {
     is_deleted?: boolean;
 }
 
+export interface MessageReaction {
+    emoji: string;
+    count: number;
+    users: { id: number; name: string }[];
+    reacted_by_me: boolean;
+}
+
 export interface Message {
     id: number;
     content: string;
@@ -40,6 +47,7 @@ export interface Message {
     is_read?: boolean;
     parent?: MessageParent;
     attachments: MessageAttachment[];
+    reactions?: MessageReaction[];
 }
 
 export interface ConversationLastMessage {

@@ -31,7 +31,7 @@ class MessageController extends Controller
         $limit = min((int) $request->query('limit', 50), 100);
 
         $query = $conversation->messages()
-            ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name'])
+            ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name', 'reactions.user:id,name'])
             ->orderBy('created_at', 'desc');
 
         if ($before) {
@@ -245,5 +245,36 @@ class MessageController extends Controller
         ))->toOthers();
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Search messages within a conversation.
+     */
+    public function search(Request $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('view', $conversation);
+
+        $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:100'],
+        ]);
+
+        $query = $request->input('q');
+        $limit = min((int) $request->query('limit', 20), 50);
+
+        $messages = $conversation->messages()
+            ->with(['sender:id,name,avatar', 'attachments'])
+            ->where('content', 'like', "%{$query}%")
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->values();
+
+        return response()->json([
+            'messages' => MessageResource::collection($messages),
+            'total' => $conversation->messages()
+                ->where('content', 'like', "%{$query}%")
+                ->count(),
+        ]);
     }
 }
