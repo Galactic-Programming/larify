@@ -6,6 +6,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { PROJECT_ICONS } from '@/pages/projects/lib/project-icons';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as membersIndex } from '@/routes/projects/members';
@@ -141,147 +142,189 @@ export function ListsHeader({
                 transition={{ duration: 0.3, delay: 0.3 }}
                 className="flex flex-wrap items-center gap-2"
             >
-                {/* Task Filters */}
-                <ToggleGroup
-                    type="single"
-                    value={taskFilter}
-                    onValueChange={(value) =>
-                        value && onTaskFilterChange(value as TaskFilter)
-                    }
-                    className="rounded-lg border bg-muted/30 p-1"
-                >
+                {/* Task Filters - Using Button group for better visual feedback */}
+                <div className="flex gap-1 rounded-lg border bg-muted/30 p-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="all"
-                                aria-label="All tasks"
-                                className="px-2 text-xs sm:px-3 sm:text-sm"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onTaskFilterChange('all')}
+                                className={cn(
+                                    'px-2 text-xs sm:px-3 sm:text-sm',
+                                    taskFilter === 'all' &&
+                                    'bg-primary text-primary-foreground ring-2 ring-primary/30 hover:bg-primary/90 hover:text-primary-foreground',
+                                )}
                             >
                                 All
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>All Tasks</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="overdue"
-                                aria-label="Overdue tasks"
-                                className="gap-1 px-2 sm:gap-1.5 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onTaskFilterChange('overdue')}
+                                className={cn(
+                                    'gap-1 px-2 sm:gap-1.5 sm:px-3',
+                                    taskFilter === 'overdue' &&
+                                    'bg-destructive text-destructive-foreground ring-2 ring-destructive/30 hover:bg-destructive/90 hover:text-destructive-foreground',
+                                )}
                             >
                                 <AlertTriangle className="size-3 sm:size-3.5" />
                                 {overdueTasks > 0 && (
                                     <Badge
-                                        variant="destructive"
+                                        variant={
+                                            taskFilter === 'overdue'
+                                                ? 'secondary'
+                                                : 'destructive'
+                                        }
                                         className="h-5 min-w-5 px-1.5"
                                     >
                                         {overdueTasks}
                                     </Badge>
                                 )}
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Overdue Tasks</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="due-soon"
-                                aria-label="Due soon"
-                                className="gap-1 px-2 sm:gap-1.5 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onTaskFilterChange('due-soon')}
+                                className={cn(
+                                    'gap-1 px-2 sm:gap-1.5 sm:px-3',
+                                    taskFilter === 'due-soon' &&
+                                    'bg-amber-500 text-white ring-2 ring-amber-500/30 hover:bg-amber-600 hover:text-white dark:bg-amber-600 dark:hover:bg-amber-700',
+                                )}
                             >
                                 <Clock className="size-3 sm:size-3.5" />
                                 {dueSoonTasks > 0 && (
                                     <Badge
                                         variant="secondary"
-                                        className="h-5 min-w-5 bg-amber-100 px-1.5 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                        className={cn(
+                                            'h-5 min-w-5 px-1.5',
+                                            taskFilter === 'due-soon'
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                        )}
                                     >
                                         {dueSoonTasks}
                                     </Badge>
                                 )}
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Due Within 24 Hours</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="completed"
-                                aria-label="Completed tasks"
-                                className="gap-1 px-2 sm:gap-1.5 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onTaskFilterChange('completed')}
+                                className={cn(
+                                    'gap-1 px-2 sm:gap-1.5 sm:px-3',
+                                    taskFilter === 'completed' &&
+                                    'bg-emerald-500 text-white ring-2 ring-emerald-500/30 hover:bg-emerald-600 hover:text-white dark:bg-emerald-600 dark:hover:bg-emerald-700',
+                                )}
                             >
                                 <CheckCircle2 className="size-3 sm:size-3.5" />
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Completed On Time</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="completed-late"
-                                aria-label="Completed late tasks"
-                                className="gap-1 px-2 sm:gap-1.5 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    onTaskFilterChange('completed-late')
+                                }
+                                className={cn(
+                                    'gap-1 px-2 sm:gap-1.5 sm:px-3',
+                                    taskFilter === 'completed-late' &&
+                                    'bg-orange-500 text-white ring-2 ring-orange-500/30 hover:bg-orange-600 hover:text-white dark:bg-orange-600 dark:hover:bg-orange-700',
+                                )}
                             >
                                 <CircleAlert className="size-3 sm:size-3.5" />
                                 {completedLateTasks > 0 && (
                                     <Badge
                                         variant="secondary"
-                                        className="h-5 min-w-5 bg-orange-100 px-1.5 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                        className={cn(
+                                            'h-5 min-w-5 px-1.5',
+                                            taskFilter === 'completed-late'
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                                        )}
                                     >
                                         {completedLateTasks}
                                     </Badge>
                                 )}
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Completed Late</TooltipContent>
                     </Tooltip>
-                </ToggleGroup>
+                </div>
 
-                {/* View Mode */}
-                <ToggleGroup
-                    type="single"
-                    value={viewMode}
-                    onValueChange={(value) =>
-                        value && onViewModeChange(value as ViewMode)
-                    }
-                    className="rounded-lg border bg-muted/30 p-1"
-                >
+                {/* View Mode - Using Button group for better visual feedback */}
+                <div className="flex gap-1 rounded-lg border bg-muted/30 p-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="board"
-                                aria-label="Board view"
-                                className="px-2 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onViewModeChange('board')}
+                                className={cn(
+                                    'px-2 sm:px-3',
+                                    viewMode === 'board' &&
+                                    'bg-primary text-primary-foreground ring-2 ring-primary/30 hover:bg-primary/90 hover:text-primary-foreground',
+                                )}
                             >
                                 <Columns3 className="size-3.5 sm:size-4" />
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Board View</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="list"
-                                aria-label="List view"
-                                className="px-2 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onViewModeChange('list')}
+                                className={cn(
+                                    'px-2 sm:px-3',
+                                    viewMode === 'list' &&
+                                    'bg-primary text-primary-foreground ring-2 ring-primary/30 hover:bg-primary/90 hover:text-primary-foreground',
+                                )}
                             >
                                 <List className="size-3.5 sm:size-4" />
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>List View</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <ToggleGroupItem
-                                value="table"
-                                aria-label="Table view"
-                                className="px-2 sm:px-3"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onViewModeChange('table')}
+                                className={cn(
+                                    'px-2 sm:px-3',
+                                    viewMode === 'table' &&
+                                    'bg-primary text-primary-foreground ring-2 ring-primary/30 hover:bg-primary/90 hover:text-primary-foreground',
+                                )}
                             >
                                 <Table2 className="size-3.5 sm:size-4" />
-                            </ToggleGroupItem>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>Table View</TooltipContent>
                     </Tooltip>
-                </ToggleGroup>
+                </div>
 
                 {/* Members Button */}
                 <Tooltip>
