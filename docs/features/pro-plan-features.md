@@ -17,10 +17,12 @@ Hướng dẫn này mô tả kế hoạch triển khai phân biệt tính năng 
 | **Projects**                | 3         | Unlimited    |
 | **Task Lists per Project**  | 5         | Unlimited    |
 | **Mời thành viên**          | ❌        | ✅           |
-| **Chat/Conversations**      | ❌        | ✅           |
+| **Chat/Conversations**      | ✅        | ✅           |
 | **Activity History**        | 7 ngày    | 30 ngày      |
 | **Task Due Date Reminders** | ❌        | ✅           |
 | **Project Colors/Icons**    | Basic     | Full palette |
+
+> **Note:** Chat đã được mở cho tất cả users (Free & Pro) từ 01/01/2026. Xem [chat-redesign-plan.md](./chat-redesign-plan.md) để biết thêm chi tiết.
 
 ---
 
@@ -81,10 +83,11 @@ enum UserPlan: string
 
     /**
      * Check if this plan allows chat/conversations.
+     * Note: Chat is now available for all plans.
      */
     public function canUseChat(): bool
     {
-        return $this === self::Pro;
+        return true; // Chat is free for all users
     }
 
     /**
@@ -171,25 +174,29 @@ public function authorize(): bool
 }
 ```
 
-#### 2.3. Chat Access Gate
+#### 2.3. Chat Access Gate (Deprecated)
+
+> **Note:** Chat đã được mở cho tất cả users từ 01/01/2026. Phần này giữ lại để tham khảo.
 
 **File**: `app/Policies/ConversationPolicy.php`
 
 ```php
 /**
  * Determine whether the user can create conversations.
+ * Note: Chat is now available for all authenticated users.
  */
 public function create(User $user): bool
 {
-    return $user->plan?->canUseChat() ?? false;
+    return true; // Chat is free for all users
 }
 
 /**
  * Determine whether the user can view conversations.
+ * Note: Chat is now available for all authenticated users.
  */
 public function viewAny(User $user): bool
 {
-    return $user->plan?->canUseChat() ?? false;
+    return true; // Chat is free for all users
 }
 ```
 
@@ -611,31 +618,31 @@ Update features list to reflect actual restrictions:
 
 ### Unit Tests
 
-- [ ] `UserPlan::maxProjects()` returns correct values
-- [ ] `UserPlan::maxListsPerProject()` returns correct values
-- [ ] `UserPlan::activityRetentionDays()` returns correct values
-- [ ] `UserPlan::canUseChat()` returns correct values
-- [ ] `User::canCreateProject()` respects plan limits
-- [ ] `User::canCreateListInProject()` respects plan limits
+- [x] `UserPlan::maxProjects()` returns correct values
+- [x] `UserPlan::maxListsPerProject()` returns correct values
+- [x] `UserPlan::activityRetentionDays()` returns correct values
+- [x] `UserPlan::canUseChat()` returns true for all plans
+- [x] `User::canCreateProject()` respects plan limits
+- [x] `User::canCreateListInProject()` respects plan limits
 
 ### Feature Tests
 
-- [ ] Free user cannot create more than 3 projects
-- [ ] Free user cannot create more than 5 lists per project
-- [ ] Free user cannot access chat routes
-- [ ] Free user sees only 7 days of activity
-- [ ] Pro user has no project limit
-- [ ] Pro user has no list limit
-- [ ] Pro user can access chat
-- [ ] Pro user sees 30 days of activity
-- [ ] Upgrade from Free to Pro removes all limits
-- [ ] Downgrade from Pro to Free enforces limits on new creations
+- [x] Free user cannot create more than 3 projects
+- [x] Free user cannot create more than 5 lists per project
+- [x] Free user CAN access chat (updated 01/01/2026)
+- [x] Free user sees only 7 days of activity
+- [x] Pro user has no project limit
+- [x] Pro user has no list limit
+- [x] Pro user can access chat
+- [x] Pro user sees 30 days of activity
+- [x] Upgrade from Free to Pro removes all limits
+- [x] Downgrade from Pro to Free enforces limits on new creations
 
 ### Browser Tests
 
 - [ ] Free user sees upgrade prompt when at project limit
 - [ ] Free user sees upgrade prompt when at list limit
-- [ ] Free user doesn't see chat in navigation
+- [x] Free user CAN see chat in navigation (updated 01/01/2026)
 - [ ] Limit indicator shows correct values
 - [ ] Create buttons are disabled when at limit
 
