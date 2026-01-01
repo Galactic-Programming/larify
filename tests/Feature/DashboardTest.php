@@ -29,8 +29,13 @@ test('dashboard returns correct stats structure', function () {
             ->has('stats', fn (Assert $stats) => $stats
                 ->has('my_tasks_count')
                 ->has('overdue_count')
+                ->has('due_today_count')
+                ->has('high_priority_count')
                 ->has('projects_count')
                 ->has('archived_projects_count')
+                ->has('avg_progress')
+                ->has('total_project_tasks')
+                ->has('completed_project_tasks')
                 ->has('completed_this_week')
                 ->has('completed_last_week')
                 ->has('week_change')
@@ -38,9 +43,7 @@ test('dashboard returns correct stats structure', function () {
             ->has('myTasks', fn (Assert $tasks) => $tasks
                 ->has('overdue')
                 ->has('today')
-                ->has('this_week')
                 ->has('later')
-                ->has('no_date')
             )
             ->has('upcomingDeadlines')
             ->has('recentActivities')

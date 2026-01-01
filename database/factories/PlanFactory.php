@@ -62,7 +62,7 @@ class PlanFactory extends Factory
                 '7 days activity history',
                 'Basic color & icon palette',
                 'Task priorities & due dates',
-                'Personal use only',
+                'In-app chat',
             ],
             'sort_order' => 0,
         ]);

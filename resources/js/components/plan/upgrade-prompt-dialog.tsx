@@ -56,7 +56,7 @@ export function UpgradePromptDialog({
                     <ul className="ml-4 list-disc space-y-1">
                         <li>Unlimited projects</li>
                         <li>Unlimited lists per project</li>
-                        <li>Team chat & collaboration</li>
+                        <li>Team collaboration</li>
                         <li>30-day activity history</li>
                         <li>Due date reminders</li>
                         <li>Full color & icon palette</li>

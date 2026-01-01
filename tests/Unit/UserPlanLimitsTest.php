@@ -35,8 +35,8 @@ describe('UserPlan::activityRetentionDays()', function () {
 });
 
 describe('UserPlan::canUseChat()', function () {
-    it('returns false for Free plan', function () {
-        expect(UserPlan::Free->canUseChat())->toBeFalse();
+    it('returns true for Free plan', function () {
+        expect(UserPlan::Free->canUseChat())->toBeTrue();
     });
 
     it('returns true for Pro plan', function () {
@@ -73,7 +73,7 @@ describe('UserPlan::getLimits()', function () {
             'max_lists_per_project' => 5,
             'activity_retention_days' => 7,
             'can_invite_members' => false,
-            'can_use_chat' => false,
+            'can_use_chat' => true,
             'can_use_due_date_reminders' => false,
             'has_full_palette' => false,
         ]);

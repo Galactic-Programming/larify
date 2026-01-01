@@ -30,10 +30,10 @@ const featureMessages: Record<
     { title: string; description: string; name: string }
 > = {
     canUseChat: {
-        title: 'Chat is a Pro Feature',
+        title: 'Chat Feature',
         description:
-            'Upgrade to Pro to communicate with your team directly within projects.',
-        name: 'Team Chat',
+            'Communicate with your team directly within projects.',
+        name: 'In-app Chat',
     },
     canInviteMembers: {
         title: 'Team Collaboration is Pro Only',

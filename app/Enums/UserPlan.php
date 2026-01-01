@@ -76,10 +76,11 @@ enum UserPlan: string
 
     /**
      * Check if this plan allows chat/conversations.
+     * Note: Chat is now available for all plans.
      */
     public function canUseChat(): bool
     {
-        return $this === self::Pro;
+        return true;
     }
 
     /**

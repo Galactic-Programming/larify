@@ -171,14 +171,13 @@ test('plan features are cast to array', function () {
     $plan = Plan::factory()->proMonthly()->create();
 
     expect($plan->features)->toBeArray()
-        ->and($plan->features)->toContain('Everything in Free')
+        ->and($plan->features)->toContain('Unlimited projects')
         ->and($plan->features)->toContain('Team collaboration');
 });
 
 test('free plan has correct features', function () {
     $plan = Plan::factory()->free()->create();
 
-    expect($plan->features)->toContain('Unlimited projects')
-        ->and($plan->features)->toContain('Unlimited tasks')
-        ->and($plan->features)->toContain('Personal use only');
+    expect($plan->features)->toContain('Up to 3 projects')
+        ->and($plan->features)->toContain('In-app chat');
 });

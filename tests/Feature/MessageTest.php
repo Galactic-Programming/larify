@@ -524,7 +524,7 @@ it('allows multiple users to react with same emoji', function () {
     expect($reactions[0]['users'])->toHaveCount(2);
 });
 
-it('allows user to add multiple different reactions', function () {
+it('replaces user reaction when adding different emoji', function () {
     $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
 
     $this->actingAs($this->owner)->postJson(
@@ -539,5 +539,7 @@ it('allows user to add multiple different reactions', function () {
 
     $response->assertOk();
     $reactions = $response->json('reactions');
-    expect($reactions)->toHaveCount(2);
+    // User can only have one reaction per message - the old one is replaced
+    expect($reactions)->toHaveCount(1);
+    expect($reactions[0]['emoji'])->toBe('❤️');
 });

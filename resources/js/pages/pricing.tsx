@@ -67,8 +67,8 @@ export default function Pricing({
     const yearlySavings =
         monthlyPlan && yearlyPlan
             ? Math.round(
-                  (1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100,
-              )
+                (1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100,
+            )
             : 0;
 
     return (
@@ -158,12 +158,11 @@ export default function Pricing({
                                             <ul className="space-y-3">
                                                 {(
                                                     freePlan.features || [
-                                                        'Unlimited projects',
-                                                        'Unlimited tasks',
+                                                        'Up to 3 projects',
+                                                        'Up to 5 lists per project',
                                                         'Task priorities & due dates',
-                                                        'Activity history',
-                                                        'Email notifications',
-                                                        'Personal use only',
+                                                        '7 days activity history',
+                                                        'In-app chat',
                                                     ]
                                                 ).map((feature, i) => (
                                                     <li
@@ -230,7 +229,7 @@ export default function Pricing({
                                             className={cn(
                                                 'relative flex h-full flex-col overflow-hidden transition-all hover:shadow-xl',
                                                 isPopular &&
-                                                    'border-2 border-primary shadow-lg',
+                                                'border-2 border-primary shadow-lg',
                                             )}
                                         >
                                             {/* Badge */}
@@ -257,7 +256,7 @@ export default function Pricing({
                                                     >
                                                         {plan.name}{' '}
                                                         {plan.interval ===
-                                                        'year'
+                                                            'year'
                                                             ? 'Yearly'
                                                             : 'Monthly'}
                                                     </span>
@@ -270,7 +269,7 @@ export default function Pricing({
                                                     <span className="text-lg font-normal text-muted-foreground">
                                                         /
                                                         {plan.interval ===
-                                                        'month'
+                                                            'month'
                                                             ? 'mo'
                                                             : 'yr'}
                                                     </span>
@@ -323,7 +322,7 @@ export default function Pricing({
                                                         }
                                                     >
                                                         {loadingPlanId ===
-                                                        plan.stripe_id ? (
+                                                            plan.stripe_id ? (
                                                             <>
                                                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                                                                 Processing...

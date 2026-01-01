@@ -31,7 +31,7 @@ class PlanSeeder extends Seeder
                     '7 days activity history',
                     'Basic color & icon palette',
                     'Task priorities & due dates',
-                    'Personal use only',
+                    'In-app chat',
                 ],
                 'is_active' => true,
                 'sort_order' => 0,

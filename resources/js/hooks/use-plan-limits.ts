@@ -35,7 +35,7 @@ export function usePlanFeatures() {
 
         // Utility
         isLoaded: limits !== null,
-        isPro: limits?.can_use_chat ?? false, // Pro users can use chat
+        isPro: limits?.can_invite_members ?? false, // Pro users can invite members
     };
 }
 
@@ -50,9 +50,8 @@ export function useUpgradePrompt(feature: keyof PlanLimits) {
         { title: string; description: string }
     > = {
         can_use_chat: {
-            title: 'Chat is a Pro Feature',
-            description:
-                'Upgrade to Pro to communicate with your team directly within projects.',
+            title: 'Chat Feature',
+            description: 'Communicate with your team directly within projects.',
         },
         can_invite_members: {
             title: 'Team Collaboration is Pro Only',

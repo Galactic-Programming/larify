@@ -145,7 +145,7 @@ describe('User::getPlanLimits()', function () {
         expect($limits['current_projects'])->toBe(2);
         expect($limits['can_create_project'])->toBeTrue();
         expect($limits['remaining_project_slots'])->toBe(1);
-        expect($limits['can_use_chat'])->toBeFalse();
+        expect($limits['can_use_chat'])->toBeTrue();
     });
 
     it('returns correct limits for Pro user', function () {
@@ -168,6 +168,6 @@ describe('User::getPlanLimits()', function () {
         $limits = $user->getPlanLimits();
 
         expect($limits['max_projects'])->toBe(3);
-        expect($limits['can_use_chat'])->toBeFalse();
+        expect($limits['can_use_chat'])->toBeTrue();
     });
 });
