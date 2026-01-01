@@ -44,6 +44,54 @@ class StoreMessageRequest extends FormRequest
     ];
 
     /**
+     * Allowed MIME types for file uploads.
+     * This validates actual file content, not just extension.
+     *
+     * @var array<string>
+     */
+    private const ALLOWED_MIME_TYPES = [
+        // Images
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'image/bmp',
+        'image/tiff',
+        // Documents
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'text/csv',
+        'application/rtf',
+        // Archives
+        'application/zip',
+        'application/x-rar-compressed',
+        'application/x-7z-compressed',
+        'application/gzip',
+        // Audio
+        'audio/mpeg',
+        'audio/mp3',
+        'audio/wav',
+        'audio/ogg',
+        'audio/webm',
+        'audio/aac',
+        'audio/flac',
+        // Video
+        'video/mp4',
+        'video/webm',
+        'video/ogg',
+        'video/quicktime',
+        'video/x-msvideo',
+        'video/x-matroska',
+    ];
+
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -79,6 +127,7 @@ class StoreMessageRequest extends FormRequest
                 'file',
                 'max:10240', // 10MB max per file
                 $this->blockedExtensionsRule(),
+                $this->allowedMimeTypeRule(),
             ],
         ];
     }
@@ -97,6 +146,33 @@ class StoreMessageRequest extends FormRequest
 
             if (in_array($extension, self::BLOCKED_EXTENSIONS, true)) {
                 $fail("Files with .{$extension} extension are not allowed for security reasons.");
+            }
+        };
+    }
+
+    /**
+     * Create a validation rule to check actual MIME type of file content.
+     * This prevents attackers from renaming malicious files.
+     */
+    private function allowedMimeTypeRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            if (! $value instanceof UploadedFile) {
+                return;
+            }
+
+            // Get actual MIME type from file content (not from client)
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $actualMime = $finfo->file($value->getPathname());
+
+            if ($actualMime === false) {
+                $fail('Could not determine file type.');
+
+                return;
+            }
+
+            if (! in_array($actualMime, self::ALLOWED_MIME_TYPES, true)) {
+                $fail("File type '{$actualMime}' is not allowed.");
             }
         };
     }

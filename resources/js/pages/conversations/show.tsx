@@ -1,5 +1,6 @@
 import { MessageInput } from '@/components/ui/message-input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import type { Conversation, ConversationDetail, Message } from '@/types/chat';
@@ -56,8 +57,14 @@ export default function ConversationShow({
     const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showMembers, setShowMembers] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMoreMessages, setHasMoreMessages] = useState(
+        conversation.messages.length >= 50,
+    );
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const typingTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
     const lastTypingRef = useRef<number>(0);
     const hasMarkedAsReadRef = useRef(false);
 
@@ -72,6 +79,69 @@ export default function ConversationShow({
             messagesEndRef.current?.scrollIntoView({ behavior });
         },
         [],
+    );
+
+    // Load more (older) messages
+    const loadMoreMessages = useCallback(async () => {
+        if (isLoadingMore || !hasMoreMessages || messages.length === 0) return;
+
+        const oldestMessage = messages[0];
+        const container = messagesContainerRef.current;
+        const previousScrollHeight = container?.scrollHeight ?? 0;
+
+        setIsLoadingMore(true);
+
+        try {
+            const response = await fetch(
+                `/api/conversations/${conversation.id}/messages?before=${oldestMessage.id}&limit=50`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN':
+                            document.querySelector<HTMLMetaElement>(
+                                'meta[name="csrf-token"]',
+                            )?.content ?? '',
+                    },
+                },
+            );
+
+            if (!response.ok) throw new Error('Failed to load messages');
+
+            const data = await response.json();
+            const olderMessages: Message[] = data.messages;
+
+            if (olderMessages.length > 0) {
+                setMessages((prev) => [...olderMessages, ...prev]);
+                setHasMoreMessages(data.has_more);
+
+                // Maintain scroll position after prepending messages
+                requestAnimationFrame(() => {
+                    if (container) {
+                        const newScrollHeight = container.scrollHeight;
+                        container.scrollTop =
+                            newScrollHeight - previousScrollHeight;
+                    }
+                });
+            } else {
+                setHasMoreMessages(false);
+            }
+        } catch (error) {
+            console.error('Failed to load more messages:', error);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [conversation.id, isLoadingMore, hasMoreMessages, messages]);
+
+    // Handle scroll to load more messages
+    const handleScroll = useCallback(
+        (event: React.UIEvent<HTMLDivElement>) => {
+            const target = event.currentTarget;
+            // Load more when scrolled near the top (within 100px)
+            if (target.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
+                loadMoreMessages();
+            }
+        },
+        [hasMoreMessages, isLoadingMore, loadMoreMessages],
     );
 
     // Function to mark messages as read and broadcast read receipt
@@ -180,23 +250,41 @@ export default function ConversationShow({
         (data: { user: { id: number; name: string } }) => {
             if (data.user.id === auth.user.id) return;
 
+            // Clear existing timeout for this user
+            const existingTimeout = typingTimeoutsRef.current.get(data.user.id);
+            if (existingTimeout) {
+                clearTimeout(existingTimeout);
+            }
+
             setTypingUsers((prev) => {
                 const next = new Map(prev);
                 next.set(data.user.id, data.user.name);
                 return next;
             });
 
-            setTimeout(() => {
+            // Set new timeout and store reference
+            const timeoutId = setTimeout(() => {
                 setTypingUsers((prev) => {
                     const next = new Map(prev);
                     next.delete(data.user.id);
                     return next;
                 });
+                typingTimeoutsRef.current.delete(data.user.id);
             }, 3000);
+
+            typingTimeoutsRef.current.set(data.user.id, timeoutId);
         },
         [],
         'private',
     );
+
+    // Cleanup typing timeouts on unmount
+    useEffect(() => {
+        return () => {
+            typingTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+            typingTimeoutsRef.current.clear();
+        };
+    }, []);
 
     useEcho(
         `conversation.${conversation.id}`,
@@ -423,8 +511,28 @@ export default function ConversationShow({
 
                 {/* Messages */}
                 <div className="min-h-0 flex-1">
-                    <ScrollArea className="h-full">
+                    <div
+                        ref={messagesContainerRef}
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto"
+                    >
                         <div className="space-y-4 p-4">
+                            {/* Load more indicator */}
+                            {hasMoreMessages && (
+                                <div className="flex justify-center py-2">
+                                    {isLoadingMore ? (
+                                        <Spinner className="h-5 w-5" />
+                                    ) : (
+                                        <button
+                                            onClick={loadMoreMessages}
+                                            className="text-xs text-muted-foreground hover:text-foreground"
+                                        >
+                                            Load older messages
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             {messages.map((message, index) => {
                                 const prevMessage = messages[index - 1];
                                 const showDateSeparator =
@@ -470,7 +578,7 @@ export default function ConversationShow({
                             })}
                             <div ref={messagesEndRef} />
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
 
                 {/* Typing indicator */}

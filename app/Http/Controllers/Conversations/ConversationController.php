@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Conversations;
 use App\Events\MessagesRead;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,47 +18,70 @@ class ConversationController extends Controller
     /**
      * Get formatted conversations list for the current user.
      * Only returns conversations from projects the user is a member of.
+     * Optimized to avoid N+1 queries for unread counts.
      *
      * @return \Illuminate\Support\Collection<int, array<string, mixed>>
      */
     protected function getConversationsList(Request $request): \Illuminate\Support\Collection
     {
-        return $request->user()
+        $userId = $request->user()->id;
+
+        $conversations = $request->user()
             ->conversations()
             ->with([
                 'project:id,name,color,icon',
                 'latestMessage.sender:id,name,avatar',
                 'participants:id,name,avatar',
+                'participantRecords' => fn ($query) => $query->where('user_id', $userId),
             ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($conversation) use ($request) {
-                return [
-                    'id' => $conversation->id,
-                    'name' => $conversation->getDisplayName(),
-                    'color' => $conversation->getDisplayColor(),
-                    'icon' => $conversation->getDisplayIcon(),
-                    'project_id' => $conversation->project_id,
-                    'last_message' => $conversation->latestMessage ? [
-                        'id' => $conversation->latestMessage->id,
-                        'content' => $conversation->latestMessage->content,
-                        'sender' => $conversation->latestMessage->sender ? [
-                            'id' => $conversation->latestMessage->sender->id,
-                            'name' => $conversation->latestMessage->sender->name,
-                        ] : null,
-                        'created_at' => $conversation->latestMessage->created_at->toISOString(),
+            ->get();
+
+        // Get all conversation IDs
+        $conversationIds = $conversations->pluck('id')->toArray();
+
+        // Calculate unread counts for all conversations in a single query
+        $unreadCounts = Message::select('conversation_id', DB::raw('COUNT(*) as unread_count'))
+            ->whereIn('conversation_id', $conversationIds)
+            ->where('sender_id', '!=', $userId)
+            ->where(function ($query) use ($userId) {
+                $query->whereRaw('created_at > COALESCE(
+                    (SELECT last_read_at FROM conversation_participants 
+                     WHERE conversation_participants.conversation_id = messages.conversation_id 
+                     AND conversation_participants.user_id = ?),
+                    ?
+                )', [$userId, '1970-01-01 00:00:00']);
+            })
+            ->groupBy('conversation_id')
+            ->pluck('unread_count', 'conversation_id');
+
+        return $conversations->map(function ($conversation) use ($unreadCounts) {
+            return [
+                'id' => $conversation->id,
+                'name' => $conversation->getDisplayName(),
+                'color' => $conversation->getDisplayColor(),
+                'icon' => $conversation->getDisplayIcon(),
+                'project_id' => $conversation->project_id,
+                'last_message' => $conversation->latestMessage ? [
+                    'id' => $conversation->latestMessage->id,
+                    'content' => $conversation->latestMessage->content,
+                    'sender' => $conversation->latestMessage->sender ? [
+                        'id' => $conversation->latestMessage->sender->id,
+                        'name' => $conversation->latestMessage->sender->name,
                     ] : null,
-                    'unread_count' => $conversation->getUnreadCount($request->user()),
-                    'participants' => $conversation->participants->map(fn ($user) => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'avatar' => $user->avatar,
-                    ]),
-                    'last_message_at' => $conversation->last_message_at?->toISOString(),
-                    'created_at' => $conversation->created_at->toISOString(),
-                ];
-            });
+                    'created_at' => $conversation->latestMessage->created_at->toISOString(),
+                ] : null,
+                'unread_count' => $unreadCounts[$conversation->id] ?? 0,
+                'participants' => $conversation->participants->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar,
+                ]),
+                'last_message_at' => $conversation->last_message_at?->toISOString(),
+                'created_at' => $conversation->created_at->toISOString(),
+            ];
+        });
     }
 
     /**

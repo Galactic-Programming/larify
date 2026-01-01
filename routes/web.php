@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Activities\ActivityController;
 use App\Http\Controllers\Api\UserSearchController;
+use App\Http\Controllers\Attachments\AttachmentController;
 use App\Http\Controllers\Auth\SocialController;
 use App\Http\Controllers\Conversations\ConversationController;
 use App\Http\Controllers\Conversations\MessageController;
@@ -144,15 +145,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])
         ->name('api.conversations.messages.index');
     Route::post('conversations/{conversation}/messages', [MessageController::class, 'store'])
+        ->middleware('throttle:60,1') // 60 messages per minute
         ->name('conversations.messages.store');
     Route::patch('conversations/{conversation}/messages/{message}', [MessageController::class, 'update'])
+        ->middleware('throttle:30,1') // 30 edits per minute
         ->name('conversations.messages.update');
     Route::delete('conversations/{conversation}/messages/{message}', [MessageController::class, 'destroy'])
+        ->middleware('throttle:30,1') // 30 deletes per minute
         ->name('conversations.messages.destroy');
     Route::post('conversations/{conversation}/messages/read', [MessageController::class, 'markAsRead'])
         ->name('conversations.messages.read');
     Route::post('conversations/{conversation}/typing', [MessageController::class, 'typing'])
+        ->middleware('throttle:30,1') // 30 typing events per minute
         ->name('conversations.typing');
+
+    // Attachments (secure access with authorization)
+    Route::get('attachments/{attachment}', [AttachmentController::class, 'show'])
+        ->name('attachments.show');
+    Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
 });
 
 // Terms & Privacy

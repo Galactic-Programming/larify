@@ -34,7 +34,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 function formatMessageTime(dateString: string): string {
     const date = new Date(dateString);
@@ -513,7 +513,11 @@ interface MessageBubbleProps {
     canDelete?: boolean;
 }
 
-export function MessageBubble({
+/**
+ * Memoized MessageBubble component to prevent unnecessary re-renders
+ * when other messages in the list change.
+ */
+export const MessageBubble = memo(function MessageBubble({
     message,
     showAvatar,
     onReply,
@@ -549,7 +553,7 @@ export function MessageBubble({
             {/* Message Content */}
             <div
                 className={cn(
-                    'flex max-w-[70%] flex-col gap-1',
+                    'flex max-w-[70%] min-w-0 flex-col gap-1',
                     isMine && 'items-end',
                 )}
             >
@@ -623,7 +627,7 @@ export function MessageBubble({
 
                     <div
                         className={cn(
-                            'rounded-2xl px-3 py-2',
+                            'min-w-0 overflow-hidden rounded-2xl px-3 py-2',
                             isMine
                                 ? 'rounded-br-md bg-primary text-primary-foreground'
                                 : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
@@ -670,7 +674,7 @@ export function MessageBubble({
                             </div>
                         )}
 
-                        <p className="wrap-break-word whitespace-pre-wrap text-sm">
+                        <p className="whitespace-pre-wrap break-all text-sm">
                             {message.content}
                         </p>
 
@@ -706,4 +710,4 @@ export function MessageBubble({
             </div>
         </div>
     );
-}
+});

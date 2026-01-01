@@ -9,6 +9,7 @@ use App\Events\UserTyping;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversations\StoreMessageRequest;
 use App\Http\Requests\Conversations\UpdateMessageRequest;
+use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
@@ -43,33 +44,7 @@ class MessageController extends Controller
         $messages = $query->limit($limit)->get()->reverse()->values();
 
         return response()->json([
-            'messages' => $messages->map(fn ($message) => [
-                'id' => $message->id,
-                'content' => $message->content,
-                'is_edited' => $message->is_edited,
-                'edited_at' => $message->edited_at?->toISOString(),
-                'created_at' => $message->created_at->toISOString(),
-                'sender' => $message->sender ? [
-                    'id' => $message->sender->id,
-                    'name' => $message->sender->name,
-                    'avatar' => $message->sender->avatar,
-                ] : null,
-                'is_mine' => $message->sender_id === $request->user()->id,
-                'parent' => $message->parent ? [
-                    'id' => $message->parent->id,
-                    'content' => $message->parent->trashed() ? null : $message->parent->content,
-                    'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
-                    'is_deleted' => $message->parent->trashed(),
-                ] : null,
-                'attachments' => $message->attachments->map(fn ($a) => [
-                    'id' => $a->id,
-                    'original_name' => $a->original_name,
-                    'mime_type' => $a->mime_type,
-                    'size' => $a->size,
-                    'human_size' => $a->human_size,
-                    'url' => $a->url,
-                ]),
-            ]),
+            'messages' => MessageResource::collection($messages),
             'has_more' => $messages->count() === $limit,
         ]);
     }

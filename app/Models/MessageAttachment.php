@@ -36,11 +36,20 @@ class MessageAttachment extends Model
     }
 
     /**
-     * Get the full URL of the attachment.
+     * Get the secure URL of the attachment.
+     * This URL requires authentication and authorization to access.
      */
     public function getUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->path);
+        return route('attachments.show', $this);
+    }
+
+    /**
+     * Get the download URL of the attachment.
+     */
+    public function getDownloadUrlAttribute(): string
+    {
+        return route('attachments.download', $this);
     }
 
     /**
