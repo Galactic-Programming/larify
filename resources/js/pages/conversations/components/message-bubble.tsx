@@ -87,33 +87,6 @@ export function MessageBubble({
                     </span>
                 )}
 
-                {/* Reply reference */}
-                {message.parent && (
-                    <div
-                        className={cn(
-                            'max-w-full truncate rounded border-l-2 px-2 py-1 text-xs',
-                            isMine
-                                ? 'border-primary-foreground/50 bg-primary/80 text-primary-foreground/80'
-                                : 'border-muted-foreground/50 bg-muted/80 text-muted-foreground',
-                        )}
-                    >
-                        {message.parent.is_deleted ? (
-                            <p className="truncate italic opacity-70">
-                                Deleted message
-                            </p>
-                        ) : (
-                            <>
-                                <span className="font-medium">
-                                    {message.parent.sender_name}
-                                </span>
-                                <p className="truncate">
-                                    {message.parent.content}
-                                </p>
-                            </>
-                        )}
-                    </div>
-                )}
-
                 {/* Bubble */}
                 <div className="relative flex items-center gap-1">
                     {/* Actions (visible on hover) */}
@@ -177,12 +150,53 @@ export function MessageBubble({
 
                     <div
                         className={cn(
-                            'rounded-2xl px-4 py-2',
+                            'rounded-2xl px-3 py-2',
                             isMine
                                 ? 'rounded-br-md bg-primary text-primary-foreground'
                                 : 'rounded-bl-md bg-muted',
                         )}
                     >
+                        {/* Reply reference - Telegram style (inside bubble) */}
+                        {message.parent && (
+                            <div
+                                className={cn(
+                                    'mb-2 rounded-md border-l-2 py-1 pl-2 pr-3',
+                                    isMine
+                                        ? 'border-white/50 bg-white/10'
+                                        : 'border-primary/50 bg-primary/5',
+                                )}
+                            >
+                                {message.parent.is_deleted ? (
+                                    <p className="text-xs italic opacity-70">
+                                        Deleted message
+                                    </p>
+                                ) : (
+                                    <>
+                                        <span
+                                            className={cn(
+                                                'text-xs font-semibold',
+                                                isMine
+                                                    ? 'text-white/90'
+                                                    : 'text-primary',
+                                            )}
+                                        >
+                                            {message.parent.sender_name}
+                                        </span>
+                                        <p
+                                            className={cn(
+                                                'truncate text-xs',
+                                                isMine
+                                                    ? 'text-white/70'
+                                                    : 'text-foreground/70',
+                                            )}
+                                        >
+                                            {message.parent.content}
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         <p className="wrap-break-word whitespace-pre-wrap text-sm">
                             {message.content}
                         </p>

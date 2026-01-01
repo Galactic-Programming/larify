@@ -33,7 +33,7 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
 });
 
 /**
- * Conversation channel - authorize users who are active participants
+ * Conversation channel - authorize users who are participants
  */
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
     $conversation = \App\Models\Conversation::find($conversationId);
@@ -42,7 +42,7 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
         return false;
     }
 
-    return $conversation->activeParticipants()->where('users.id', $user->id)->exists();
+    return $conversation->participants()->where('users.id', $user->id)->exists();
 });
 
 /**
