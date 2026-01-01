@@ -47,7 +47,7 @@ import {
     X,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Permissions, Project, Task } from '../../lib/types';
 import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
@@ -57,6 +57,34 @@ import { TaskDetailSheet } from '../../tasks/components/task-detail-sheet';
 import { CreateListDialog } from '../create-list-dialog';
 
 const ROWS_PER_PAGE_OPTIONS = [10, 20, 50, 100] as const;
+const DEFAULT_ROWS_PER_PAGE = 10;
+
+// Storage key for persisting table preferences
+const STORAGE_KEY = 'project-table-view-preferences';
+
+interface TablePreferences {
+    rowsPerPage: number;
+}
+
+function getStoredPreferences(): Partial<TablePreferences> {
+    if (typeof window === 'undefined') return {};
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : {};
+    } catch {
+        return {};
+    }
+}
+
+function savePreferences(prefs: Partial<TablePreferences>) {
+    if (typeof window === 'undefined') return;
+    try {
+        const current = getStoredPreferences();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...prefs }));
+    } catch {
+        // Ignore storage errors
+    }
+}
 
 interface TableViewProps {
     project: Project;
@@ -136,9 +164,14 @@ function TaskRowActions({
 }
 
 export function TableView({ project, permissions }: TableViewProps) {
+    // Load stored preferences on mount
+    const storedPrefs = useMemo(() => getStoredPreferences(), []);
+
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState<number>(20);
+    const [rowsPerPage, setRowsPerPage] = useState<number>(
+        storedPrefs.rowsPerPage || DEFAULT_ROWS_PER_PAGE
+    );
 
     // Search and filter state
     const [searchQuery, setSearchQuery] = useState('');
@@ -191,6 +224,11 @@ export function TableView({ project, permissions }: TableViewProps) {
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalFilteredTasks);
     const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
+
+    // Save rowsPerPage to localStorage when it changes
+    useEffect(() => {
+        savePreferences({ rowsPerPage });
+    }, [rowsPerPage]);
 
     // Reset to first page when rowsPerPage changes, filters change, or tasks change significantly
     const handleRowsPerPageChange = (value: string) => {
