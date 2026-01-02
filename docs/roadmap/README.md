@@ -8,12 +8,11 @@ Tài liệu này mô tả roadmap phát triển tính năng Pro cho LaraFlow, đ
 
 Các tính năng có effort thấp, ROI cao, tận dụng infrastructure có sẵn.
 
-| #   | Tính năng                                                | File hướng dẫn                     | Effort    | Status     |
-| --- | -------------------------------------------------------- | ---------------------------------- | --------- | ---------- |
-| 1   | [Due Date Reminders](./phase-1/01-due-date-reminders.md) | `phase-1/01-due-date-reminders.md` | 🟢 Low    | ⏳ Pending |
-| 2   | [Labels/Tags](./phase-1/02-labels-tags.md)               | `phase-1/02-labels-tags.md`        | 🟢 Low    | ⏳ Pending |
-| 3   | [Task Comments](./phase-1/03-task-comments.md)           | `phase-1/03-task-comments.md`      | 🟡 Medium | ⏳ Pending |
-| 4   | [File Attachments](./phase-1/04-file-attachments.md)     | `phase-1/04-file-attachments.md`   | 🟡 Medium | ⏳ Pending |
+| #   | Tính năng                                            | File hướng dẫn                   | Effort    | Status     |
+| --- | ---------------------------------------------------- | -------------------------------- | --------- | ---------- |
+| 1   | [Labels/Tags](./phase-1/02-labels-tags.md)           | `phase-1/02-labels-tags.md`      | 🟢 Low    | ⏳ Pending |
+| 2   | [Task Comments](./phase-1/03-task-comments.md)       | `phase-1/03-task-comments.md`    | 🟡 Medium | ⏳ Pending |
+| 3   | [File Attachments](./phase-1/04-file-attachments.md) | `phase-1/04-file-attachments.md` | 🟡 Medium | ⏳ Pending |
 
 ### Phase 2 - Core Pro Features (2-3 tháng)
 
@@ -43,16 +42,13 @@ Các tính năng phức tạp tạo competitive advantage.
 ### Recommended Order (Phase 1)
 
 ```
-1. Due Date Reminders  ─── Đã có field canUseDueDateReminders, chỉ cần implement logic
+1. Labels/Tags  ─────────── Database đã có bảng labels, label_task
          │
          ▼
-2. Labels/Tags  ─────────── Database đã có bảng labels, label_task
+2. Task Comments  ───────── Database đã có bảng comments
          │
          ▼
-3. Task Comments  ───────── Database đã có bảng comments
-         │
-         ▼
-4. File Attachments  ────── Database đã có bảng attachments
+3. File Attachments  ────── Database đã có bảng attachments
 ```
 
 ### Tại sao Phase 1 quan trọng?
@@ -71,7 +67,6 @@ Các tính năng phức tạp tạo competitive advantage.
 ```php
 // Hiện tại đã có:
 canInviteMembers()      // ✅ Implemented - Pro only
-canUseDueDateReminders() // ⏳ Field có, chưa implement
 hasFullPalette()        // ✅ Implemented - Pro only
 canUseChat()            // ✅ Available for all plans
 
