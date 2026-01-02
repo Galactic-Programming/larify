@@ -44,18 +44,25 @@ class TaskCommentReactionController extends Controller
 
         $emoji = $request->input('emoji');
 
-        // Check if user already reacted with this emoji
+        // Check if user already reacted with this exact emoji (for toggle off)
         $existingReaction = TaskCommentReaction::where('task_comment_id', $comment->id)
             ->where('user_id', $user->id)
             ->where('emoji', $emoji)
             ->first();
 
         if ($existingReaction) {
-            // Remove reaction
+            // Same emoji - toggle off (remove)
             $existingReaction->delete();
             $action = 'removed';
         } else {
-            // Add reaction
+            // Different emoji or no reaction yet
+            // First, remove any existing reaction from this user on this comment
+            // (each user can only have 1 emoji per comment)
+            TaskCommentReaction::where('task_comment_id', $comment->id)
+                ->where('user_id', $user->id)
+                ->delete();
+
+            // Add the new reaction
             TaskCommentReaction::create([
                 'task_comment_id' => $comment->id,
                 'user_id' => $user->id,

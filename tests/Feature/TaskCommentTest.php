@@ -315,24 +315,63 @@ describe('Comment Reactions (Pro Plan)', function () {
         expect(TaskCommentReaction::where('task_comment_id', $comment->id)->count())->toBe(0);
     });
 
-    it('can add multiple different reactions', function () {
+    it('replaces existing reaction when user adds different emoji', function () {
         $comment = TaskComment::factory()->create([
             'task_id' => $this->proTask->id,
             'user_id' => $this->proUser->id,
         ]);
 
+        // Add first reaction
+        $this->actingAs($this->proUser)
+            ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}/reactions", [
+                'emoji' => '👍',
+            ])
+            ->assertOk()
+            ->assertJsonPath('action', 'added');
+
+        expect(TaskCommentReaction::where('task_comment_id', $comment->id)->count())->toBe(1);
+        expect(TaskCommentReaction::where('task_comment_id', $comment->id)->first()->emoji)->toBe('👍');
+
+        // Add different reaction - should replace the first one
+        $this->actingAs($this->proUser)
+            ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}/reactions", [
+                'emoji' => '❤️',
+            ])
+            ->assertOk()
+            ->assertJsonPath('action', 'added');
+
+        // Should still be only 1 reaction (replaced, not added)
+        expect(TaskCommentReaction::where('task_comment_id', $comment->id)->count())->toBe(1);
+        expect(TaskCommentReaction::where('task_comment_id', $comment->id)->first()->emoji)->toBe('❤️');
+    });
+
+    it('allows multiple users to react with different emojis on same comment', function () {
+        $comment = TaskComment::factory()->create([
+            'task_id' => $this->proTask->id,
+            'user_id' => $this->proUser->id,
+        ]);
+
+        $member = User::factory()->create(['plan' => UserPlan::Pro]);
+        $this->proProject->members()->attach($member->id, [
+            'role' => ProjectRole::Editor->value,
+            'joined_at' => now(),
+        ]);
+
+        // User 1 reacts with 👍
         $this->actingAs($this->proUser)
             ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}/reactions", [
                 'emoji' => '👍',
             ])
             ->assertOk();
 
-        $this->actingAs($this->proUser)
+        // User 2 reacts with ❤️
+        $this->actingAs($member)
             ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}/reactions", [
                 'emoji' => '❤️',
             ])
             ->assertOk();
 
+        // Should have 2 reactions from 2 different users
         expect(TaskCommentReaction::where('task_comment_id', $comment->id)->count())->toBe(2);
     });
 
@@ -348,27 +387,24 @@ describe('Comment Reactions (Pro Plan)', function () {
             'joined_at' => now(),
         ]);
 
-        // Both users react with same emoji
-        TaskCommentReaction::create([
-            'task_comment_id' => $comment->id,
-            'user_id' => $this->proUser->id,
-            'emoji' => '👍',
-        ]);
+        // Member reacts with 👍
         TaskCommentReaction::create([
             'task_comment_id' => $comment->id,
             'user_id' => $member->id,
             'emoji' => '👍',
         ]);
 
+        // Pro user also reacts with 👍
         $response = $this->actingAs($this->proUser)
             ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}/reactions", [
-                'emoji' => '❤️',
+                'emoji' => '👍',
             ])
             ->assertOk();
 
         $reactions = $response->json('reactions');
         $thumbsUp = collect($reactions)->firstWhere('emoji', '👍');
 
+        // Should show 2 reactions for 👍 (member + proUser)
         expect($thumbsUp['count'])->toBe(2);
         expect($thumbsUp['reacted_by_me'])->toBeTrue();
     });

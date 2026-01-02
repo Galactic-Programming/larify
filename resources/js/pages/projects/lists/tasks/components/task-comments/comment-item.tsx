@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Theme } from 'emoji-picker-react';
 import { Smile } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { lazy, Suspense, useState } from 'react';
 import type { CommentPermissions, TaskComment } from './types';
 
@@ -65,27 +66,47 @@ export function CommentItem({
             {/* Reactions display */}
             {comment.reactions.length > 0 && (
                 <div className="ml-10 mt-2 flex flex-wrap gap-1">
-                    {comment.reactions.map((reaction) => (
-                        <button
-                            key={reaction.emoji}
-                            onClick={() =>
-                                permissions.can_use_reactions &&
-                                onToggleReaction?.(comment.id, reaction.emoji)
-                            }
-                            disabled={!permissions.can_use_reactions}
-                            className={cn(
-                                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors',
-                                reaction.reacted_by_me
-                                    ? 'border-primary/50 bg-primary/10'
-                                    : 'border-border bg-background hover:bg-muted',
-                                !permissions.can_use_reactions &&
-                                'cursor-not-allowed opacity-50',
-                            )}
-                        >
-                            <span>{reaction.emoji}</span>
-                            <span className="font-medium">{reaction.count}</span>
-                        </button>
-                    ))}
+                    <AnimatePresence mode="popLayout">
+                        {comment.reactions.map((reaction) => (
+                            <motion.button
+                                key={reaction.emoji}
+                                layout
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                whileTap={{ scale: 0.9 }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 500,
+                                    damping: 25,
+                                    mass: 0.5,
+                                }}
+                                onClick={() =>
+                                    permissions.can_use_reactions &&
+                                    onToggleReaction?.(comment.id, reaction.emoji)
+                                }
+                                disabled={!permissions.can_use_reactions}
+                                className={cn(
+                                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors',
+                                    reaction.reacted_by_me
+                                        ? 'border-primary/50 bg-primary/10'
+                                        : 'border-border bg-background hover:bg-muted',
+                                    !permissions.can_use_reactions &&
+                                        'cursor-not-allowed opacity-50',
+                                )}
+                            >
+                                <span>{reaction.emoji}</span>
+                                <motion.span 
+                                    key={reaction.count}
+                                    initial={{ scale: 1.3 }}
+                                    animate={{ scale: 1 }}
+                                    className="font-medium"
+                                >
+                                    {reaction.count}
+                                </motion.span>
+                            </motion.button>
+                        ))}
+                    </AnimatePresence>
                 </div>
             )}
 
