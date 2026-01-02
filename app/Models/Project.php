@@ -121,6 +121,14 @@ class Project extends Model
     }
 
     /**
+     * Get the labels for this project.
+     */
+    public function labels(): HasMany
+    {
+        return $this->hasMany(Label::class)->orderBy('name');
+    }
+
+    /**
      * Check if a user is a member of the project.
      */
     public function hasMember(User $user): bool

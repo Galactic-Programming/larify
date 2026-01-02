@@ -100,6 +100,26 @@ enum UserPlan: string
     }
 
     /**
+     * Get maximum number of labels per project.
+     * Returns null for unlimited.
+     */
+    public function maxLabelsPerProject(): ?int
+    {
+        return match ($this) {
+            self::Free => 3,
+            self::Pro => null, // Unlimited
+        };
+    }
+
+    /**
+     * Check if this plan has access to extended label colors.
+     */
+    public function hasExtendedLabelColors(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
      * Get all limits as array (useful for frontend).
      *
      * @return array<string, mixed>
@@ -109,11 +129,13 @@ enum UserPlan: string
         return [
             'max_projects' => $this->maxProjects(),
             'max_lists_per_project' => $this->maxListsPerProject(),
+            'max_labels_per_project' => $this->maxLabelsPerProject(),
             'activity_retention_days' => $this->activityRetentionDays(),
             'can_invite_members' => $this->canInviteMembers(),
             'can_use_chat' => $this->canUseChat(),
             'can_use_due_date_reminders' => $this->canUseDueDateReminders(),
             'has_full_palette' => $this->hasFullPalette(),
+            'has_extended_label_colors' => $this->hasExtendedLabelColors(),
         ];
     }
 }

@@ -9,11 +9,13 @@ use App\Http\Controllers\Conversations\MessageController;
 use App\Http\Controllers\Conversations\ReactionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Notifications\NotificationController;
+use App\Http\Controllers\Projects\LabelController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
 use App\Http\Controllers\Projects\ProjectTrashController;
 use App\Http\Controllers\TaskLists\TaskListController;
 use App\Http\Controllers\Tasks\TaskController;
+use App\Http\Controllers\Tasks\TaskLabelController;
 use App\Http\Controllers\Trash\TrashController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -78,6 +80,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.tasks.complete');
     Route::patch('projects/{project}/tasks/{task}/reopen', [TaskController::class, 'reopen'])
         ->name('projects.tasks.reopen');
+
+    // Project Labels
+    Route::get('projects/{project}/labels', [LabelController::class, 'index'])
+        ->name('projects.labels.index');
+    Route::post('projects/{project}/labels', [LabelController::class, 'store'])
+        ->name('projects.labels.store');
+    Route::patch('projects/{project}/labels/{label}', [LabelController::class, 'update'])
+        ->name('projects.labels.update');
+    Route::delete('projects/{project}/labels/{label}', [LabelController::class, 'destroy'])
+        ->name('projects.labels.destroy');
+
+    // Task Labels
+    Route::put('projects/{project}/tasks/{task}/labels', [TaskLabelController::class, 'sync'])
+        ->name('projects.tasks.labels.sync');
+    Route::post('projects/{project}/tasks/{task}/labels/attach', [TaskLabelController::class, 'attach'])
+        ->name('projects.tasks.labels.attach');
+    Route::post('projects/{project}/tasks/{task}/labels/detach', [TaskLabelController::class, 'detach'])
+        ->name('projects.tasks.labels.detach');
 
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index'])
