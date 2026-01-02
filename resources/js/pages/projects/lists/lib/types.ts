@@ -2,6 +2,68 @@
 
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent';
 
+// Label color names (matches backend Label::COLORS keys)
+export type LabelColorName =
+    | 'gray'
+    | 'red'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'purple'
+    | 'pink'
+    | 'indigo'
+    | 'cyan'
+    | 'teal'
+    | 'orange'
+    | 'lime';
+
+export interface Label {
+    id: number;
+    project_id: number;
+    name: string;
+    color: LabelColorName;
+    created_at: string;
+    updated_at: string;
+}
+
+// Color definitions matching backend Label::COLORS
+export const LABEL_COLORS: Record<LabelColorName, string> = {
+    // Basic (Free plan)
+    gray: '#6b7280',
+    red: '#ef4444',
+    yellow: '#f59e0b',
+    green: '#22c55e',
+    blue: '#3b82f6',
+    purple: '#8b5cf6',
+    // Extended (Pro plan)
+    pink: '#ec4899',
+    indigo: '#6366f1',
+    cyan: '#06b6d4',
+    teal: '#14b8a6',
+    orange: '#f97316',
+    lime: '#84cc16',
+};
+
+// Free plan color names
+export const FREE_LABEL_COLORS: LabelColorName[] = [
+    'gray',
+    'red',
+    'yellow',
+    'green',
+    'blue',
+    'purple',
+];
+
+// Pro plan additional colors
+export const PRO_LABEL_COLORS: LabelColorName[] = [
+    'pink',
+    'indigo',
+    'cyan',
+    'teal',
+    'orange',
+    'lime',
+];
+
 export interface User {
     id: number;
     name: string;
@@ -31,6 +93,7 @@ export interface Task {
     due_date: string;
     due_time: string;
     completed_at: string | null;
+    labels?: Label[];
     created_at: string;
     updated_at: string;
 }
@@ -52,6 +115,7 @@ export interface Project {
     user_id: number;
     user?: User;
     members?: ProjectMember[];
+    labels?: Label[];
     name: string;
     description: string | null;
     color: string;
@@ -85,4 +149,9 @@ export interface Permissions {
     canCreateList: boolean;
     maxLists: number | null;
     currentLists: number;
+    // Label permissions
+    canCreateLabel: boolean;
+    maxLabels: number | null;
+    currentLabels: number;
+    hasExtendedColors: boolean;
 }

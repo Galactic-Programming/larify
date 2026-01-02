@@ -19,6 +19,14 @@ interface TaskEventData {
             email: string;
             avatar: string | null;
         } | null;
+        labels?: {
+            id: number;
+            project_id: number;
+            name: string;
+            color: string;
+            created_at: string;
+            updated_at: string;
+        }[];
         position: number;
         created_at: string;
         updated_at: string;
@@ -39,10 +47,23 @@ interface ListEventData {
     action: 'created' | 'updated' | 'deleted' | 'reordered';
 }
 
+interface LabelEventData {
+    label: {
+        id: number;
+        project_id: number;
+        name: string;
+        color: string;
+        created_at: string;
+        updated_at: string;
+    };
+    action: 'created' | 'updated' | 'deleted';
+}
+
 interface UseTaskRealtimeOptions {
     projectId: number;
     onTaskUpdate?: (data: TaskEventData) => void;
     onListUpdate?: (data: ListEventData) => void;
+    onLabelUpdate?: (data: LabelEventData) => void;
     onTaskDeleted?: (taskId: number) => void;
     autoRefresh?: boolean;
 }
@@ -54,12 +75,14 @@ export function useTaskRealtime({
     projectId,
     onTaskUpdate,
     onListUpdate,
+    onLabelUpdate,
     onTaskDeleted,
     autoRefresh = true,
 }: UseTaskRealtimeOptions) {
     const channelName = `project.${projectId}`;
     const lastTaskEventRef = useRef<string | null>(null);
     const lastListEventRef = useRef<string | null>(null);
+    const lastLabelEventRef = useRef<string | null>(null);
 
     // Handle task updates
     const handleTaskUpdate = useCallback(
@@ -112,6 +135,29 @@ export function useTaskRealtime({
         [onListUpdate, autoRefresh],
     );
 
+    // Handle label updates
+    const handleLabelUpdate = useCallback(
+        (data: LabelEventData) => {
+            // Prevent duplicate events (debounce)
+            const eventKey = `${data.label.id}-${data.action}-${data.label.updated_at}`;
+            if (lastLabelEventRef.current === eventKey) {
+                return;
+            }
+            lastLabelEventRef.current = eventKey;
+
+            // Call custom handler if provided
+            onLabelUpdate?.(data);
+
+            // Auto-refresh page data using Inertia
+            if (autoRefresh) {
+                router.reload({
+                    only: ['project'],
+                });
+            }
+        },
+        [onLabelUpdate, autoRefresh],
+    );
+
     // Subscribe to private project channel and listen for task.updated events
     const { channel: taskChannel, leaveChannel: leaveTaskChannel } =
         useEcho<TaskEventData>(
@@ -132,19 +178,32 @@ export function useTaskRealtime({
             'private',
         );
 
+    // Subscribe to label.updated events on the same channel
+    const { channel: labelChannel, leaveChannel: leaveLabelChannel } =
+        useEcho<LabelEventData>(
+            channelName,
+            '.label.updated', // Event name for label updates
+            handleLabelUpdate,
+            [handleLabelUpdate],
+            'private',
+        );
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
             lastTaskEventRef.current = null;
             lastListEventRef.current = null;
+            lastLabelEventRef.current = null;
         };
     }, []);
 
     return {
         taskChannel,
         listChannel,
+        labelChannel,
         leaveTaskChannel,
         leaveListChannel,
+        leaveLabelChannel,
         isConnected: !!taskChannel,
     };
 }

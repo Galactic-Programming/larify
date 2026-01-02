@@ -48,6 +48,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { LabelList, LabelManagerDialog, LabelSelector } from '../../components/labels';
 import type { Permissions, Project, Task, TaskPriority } from '../../lib/types';
 import { getTaskDeadline, isCompletedLate } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
@@ -109,6 +110,7 @@ export function TaskDetailSheet({
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [reopenOpen, setReopenOpen] = useState(false);
+    const [labelManagerOpen, setLabelManagerOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(0);
 
@@ -652,6 +654,35 @@ export function TaskDetailSheet({
                                         )}
                                     </div>
 
+                                    {/* Labels */}
+                                    <div className="flex items-center justify-between p-3">
+                                        <span className="text-sm text-muted-foreground">
+                                            Labels
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            {task.labels && task.labels.length > 0 ? (
+                                                <LabelList
+                                                    labels={task.labels}
+                                                    size="sm"
+                                                    maxVisible={3}
+                                                />
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground/60">
+                                                    No labels
+                                                </span>
+                                            )}
+                                            {permissions.canEdit && (
+                                                <LabelSelector
+                                                    project={project}
+                                                    task={task}
+                                                    selectedLabels={task.labels ?? []}
+                                                    className="h-7 px-2"
+                                                    onCreateLabel={() => setLabelManagerOpen(true)}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+
                                     {/* List/Status - Editable only for editors */}
                                     <div className="flex items-center justify-between p-3">
                                         <span className="text-sm text-muted-foreground">
@@ -783,6 +814,14 @@ export function TaskDetailSheet({
                 task={task}
                 open={reopenOpen}
                 onOpenChange={setReopenOpen}
+            />
+
+            {/* Label Manager Dialog */}
+            <LabelManagerDialog
+                project={project}
+                permissions={permissions}
+                open={labelManagerOpen}
+                onOpenChange={setLabelManagerOpen}
             />
         </>
     );

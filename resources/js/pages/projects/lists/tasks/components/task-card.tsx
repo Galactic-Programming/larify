@@ -20,6 +20,7 @@ import { router, usePage } from '@inertiajs/react';
 import { Check, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { LabelList } from '../../components/labels';
 import type { Permissions, Project, Task } from '../../lib/types';
 import {
     getPriorityColor,
@@ -203,6 +204,14 @@ export function TaskCard({
                         >
                             {task.title}
                         </p>
+                        {task.labels && task.labels.length > 0 && (
+                            <LabelList
+                                labels={task.labels}
+                                size="sm"
+                                maxVisible={3}
+                                className="mt-1"
+                            />
+                        )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                         {task.assignee && (
@@ -337,6 +346,14 @@ export function TaskCard({
                                 {taskActions}
                             </div>
                         </div>
+                        {task.labels && task.labels.length > 0 && (
+                            <LabelList
+                                labels={task.labels}
+                                size="sm"
+                                maxVisible={2}
+                                className="mt-1.5 pl-6"
+                            />
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>

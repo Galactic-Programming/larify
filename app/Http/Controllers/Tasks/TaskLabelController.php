@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Tasks;
 
+use App\Events\TaskUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -14,7 +16,7 @@ class TaskLabelController extends Controller
     /**
      * Sync labels for a task (replace all labels).
      */
-    public function sync(Request $request, Project $project, Task $task): JsonResponse
+    public function sync(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -32,15 +34,21 @@ class TaskLabelController extends Controller
 
         $task->labels()->sync($validLabelIds);
 
-        return response()->json([
-            'labels' => $task->labels()->get(),
-        ]);
+        // Broadcast task update for real-time sync
+        $task->load('labels');
+        broadcast(new TaskUpdated($task, 'updated'))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json(['labels' => $task->labels]);
+        }
+
+        return back();
     }
 
     /**
      * Attach a label to a task.
      */
-    public function attach(Request $request, Project $project, Task $task): JsonResponse
+    public function attach(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -55,16 +63,21 @@ class TaskLabelController extends Controller
 
         $task->labels()->syncWithoutDetaching([$label->id]);
 
-        return response()->json([
-            'success' => true,
-            'labels' => $task->labels()->get(),
-        ]);
+        // Broadcast task update for real-time sync
+        $task->load('labels');
+        broadcast(new TaskUpdated($task, 'updated'))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json(['labels' => $task->labels]);
+        }
+
+        return back();
     }
 
     /**
      * Detach a label from a task.
      */
-    public function detach(Request $request, Project $project, Task $task): JsonResponse
+    public function detach(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -76,9 +89,14 @@ class TaskLabelController extends Controller
 
         $task->labels()->detach($validated['label_id']);
 
-        return response()->json([
-            'success' => true,
-            'labels' => $task->labels()->get(),
-        ]);
+        // Broadcast task update for real-time sync
+        $task->load('labels');
+        broadcast(new TaskUpdated($task, 'updated'))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json(['labels' => $task->labels]);
+        }
+
+        return back();
     }
 }

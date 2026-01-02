@@ -230,6 +230,12 @@ class Project extends Model
         $currentLists = $this->lists()->count();
         $canCreateList = $maxLists === null || $currentLists < $maxLists;
 
+        // Label limit is based on project owner's plan
+        $maxLabels = $owner->plan?->maxLabelsPerProject();
+        $currentLabels = $this->labels()->count();
+        $canCreateLabel = $maxLabels === null || $currentLabels < $maxLabels;
+        $hasExtendedColors = $owner->plan?->hasExtendedLabelColors() ?? false;
+
         return [
             'canView' => $role !== null,
             'canEdit' => $role?->canEdit() ?? false,
@@ -245,6 +251,11 @@ class Project extends Model
             'canCreateList' => $canCreateList,
             'maxLists' => $maxLists,
             'currentLists' => $currentLists,
+            // Label limit info
+            'canCreateLabel' => $canCreateLabel,
+            'maxLabels' => $maxLabels,
+            'currentLabels' => $currentLabels,
+            'hasExtendedColors' => $hasExtendedColors,
         ];
     }
 

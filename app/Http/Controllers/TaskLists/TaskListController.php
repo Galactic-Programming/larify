@@ -29,6 +29,8 @@ class TaskListController extends Controller
             'lists' => fn ($query) => $query->orderBy('position')->withCount('tasks'),
             'lists.tasks' => fn ($query) => $query->orderBy('position'),
             'lists.tasks.assignee',
+            'lists.tasks.labels',
+            'labels' => fn ($query) => $query->orderBy('name'),
             'user:id,name,email,plan',
             'members:id,name,email',
         ]);

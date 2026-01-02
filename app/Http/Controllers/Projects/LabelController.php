@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Projects;
 
 use App\Enums\UserPlan;
+use App\Events\LabelUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Label;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +30,7 @@ class LabelController extends Controller
     /**
      * Create a new label for the project.
      */
-    public function store(Request $request, Project $project): JsonResponse
+    public function store(Request $request, Project $project): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -58,13 +60,19 @@ class LabelController extends Controller
 
         $label = $project->labels()->create($validated);
 
-        return response()->json(['label' => $label], 201);
+        broadcast(new LabelUpdated($label, 'created'))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json(['label' => $label], 201);
+        }
+
+        return back();
     }
 
     /**
      * Update an existing label.
      */
-    public function update(Request $request, Project $project, Label $label): JsonResponse
+    public function update(Request $request, Project $project, Label $label): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -90,20 +98,32 @@ class LabelController extends Controller
 
         $label->update($validated);
 
-        return response()->json(['label' => $label]);
+        broadcast(new LabelUpdated($label, 'updated'))->toOthers();
+
+        if ($request->wantsJson()) {
+            return response()->json(['label' => $label]);
+        }
+
+        return back();
     }
 
     /**
      * Delete a label.
      */
-    public function destroy(Project $project, Label $label): JsonResponse
+    public function destroy(Request $request, Project $project, Label $label): JsonResponse|RedirectResponse
     {
         Gate::authorize('update', $project);
 
         abort_if($label->project_id !== $project->id, 404);
 
+        broadcast(new LabelUpdated($label, 'deleted'))->toOthers();
+
         $label->delete();
 
-        return response()->json(['message' => 'Label deleted']);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Label deleted successfully']);
+        }
+
+        return back();
     }
 }

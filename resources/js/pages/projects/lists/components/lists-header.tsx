@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+// import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
     Tooltip,
     TooltipContent,
@@ -22,11 +22,14 @@ import {
     LayoutList,
     List,
     Table2,
+    Tag,
     Users,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+// import { useState } from 'react';
 import type { Permissions, Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
+import { LabelManagerDialog } from './labels';
 import { ProjectTrashSheet } from './project-trash-sheet';
 
 interface ListsHeaderProps {
@@ -342,6 +345,25 @@ export function ListsHeader({
                             : 'View Members'}
                     </TooltipContent>
                 </Tooltip>
+
+                {/* Labels Manager - Only for editors */}
+                {permissions.canEdit && (
+                    <LabelManagerDialog
+                        project={project}
+                        permissions={permissions}
+                        trigger={
+                            <Button variant="outline" size="sm">
+                                <Tag className="size-4" />
+                                Labels
+                                {project.labels && project.labels.length > 0 && (
+                                    <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">
+                                        {project.labels.length}
+                                    </Badge>
+                                )}
+                            </Button>
+                        }
+                    />
+                )}
 
                 {/* Project Trash - Only for editors */}
                 {permissions.canEdit && (
