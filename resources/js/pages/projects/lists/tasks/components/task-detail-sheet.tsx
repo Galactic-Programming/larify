@@ -48,7 +48,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { LabelList, LabelManagerDialog, LabelSelector } from '../../components/labels';
+import { LabelField, LabelManagerSheet } from '../../components/labels';
 import type { Permissions, Project, Task, TaskPriority } from '../../lib/types';
 import { getTaskDeadline, isCompletedLate } from '../../lib/utils';
 import { DeleteTaskDialog } from './delete-task-dialog';
@@ -348,11 +348,10 @@ export function TaskDetailSheet({
                         <div className="flex items-start gap-4">
                             <div className="min-w-0 flex-1 space-y-1">
                                 <SheetTitle
-                                    className={`text-lg leading-tight font-semibold sm:text-xl ${
-                                        isCompleted
+                                    className={`text-lg leading-tight font-semibold sm:text-xl ${isCompleted
                                             ? 'text-muted-foreground line-through'
                                             : ''
-                                    }`}
+                                        }`}
                                 >
                                     {task.title}
                                 </SheetTitle>
@@ -416,7 +415,7 @@ export function TaskDetailSheet({
                                             <div className="relative">
                                                 {!isCompleted &&
                                                     urgencyLevel ===
-                                                        'urgent' && (
+                                                    'urgent' && (
                                                         <div className="absolute inset-0 animate-ping rounded-full bg-red-500/30" />
                                                     )}
                                                 <div
@@ -442,8 +441,8 @@ export function TaskDetailSheet({
                                                             ? 'Completed Late'
                                                             : 'Completed On Time'
                                                         : isOverdue
-                                                          ? 'Overdue'
-                                                          : 'Time Remaining'}
+                                                            ? 'Overdue'
+                                                            : 'Time Remaining'}
                                                 </p>
                                                 {isCompleted ? (
                                                     <>
@@ -593,7 +592,7 @@ export function TaskDetailSheet({
                                             }
                                             className={
                                                 !isOverdue &&
-                                                urgencyLevel === 'warning'
+                                                    urgencyLevel === 'warning'
                                                     ? 'border-amber-500 bg-amber-500/10 text-amber-700'
                                                     : ''
                                             }
@@ -659,28 +658,13 @@ export function TaskDetailSheet({
                                         <span className="text-sm text-muted-foreground">
                                             Labels
                                         </span>
-                                        <div className="flex items-center gap-2">
-                                            {task.labels && task.labels.length > 0 ? (
-                                                <LabelList
-                                                    labels={task.labels}
-                                                    size="sm"
-                                                    maxVisible={3}
-                                                />
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground/60">
-                                                    No labels
-                                                </span>
-                                            )}
-                                            {permissions.canEdit && (
-                                                <LabelSelector
-                                                    project={project}
-                                                    task={task}
-                                                    selectedLabels={task.labels ?? []}
-                                                    className="h-7 px-2"
-                                                    onCreateLabel={() => setLabelManagerOpen(true)}
-                                                />
-                                            )}
-                                        </div>
+                                        <LabelField
+                                            project={project}
+                                            task={task}
+                                            selectedLabels={task.labels ?? []}
+                                            disabled={!permissions.canEdit}
+                                            onCreateLabel={() => setLabelManagerOpen(true)}
+                                        />
                                     </div>
 
                                     {/* List/Status - Editable only for editors */}
@@ -816,8 +800,8 @@ export function TaskDetailSheet({
                 onOpenChange={setReopenOpen}
             />
 
-            {/* Label Manager Dialog */}
-            <LabelManagerDialog
+            {/* Label Manager Sheet */}
+            <LabelManagerSheet
                 project={project}
                 permissions={permissions}
                 open={labelManagerOpen}

@@ -3,7 +3,6 @@ import {
     detach,
 } from '@/actions/App/Http/Controllers/Tasks/TaskLabelController';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Command,
     CommandEmpty,
@@ -21,10 +20,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
-import { Plus, Tag } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { Check, Plus, Tag } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Label, Project, Task } from '../../lib/types';
-import { LabelList, LABEL_BG_CLASSES } from './label-badge';
+import { LabelList, LABEL_SOLID_CLASSES } from './label-badge';
 
 interface LabelSelectorProps {
     project: Project;
@@ -46,18 +46,41 @@ export function LabelSelector({
     const [open, setOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
+    // Optimistic UI: Local state for immediate feedback
+    const [optimisticSelectedIds, setOptimisticSelectedIds] = useState<
+        Set<number>
+    >(() => new Set(selectedLabels.map((l) => l.id)));
+
+    // Sync with server state when selectedLabels changes
+    useEffect(() => {
+        setOptimisticSelectedIds(new Set(selectedLabels.map((l) => l.id)));
+    }, [selectedLabels]);
+
     const projectLabels = project.labels ?? [];
-    const selectedIds = useMemo(
-        () => new Set(selectedLabels.map((l) => l.id)),
-        [selectedLabels],
-    );
+
+    // For display in trigger button, use actual selectedLabels
+    const displayLabels = useMemo(() => {
+        return projectLabels.filter((l) => optimisticSelectedIds.has(l.id));
+    }, [projectLabels, optimisticSelectedIds]);
 
     const handleToggleLabel = useCallback(
         (label: Label) => {
             if (isUpdating) return;
 
+            const isSelected = optimisticSelectedIds.has(label.id);
+
+            // Optimistic update: Update UI immediately
+            setOptimisticSelectedIds((prev) => {
+                const newSet = new Set(prev);
+                if (isSelected) {
+                    newSet.delete(label.id);
+                } else {
+                    newSet.add(label.id);
+                }
+                return newSet;
+            });
+
             setIsUpdating(true);
-            const isSelected = selectedIds.has(label.id);
 
             // Use attach/detach for single label toggle (more efficient)
             const action = isSelected ? detach : attach;
@@ -67,11 +90,24 @@ export function LabelSelector({
                 { label_id: label.id },
                 {
                     preserveScroll: true,
+                    preserveState: true,
+                    onError: () => {
+                        // Rollback on error
+                        setOptimisticSelectedIds((prev) => {
+                            const newSet = new Set(prev);
+                            if (isSelected) {
+                                newSet.add(label.id);
+                            } else {
+                                newSet.delete(label.id);
+                            }
+                            return newSet;
+                        });
+                    },
                     onFinish: () => setIsUpdating(false),
                 },
             );
         },
-        [project, task, selectedIds, isUpdating],
+        [project, task, optimisticSelectedIds, isUpdating],
     );
 
     return (
@@ -82,17 +118,17 @@ export function LabelSelector({
                     size="sm"
                     className={cn(
                         'h-8 justify-start gap-2',
-                        selectedLabels.length === 0 && 'text-muted-foreground',
+                        displayLabels.length === 0 && 'text-muted-foreground',
                         className,
                     )}
                     disabled={disabled}
                 >
                     <Tag className="size-4" />
-                    {selectedLabels.length === 0 ? (
+                    {displayLabels.length === 0 ? (
                         <span>Add labels</span>
                     ) : (
                         <LabelList
-                            labels={selectedLabels}
+                            labels={displayLabels}
                             size="sm"
                             maxVisible={2}
                         />
@@ -108,9 +144,8 @@ export function LabelSelector({
                             <CommandGroup>
                                 <ScrollArea className="max-h-48">
                                     {projectLabels.map((label) => {
-                                        const isSelected = selectedIds.has(
-                                            label.id,
-                                        );
+                                        const isSelected =
+                                            optimisticSelectedIds.has(label.id);
                                         return (
                                             <CommandItem
                                                 key={label.id}
@@ -118,21 +153,57 @@ export function LabelSelector({
                                                 onSelect={() =>
                                                     handleToggleLabel(label)
                                                 }
-                                                className="flex items-center gap-2"
+                                                className={cn(
+                                                    'flex items-center gap-2 transition-colors duration-150',
+                                                    isSelected && 'bg-accent',
+                                                )}
                                             >
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    className="pointer-events-none"
-                                                />
+                                                <motion.div
+                                                    className={cn(
+                                                        'flex size-4 items-center justify-center rounded-sm border',
+                                                        isSelected
+                                                            ? 'border-primary bg-primary text-primary-foreground'
+                                                            : 'border-muted-foreground/30 bg-background',
+                                                    )}
+                                                    animate={{
+                                                        scale: isSelected ? [1, 1.15, 1] : 1,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.2,
+                                                        ease: 'easeOut',
+                                                    }}
+                                                >
+                                                    <AnimatePresence mode="wait">
+                                                        {isSelected && (
+                                                            <motion.div
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                                transition={{
+                                                                    duration: 0.15,
+                                                                    ease: 'easeOut',
+                                                                }}
+                                                            >
+                                                                <Check className="size-3" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </motion.div>
                                                 <span
                                                     className={cn(
-                                                        'inline-flex h-3 w-3 rounded-full',
-                                                        LABEL_BG_CLASSES[
-                                                            label.color
+                                                        'inline-flex size-3.5 rounded-full',
+                                                        LABEL_SOLID_CLASSES[
+                                                        label.color
                                                         ],
                                                     )}
                                                 />
-                                                <span className="truncate flex-1">
+                                                <span
+                                                    className={cn(
+                                                        'flex-1 truncate transition-all duration-150',
+                                                        isSelected &&
+                                                        'font-medium',
+                                                    )}
+                                                >
                                                     {label.name}
                                                 </span>
                                             </CommandItem>
@@ -184,18 +255,36 @@ export function LabelSelectorCompact({
     const [open, setOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
+    // Optimistic UI: Local state for immediate feedback
+    const [optimisticSelectedIds, setOptimisticSelectedIds] = useState<
+        Set<number>
+    >(() => new Set(selectedLabels.map((l) => l.id)));
+
+    // Sync with server state when selectedLabels changes
+    useEffect(() => {
+        setOptimisticSelectedIds(new Set(selectedLabels.map((l) => l.id)));
+    }, [selectedLabels]);
+
     const projectLabels = project.labels ?? [];
-    const selectedIds = useMemo(
-        () => new Set(selectedLabels.map((l) => l.id)),
-        [selectedLabels],
-    );
 
     const handleToggleLabel = useCallback(
         (label: Label) => {
             if (isUpdating) return;
 
+            const isSelected = optimisticSelectedIds.has(label.id);
+
+            // Optimistic update: Update UI immediately
+            setOptimisticSelectedIds((prev) => {
+                const newSet = new Set(prev);
+                if (isSelected) {
+                    newSet.delete(label.id);
+                } else {
+                    newSet.add(label.id);
+                }
+                return newSet;
+            });
+
             setIsUpdating(true);
-            const isSelected = selectedIds.has(label.id);
 
             const action = isSelected ? detach : attach;
 
@@ -204,11 +293,24 @@ export function LabelSelectorCompact({
                 { label_id: label.id },
                 {
                     preserveScroll: true,
+                    preserveState: true,
+                    onError: () => {
+                        // Rollback on error
+                        setOptimisticSelectedIds((prev) => {
+                            const newSet = new Set(prev);
+                            if (isSelected) {
+                                newSet.add(label.id);
+                            } else {
+                                newSet.delete(label.id);
+                            }
+                            return newSet;
+                        });
+                    },
                     onFinish: () => setIsUpdating(false),
                 },
             );
         },
-        [project, task, selectedIds, isUpdating],
+        [project, task, optimisticSelectedIds, isUpdating],
     );
 
     return (
@@ -237,9 +339,8 @@ export function LabelSelectorCompact({
                             <CommandGroup>
                                 <ScrollArea className="max-h-48">
                                     {projectLabels.map((label) => {
-                                        const isSelected = selectedIds.has(
-                                            label.id,
-                                        );
+                                        const isSelected =
+                                            optimisticSelectedIds.has(label.id);
                                         return (
                                             <CommandItem
                                                 key={label.id}
@@ -247,21 +348,57 @@ export function LabelSelectorCompact({
                                                 onSelect={() =>
                                                     handleToggleLabel(label)
                                                 }
-                                                className="flex items-center gap-2"
+                                                className={cn(
+                                                    'flex items-center gap-2 transition-colors duration-150',
+                                                    isSelected && 'bg-accent',
+                                                )}
                                             >
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    className="pointer-events-none"
-                                                />
+                                                <motion.div
+                                                    className={cn(
+                                                        'flex size-4 items-center justify-center rounded-sm border',
+                                                        isSelected
+                                                            ? 'border-primary bg-primary text-primary-foreground'
+                                                            : 'border-muted-foreground/30 bg-background',
+                                                    )}
+                                                    animate={{
+                                                        scale: isSelected ? [1, 1.15, 1] : 1,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.2,
+                                                        ease: 'easeOut',
+                                                    }}
+                                                >
+                                                    <AnimatePresence mode="wait">
+                                                        {isSelected && (
+                                                            <motion.div
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                                transition={{
+                                                                    duration: 0.15,
+                                                                    ease: 'easeOut',
+                                                                }}
+                                                            >
+                                                                <Check className="size-3" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </motion.div>
                                                 <span
                                                     className={cn(
-                                                        'inline-flex h-3 w-3 rounded-full',
-                                                        LABEL_BG_CLASSES[
-                                                            label.color
+                                                        'inline-flex size-3.5 rounded-full',
+                                                        LABEL_SOLID_CLASSES[
+                                                        label.color
                                                         ],
                                                     )}
                                                 />
-                                                <span className="truncate flex-1">
+                                                <span
+                                                    className={cn(
+                                                        'flex-1 truncate transition-all duration-150',
+                                                        isSelected &&
+                                                        'font-medium',
+                                                    )}
+                                                >
                                                     {label.name}
                                                 </span>
                                             </CommandItem>

@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import type { Label, LabelColorName } from '../../lib/types';
 
 // Color definitions matching backend Label::COLORS
@@ -163,18 +164,31 @@ export function LabelList({
 
     return (
         <div className={cn('flex flex-wrap items-center gap-1', className)}>
-            {visibleLabels.map((label) => (
-                <LabelBadge
-                    key={label.id}
-                    label={label}
-                    size={size}
-                    variant={variant}
-                    removable={removable}
-                    onRemove={onRemove}
-                    showTooltip
-                    maxWidth={size === 'sm' ? 80 : 120}
-                />
-            ))}
+            <AnimatePresence mode="popLayout">
+                {visibleLabels.map((label, index) => (
+                    <motion.div
+                        key={label.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{
+                            duration: 0.15,
+                            delay: index * 0.02,
+                        }}
+                    >
+                        <LabelBadge
+                            label={label}
+                            size={size}
+                            variant={variant}
+                            removable={removable}
+                            onRemove={onRemove}
+                            showTooltip
+                            maxWidth={size === 'sm' ? 80 : 120}
+                        />
+                    </motion.div>
+                ))}
+            </AnimatePresence>
             {hiddenCount > 0 && (
                 <Tooltip>
                     <TooltipTrigger asChild>

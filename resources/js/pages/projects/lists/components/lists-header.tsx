@@ -29,7 +29,7 @@ import { motion } from 'motion/react';
 // import { useState } from 'react';
 import type { Permissions, Project, TaskFilter, ViewMode } from '../lib/types';
 import { CreateListDialog } from './create-list-dialog';
-import { LabelManagerDialog } from './labels';
+import { LabelManagerSheet } from './labels';
 import { ProjectTrashSheet } from './project-trash-sheet';
 
 interface ListsHeaderProps {
@@ -349,7 +349,7 @@ export function ListsHeader({
                 {/* Labels Manager - Only for editors */}
                 {permissions.canEdit && (
                     <Tooltip>
-                        <LabelManagerDialog
+                        <LabelManagerSheet
                             project={project}
                             permissions={permissions}
                             trigger={
