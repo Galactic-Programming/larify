@@ -164,7 +164,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
             {/* Header */}
             <div className="border-b bg-muted/30 px-4 py-3">
                 <h3 className="text-sm font-semibold">
-                    Comments and activity
+                    Comments
                     {comments.length > 0 && (
                         <span className="ml-2 text-muted-foreground">({comments.length})</span>
                     )}
