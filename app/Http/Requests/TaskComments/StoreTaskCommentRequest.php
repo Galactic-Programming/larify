@@ -5,7 +5,6 @@ namespace App\Http\Requests\TaskComments;
 use App\Enums\UserPlan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 class StoreTaskCommentRequest extends FormRequest
 {
@@ -36,19 +35,8 @@ class StoreTaskCommentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $task = $this->route('task');
-
         return [
             'content' => ['required', 'string', 'max:10000'],
-            'parent_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('task_comments', 'id')->where(function ($query) use ($task) {
-                    $query->where('task_id', $task->id)->whereNull('deleted_at');
-                }),
-            ],
-            'mentions' => ['nullable', 'array'],
-            'mentions.*' => ['integer', 'exists:users,id'],
         ];
     }
 
@@ -62,7 +50,6 @@ class StoreTaskCommentRequest extends FormRequest
         return [
             'content.required' => 'Comment content is required.',
             'content.max' => 'Comment cannot exceed 10,000 characters.',
-            'parent_id.exists' => 'The comment you are replying to does not exist.',
         ];
     }
 }

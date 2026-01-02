@@ -60,7 +60,7 @@ describe('Comment Listing', function () {
                     ],
                 ],
                 'has_more',
-                'permissions' => ['can_create', 'can_use_mentions', 'can_use_reactions'],
+                'permissions' => ['can_create', 'can_use_reactions'],
             ]);
     });
 
@@ -69,7 +69,6 @@ describe('Comment Listing', function () {
             ->getJson("/api/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments")
             ->assertOk()
             ->assertJsonPath('permissions.can_create', true)
-            ->assertJsonPath('permissions.can_use_mentions', true)
             ->assertJsonPath('permissions.can_use_reactions', true);
     });
 
@@ -78,7 +77,6 @@ describe('Comment Listing', function () {
             ->getJson("/api/projects/{$this->freeProject->id}/tasks/{$this->freeTask->id}/comments")
             ->assertOk()
             ->assertJsonPath('permissions.can_create', false)
-            ->assertJsonPath('permissions.can_use_mentions', false)
             ->assertJsonPath('permissions.can_use_reactions', false);
     });
 
@@ -117,25 +115,8 @@ describe('Comment Creation (Pro Plan)', function () {
             ->assertJsonPath('comment.content', 'This is a test comment')
             ->assertJsonPath('comment.is_mine', true);
 
-        expect($this->proTask->allComments()->count())->toBe(1);
+        expect($this->proTask->comments()->count())->toBe(1);
         Event::assertDispatched(TaskCommentCreated::class);
-    });
-
-    it('can create a reply to another comment', function () {
-        $parentComment = TaskComment::factory()->create([
-            'task_id' => $this->proTask->id,
-            'user_id' => $this->proUser->id,
-        ]);
-
-        $this->actingAs($this->proUser)
-            ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments", [
-                'content' => 'This is a reply',
-                'parent_id' => $parentComment->id,
-            ])
-            ->assertCreated()
-            ->assertJsonPath('comment.parent.id', $parentComment->id);
-
-        expect($parentComment->replies()->count())->toBe(1);
     });
 
     it('validates comment content is required', function () {
@@ -154,25 +135,6 @@ describe('Comment Creation (Pro Plan)', function () {
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['content']);
-    });
-
-    it('validates parent_id belongs to same task', function () {
-        $otherTask = Task::factory()->create([
-            'project_id' => $this->proProject->id,
-            'list_id' => $this->proList->id,
-        ]);
-        $otherComment = TaskComment::factory()->create([
-            'task_id' => $otherTask->id,
-            'user_id' => $this->proUser->id,
-        ]);
-
-        $this->actingAs($this->proUser)
-            ->postJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments", [
-                'content' => 'Invalid reply',
-                'parent_id' => $otherComment->id,
-            ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['parent_id']);
     });
 });
 
@@ -322,52 +284,6 @@ describe('Comment Deletion', function () {
         $this->actingAs($member)
             ->deleteJson("/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$comment->id}")
             ->assertForbidden();
-    });
-});
-
-describe('Comment Replies', function () {
-    it('can get replies for a comment', function () {
-        $parentComment = TaskComment::factory()->create([
-            'task_id' => $this->proTask->id,
-            'user_id' => $this->proUser->id,
-        ]);
-
-        TaskComment::factory()->count(5)->create([
-            'task_id' => $this->proTask->id,
-            'user_id' => $this->proUser->id,
-            'parent_id' => $parentComment->id,
-        ]);
-
-        $this->actingAs($this->proUser)
-            ->getJson("/api/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$parentComment->id}/replies")
-            ->assertOk()
-            ->assertJsonCount(5, 'replies')
-            ->assertJsonStructure([
-                'replies' => [
-                    '*' => ['id', 'content', 'user', 'reactions'],
-                ],
-                'has_more',
-            ]);
-    });
-
-    it('paginates replies correctly', function () {
-        $parentComment = TaskComment::factory()->create([
-            'task_id' => $this->proTask->id,
-            'user_id' => $this->proUser->id,
-        ]);
-
-        TaskComment::factory()->count(30)->create([
-            'task_id' => $this->proTask->id,
-            'user_id' => $this->proUser->id,
-            'parent_id' => $parentComment->id,
-        ]);
-
-        $response = $this->actingAs($this->proUser)
-            ->getJson("/api/projects/{$this->proProject->id}/tasks/{$this->proTask->id}/comments/{$parentComment->id}/replies?limit=20")
-            ->assertOk()
-            ->assertJsonPath('has_more', true);
-
-        expect($response->json('replies'))->toHaveCount(20);
     });
 });
 

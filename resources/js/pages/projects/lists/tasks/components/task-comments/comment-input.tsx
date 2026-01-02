@@ -7,20 +7,16 @@ import type { CommentPermissions, TaskComment } from './types';
 
 interface CommentInputProps {
     permissions: CommentPermissions;
-    replyingTo?: TaskComment | null;
     editingComment?: TaskComment | null;
-    onSubmit: (content: string, parentId?: number) => Promise<void>;
-    onCancelReply?: () => void;
+    onSubmit: (content: string) => Promise<void>;
     onCancelEdit?: () => void;
     disabled?: boolean;
 }
 
 export function CommentInput({
     permissions,
-    replyingTo,
     editingComment,
     onSubmit,
-    onCancelReply,
     onCancelEdit,
     disabled = false,
 }: CommentInputProps) {
@@ -36,21 +32,13 @@ export function CommentInput({
         }
     }, [editingComment]);
 
-    // Focus when replying
-    useEffect(() => {
-        if (replyingTo) {
-            textareaRef.current?.focus();
-        }
-    }, [replyingTo]);
-
     const handleSubmit = async () => {
         if (!content.trim() || isSubmitting) return;
 
         setIsSubmitting(true);
         try {
-            await onSubmit(content.trim(), replyingTo?.id);
+            await onSubmit(content.trim());
             setContent('');
-            onCancelReply?.();
             onCancelEdit?.();
         } finally {
             setIsSubmitting(false);
@@ -62,23 +50,15 @@ export function CommentInput({
             e.preventDefault();
             handleSubmit();
         }
-        if (e.key === 'Escape') {
-            if (replyingTo) {
-                onCancelReply?.();
-            } else if (editingComment) {
-                onCancelEdit?.();
-                setContent('');
-            }
+        if (e.key === 'Escape' && editingComment) {
+            onCancelEdit?.();
+            setContent('');
         }
     };
 
     const handleCancel = () => {
-        if (editingComment) {
-            onCancelEdit?.();
-            setContent('');
-        } else if (replyingTo) {
-            onCancelReply?.();
-        }
+        onCancelEdit?.();
+        setContent('');
     };
 
     if (!permissions.can_create && !editingComment) {
@@ -94,19 +74,10 @@ export function CommentInput({
 
     return (
         <div className="border-t bg-background p-3">
-            {/* Reply/Edit indicator */}
-            {(replyingTo || editingComment) && (
+            {/* Edit indicator */}
+            {editingComment && (
                 <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                    <span className="text-muted-foreground">
-                        {editingComment ? (
-                            'Editing comment'
-                        ) : (
-                            <>
-                                Replying to{' '}
-                                <span className="font-medium">{replyingTo?.user.name}</span>
-                            </>
-                        )}
-                    </span>
+                    <span className="text-muted-foreground">Editing comment</span>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -124,18 +95,9 @@ export function CommentInput({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={
-                        replyingTo
-                            ? 'Write a reply...'
-                            : editingComment
-                                ? 'Edit your comment...'
-                                : 'Add a comment...'
-                    }
+                    placeholder={editingComment ? 'Edit your comment...' : 'Write a comment...'}
                     disabled={disabled || isSubmitting}
-                    className={cn(
-                        'min-h-20 flex-1 resize-none text-sm',
-                        'focus-visible:ring-1',
-                    )}
+                    className={cn('min-h-20 flex-1 resize-none text-sm', 'focus-visible:ring-1')}
                 />
             </div>
 

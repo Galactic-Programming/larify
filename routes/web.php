@@ -113,8 +113,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('projects/{project}/tasks/{task}/comments/{comment}', [TaskCommentController::class, 'destroy'])
         ->middleware('throttle:30,1')
         ->name('projects.tasks.comments.destroy');
-    Route::get('api/projects/{project}/tasks/{task}/comments/{comment}/replies', [TaskCommentController::class, 'replies'])
-        ->name('api.projects.tasks.comments.replies');
     Route::post('projects/{project}/tasks/{task}/comments/{comment}/reactions', [TaskCommentReactionController::class, 'toggle'])
         ->middleware('throttle:60,1')
         ->name('projects.tasks.comments.reactions.toggle');

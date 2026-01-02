@@ -14,13 +14,11 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
     const [comments, setComments] = useState<TaskComment[]>([]);
     const [permissions, setPermissions] = useState<CommentPermissions>({
         can_create: false,
-        can_use_mentions: false,
         can_use_reactions: false,
     });
     const [isLoading, setIsLoading] = useState(true);
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState<number | null>(null);
-    const [replyingTo, setReplyingTo] = useState<TaskComment | null>(null);
     const [editingComment, setEditingComment] = useState<TaskComment | null>(null);
     const [deletingComment, setDeletingComment] = useState<TaskComment | null>(null);
 
@@ -62,14 +60,12 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
     }, [fetchComments]);
 
     // Create/Edit comment
-    const handleSubmitComment = async (content: string, parentId?: number) => {
+    const handleSubmitComment = async (content: string) => {
         const url = editingComment
             ? `/projects/${projectId}/tasks/${taskId}/comments/${editingComment.id}`
             : `/projects/${projectId}/tasks/${taskId}/comments`;
 
         const method = editingComment ? 'PATCH' : 'POST';
-        const body: Record<string, unknown> = { content };
-        if (parentId) body.parent_id = parentId;
 
         const response = await fetch(url, {
             method,
@@ -80,7 +76,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
                         ?.content || '',
                 Accept: 'application/json',
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify({ content }),
         });
 
         if (!response.ok) {
@@ -168,12 +164,20 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
             {/* Header */}
             <div className="border-b bg-muted/30 px-4 py-3">
                 <h3 className="text-sm font-semibold">
-                    Comments
+                    Comments and activity
                     {comments.length > 0 && (
                         <span className="ml-2 text-muted-foreground">({comments.length})</span>
                     )}
                 </h3>
             </div>
+
+            {/* Input at top - Trello style */}
+            <CommentInput
+                permissions={permissions}
+                editingComment={editingComment}
+                onSubmit={handleSubmitComment}
+                onCancelEdit={() => setEditingComment(null)}
+            />
 
             {/* Comments list */}
             <CommentList
@@ -184,18 +188,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
                 onLoadMore={() => nextCursor && fetchComments(nextCursor)}
                 onEdit={setEditingComment}
                 onDelete={setDeletingComment}
-                onReply={setReplyingTo}
                 onToggleReaction={handleToggleReaction}
-            />
-
-            {/* Input */}
-            <CommentInput
-                permissions={permissions}
-                replyingTo={replyingTo}
-                editingComment={editingComment}
-                onSubmit={handleSubmitComment}
-                onCancelReply={() => setReplyingTo(null)}
-                onCancelEdit={() => setEditingComment(null)}
             />
 
             {/* Delete dialog */}

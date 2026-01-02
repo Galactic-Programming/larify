@@ -12,7 +12,6 @@ interface CommentListProps {
     onLoadMore?: () => void;
     onEdit?: (comment: TaskComment) => void;
     onDelete?: (comment: TaskComment) => void;
-    onReply?: (comment: TaskComment) => void;
     onToggleReaction?: (commentId: number, emoji: string) => void;
 }
 
@@ -24,7 +23,6 @@ export function CommentList({
     onLoadMore,
     onEdit,
     onDelete,
-    onReply,
     onToggleReaction,
 }: CommentListProps) {
     if (isLoading && comments.length === 0) {
@@ -66,7 +64,6 @@ export function CommentList({
                         permissions={permissions}
                         onEdit={onEdit}
                         onDelete={onDelete}
-                        onReply={onReply}
                         onToggleReaction={onToggleReaction}
                     />
                 ))}

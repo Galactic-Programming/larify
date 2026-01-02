@@ -32,19 +32,7 @@ class TaskCommentResource extends JsonResource
             'is_mine' => $this->user_id === $request->user()?->id,
             'can_edit' => $this->canEdit($request->user()),
             'can_delete' => $this->canDelete($request->user()),
-            'parent' => $this->when($this->parent, fn () => [
-                'id' => $this->parent->id,
-                'content' => $this->parent->trashed() ? null : $this->parent->content,
-                'user_name' => $this->parent->trashed() ? null : $this->parent->user?->name,
-                'is_deleted' => $this->parent->trashed(),
-            ]),
             'reactions' => $this->getGroupedReactions($request->user()?->id),
-            'replies_count' => $this->whenCounted('replies'),
-            'replies' => TaskCommentResource::collection($this->whenLoaded('replies')),
-            'mentions' => $this->whenLoaded('mentions', fn () => $this->mentions->map(fn ($m) => [
-                'id' => $m->user_id,
-                'name' => $m->user?->name,
-            ])),
         ];
     }
 

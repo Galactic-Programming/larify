@@ -8,6 +8,5 @@ export type {
     CommentReaction,
     CommentUser,
     CommentsResponse,
-    RepliesResponse,
     TaskComment,
 } from './types';
