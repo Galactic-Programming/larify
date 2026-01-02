@@ -1,5 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatePresence, motion } from 'motion/react';
 import { MessageCircle } from 'lucide-react';
 import { CommentItem } from './comment-item';
 import type { CommentPermissions, TaskComment } from './types';
@@ -57,16 +58,28 @@ export function CommentList({
                     </button>
                 )}
 
-                {comments.map((comment) => (
-                    <CommentItem
-                        key={comment.id}
-                        comment={comment}
-                        permissions={permissions}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onToggleReaction={onToggleReaction}
-                    />
-                ))}
+                <AnimatePresence initial={false}>
+                    {comments.map((comment) => (
+                        <motion.div
+                            key={comment.id}
+                            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ 
+                                duration: 0.2,
+                                ease: [0.4, 0, 0.2, 1]
+                            }}
+                        >
+                            <CommentItem
+                                comment={comment}
+                                permissions={permissions}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                onToggleReaction={onToggleReaction}
+                            />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
 
                 {isLoading && <CommentItemSkeleton />}
             </div>
