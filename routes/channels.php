@@ -33,6 +33,25 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
 });
 
 /**
+ * Task comments channel - authorize project members to listen for comment updates
+ */
+Broadcast::channel('project.{projectId}.task.{taskId}.comments', function ($user, $projectId, $taskId) {
+    $project = \App\Models\Project::find($projectId);
+
+    if (! $project) {
+        return false;
+    }
+
+    // Owner check
+    if ($project->user_id === $user->id) {
+        return true;
+    }
+
+    // Member check
+    return $project->projectMembers()->where('user_id', $user->id)->exists();
+});
+
+/**
  * Conversation channel - authorize users who are participants
  */
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {

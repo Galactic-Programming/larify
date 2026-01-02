@@ -13,6 +13,8 @@ use App\Http\Controllers\Projects\LabelController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectMemberController;
 use App\Http\Controllers\Projects\ProjectTrashController;
+use App\Http\Controllers\TaskComments\TaskCommentController;
+use App\Http\Controllers\TaskComments\TaskCommentReactionController;
 use App\Http\Controllers\TaskLists\TaskListController;
 use App\Http\Controllers\Tasks\TaskController;
 use App\Http\Controllers\Tasks\TaskLabelController;
@@ -98,6 +100,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.tasks.labels.attach');
     Route::post('projects/{project}/tasks/{task}/labels/detach', [TaskLabelController::class, 'detach'])
         ->name('projects.tasks.labels.detach');
+
+    // Task Comments
+    Route::get('api/projects/{project}/tasks/{task}/comments', [TaskCommentController::class, 'index'])
+        ->name('api.projects.tasks.comments.index');
+    Route::post('projects/{project}/tasks/{task}/comments', [TaskCommentController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('projects.tasks.comments.store');
+    Route::patch('projects/{project}/tasks/{task}/comments/{comment}', [TaskCommentController::class, 'update'])
+        ->middleware('throttle:30,1')
+        ->name('projects.tasks.comments.update');
+    Route::delete('projects/{project}/tasks/{task}/comments/{comment}', [TaskCommentController::class, 'destroy'])
+        ->middleware('throttle:30,1')
+        ->name('projects.tasks.comments.destroy');
+    Route::get('api/projects/{project}/tasks/{task}/comments/{comment}/replies', [TaskCommentController::class, 'replies'])
+        ->name('api.projects.tasks.comments.replies');
+    Route::post('projects/{project}/tasks/{task}/comments/{comment}/reactions', [TaskCommentReactionController::class, 'toggle'])
+        ->middleware('throttle:60,1')
+        ->name('projects.tasks.comments.reactions.toggle');
 
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index'])

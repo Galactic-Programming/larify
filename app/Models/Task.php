@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
@@ -94,6 +95,22 @@ class Task extends Model
     {
         return $this->belongsToMany(Label::class, 'label_task')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the comments for this task.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class)->whereNull('parent_id');
+    }
+
+    /**
+     * Get all comments including replies for this task.
+     */
+    public function allComments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class);
     }
 
     /**

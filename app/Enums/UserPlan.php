@@ -120,6 +120,31 @@ enum UserPlan: string
     }
 
     /**
+     * Check if this plan can create task comments.
+     * Free: view only, Pro: full CRUD
+     */
+    public function canCreateComments(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
+     * Check if this plan can use @mentions in comments.
+     */
+    public function canUseMentions(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
+     * Check if this plan can add reactions to comments.
+     */
+    public function canUseCommentReactions(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
      * Get all limits as array (useful for frontend).
      *
      * @return array<string, mixed>
@@ -136,6 +161,9 @@ enum UserPlan: string
             'can_use_due_date_reminders' => $this->canUseDueDateReminders(),
             'has_full_palette' => $this->hasFullPalette(),
             'has_extended_label_colors' => $this->hasExtendedLabelColors(),
+            'can_create_comments' => $this->canCreateComments(),
+            'can_use_mentions' => $this->canUseMentions(),
+            'can_use_comment_reactions' => $this->canUseCommentReactions(),
         ];
     }
 }
