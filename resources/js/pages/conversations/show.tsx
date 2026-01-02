@@ -7,6 +7,7 @@ import type { Conversation, ConversationDetail, Message } from '@/types/chat';
 import { Head, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
+import { AnimatePresence, motion } from 'motion/react';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -700,52 +701,59 @@ export default function ConversationShow({
                                 </div>
                             )}
 
-                            {messages.map((message, index) => {
-                                const prevMessage = messages[index - 1];
-                                const showDateSeparator =
-                                    shouldShowDateSeparator(
-                                        message,
-                                        prevMessage,
-                                    );
-                                const showAvatar =
-                                    !prevMessage ||
-                                    prevMessage.sender?.id !==
-                                    message.sender?.id ||
-                                    showDateSeparator;
+                            <AnimatePresence mode="popLayout" initial={false}>
+                                {messages.map((message, index) => {
+                                    const prevMessage = messages[index - 1];
+                                    const showDateSeparator =
+                                        shouldShowDateSeparator(
+                                            message,
+                                            prevMessage,
+                                        );
+                                    const showAvatar =
+                                        !prevMessage ||
+                                        prevMessage.sender?.id !==
+                                        message.sender?.id ||
+                                        showDateSeparator;
 
-                                return (
-                                    <div key={message.id}>
-                                        {showDateSeparator && (
-                                            <div className="my-4 flex items-center gap-4">
-                                                <div className="h-px flex-1 bg-border" />
-                                                <span className="text-xs text-muted-foreground">
-                                                    {formatDateSeparator(
-                                                        message.created_at,
-                                                    )}
-                                                </span>
-                                                <div className="h-px flex-1 bg-border" />
-                                            </div>
-                                        )}
-                                        <MessageBubble
-                                            message={message}
-                                            showAvatar={showAvatar}
-                                            onReply={() => {
-                                                setReplyingTo(message);
-                                                setEditingMessage(null);
-                                            }}
-                                            onEdit={() => startEditing(message)}
-                                            onDelete={() =>
-                                                setDeleteMessageId(message.id)
-                                            }
-                                            onReaction={(emoji) =>
-                                                handleReaction(message.id, emoji)
-                                            }
-                                            canEdit={message.is_mine}
-                                            canDelete={message.is_mine}
-                                        />
-                                    </div>
-                                );
-                            })}
+                                    return (
+                                        <div key={message.id}>
+                                            {showDateSeparator && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="my-4 flex items-center gap-4"
+                                                >
+                                                    <div className="h-px flex-1 bg-border" />
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {formatDateSeparator(
+                                                            message.created_at,
+                                                        )}
+                                                    </span>
+                                                    <div className="h-px flex-1 bg-border" />
+                                                </motion.div>
+                                            )}
+                                            <MessageBubble
+                                                message={message}
+                                                showAvatar={showAvatar}
+                                                index={index}
+                                                onReply={() => {
+                                                    setReplyingTo(message);
+                                                    setEditingMessage(null);
+                                                }}
+                                                onEdit={() => startEditing(message)}
+                                                onDelete={() =>
+                                                    setDeleteMessageId(message.id)
+                                                }
+                                                onReaction={(emoji) =>
+                                                    handleReaction(message.id, emoji)
+                                                }
+                                                canEdit={message.is_mine}
+                                                canDelete={message.is_mine}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </AnimatePresence>
                             <div ref={messagesEndRef} />
                         </div>
                     </div>

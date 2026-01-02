@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
+import { Theme } from "emoji-picker-react"
 import { ArrowUp, Info, Loader2, Mic, Paperclip, Smile, Square } from "lucide-react"
 import { omit } from "remeda"
 
@@ -11,11 +12,38 @@ import { Button } from "@/components/ui/button"
 import { FilePreview } from "@/components/ui/file-preview"
 import { InterruptPrompt } from "@/components/ui/interrupt-prompt"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+
+// Lazy load emoji picker to reduce initial bundle size
+const EmojiPicker = lazy(() => import("emoji-picker-react"))
+
+function EmojiPickerSkeleton() {
+  return (
+    <div className="flex h-100 w-[320px] flex-col gap-2 rounded-lg border bg-popover p-3">
+      <Skeleton className="h-9 w-full rounded-md" />
+      <div className="flex gap-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="size-6 rounded" />
+        ))}
+      </div>
+      <div className="grid flex-1 grid-cols-8 gap-1">
+        {Array.from({ length: 64 }).map((_, i) => (
+          <Skeleton key={i} className="size-7 rounded" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 interface MessageInputBaseProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -262,28 +290,23 @@ export function MessageInput({
       </div>
 
       <div className="absolute right-3 top-3 z-20 flex gap-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="h-8 w-8"
-                aria-label="Insert emoji"
-                onClick={() => textAreaRef.current?.focus()}
-              >
-                <Smile className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-50 text-center">
-              <p className="text-xs">
-                <span className="font-medium">Win + .</span> (Windows) or{" "}
-                <span className="font-medium">Cmd + Ctrl + Space</span> (Mac)
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <EmojiPickerButton
+          onEmojiSelect={(emoji) => {
+            const textarea = textAreaRef.current
+            if (textarea) {
+              const start = textarea.selectionStart
+              const end = textarea.selectionEnd
+              const currentValue = props.value
+              const newValue = currentValue.slice(0, start) + emoji + currentValue.slice(end)
+              props.onChange?.({ target: { value: newValue } } as any)
+              // Set cursor position after emoji
+              setTimeout(() => {
+                textarea.selectionStart = textarea.selectionEnd = start + emoji.length
+                textarea.focus()
+              }, 0)
+            }
+          }}
+        />
         {props.allowAttachments && (
           <Button
             type="button"
@@ -561,4 +584,68 @@ function RecordingControls({
   }
 
   return null
+}
+
+interface EmojiPickerButtonProps {
+  onEmojiSelect: (emoji: string) => void
+}
+
+function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonProps) {
+  const [open, setOpen] = useState(false)
+  const isDarkMode = document.documentElement.classList.contains("dark")
+
+  const handleEmojiClick = (emojiData: { emoji: string }) => {
+    onEmojiSelect(emojiData.emoji)
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="h-8 w-8"
+                aria-label="Insert emoji"
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Insert emoji</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <PopoverContent
+        className="w-auto border-0 bg-transparent p-0 shadow-none"
+        align="end"
+        side="top"
+        sideOffset={8}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
+        <div
+          className="[&_.epr-body]:overflow-y-auto [&_.epr-emoji-list]:overflow-y-auto"
+          onWheel={(e) => e.stopPropagation()}
+        >
+          <Suspense fallback={<EmojiPickerSkeleton />}>
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
+              width={320}
+              height={400}
+              searchPlaceHolder="Search emoji..."
+              previewConfig={{ showPreview: false }}
+              skinTonesDisabled
+              lazyLoadEmojis
+            />
+          </Suspense>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }

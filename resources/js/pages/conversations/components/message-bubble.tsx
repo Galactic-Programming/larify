@@ -23,6 +23,7 @@ import {
     Reply,
     Trash2,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { memo } from 'react';
 import { AttachmentsSection } from './attachment-renderer';
 import { MessageReactions, ReactionPicker } from './message-reactions';
@@ -41,6 +42,8 @@ interface MessageBubbleProps {
     onReaction?: (emoji: string) => void;
     canEdit?: boolean;
     canDelete?: boolean;
+    /** Index in the messages array, used for stagger animation */
+    index?: number;
 }
 
 /**
@@ -56,14 +59,36 @@ export const MessageBubble = memo(function MessageBubble({
     onReaction,
     canEdit,
     canDelete,
+    index = 0,
 }: MessageBubbleProps) {
     const isMine = message.is_mine;
 
+    // For own messages, use a regular div to avoid animation glitches from optimistic updates
+    // When server response replaces the optimistic message, the key changes causing re-mount
+    // Using motion.div would trigger animation again, causing the "flicker" effect
+    const Wrapper = isMine ? 'div' : motion.div;
+
+    // Animation props only for other people's messages
+    const motionProps = isMine
+        ? {}
+        : {
+            initial: { opacity: 0, y: 20, scale: 0.95 },
+            animate: { opacity: 1, y: 0, scale: 1 },
+            exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
+            transition: {
+                type: 'spring',
+                stiffness: 400,
+                damping: 25,
+                mass: 0.5,
+            },
+        };
+
     return (
-        <div
+        <Wrapper
             data-message-id={message.id}
+            {...motionProps}
             className={cn(
-                'group flex items-end gap-2 transition-colors duration-500',
+                'group flex items-end gap-2',
                 isMine && 'flex-row-reverse',
             )}
         >
@@ -222,37 +247,77 @@ export const MessageBubble = memo(function MessageBubble({
                             />
                         )}
 
-                        {/* Time & Status */}
+                        {/* Footer: Reactions (left) + Time & Status (right) - Telegram style */}
                         <div
                             className={cn(
-                                'mt-1 flex items-center gap-1 text-xs',
+                                'mt-1 flex items-end gap-2 text-xs',
                                 isMine
                                     ? 'text-primary-foreground/70'
                                     : 'text-muted-foreground',
                             )}
                         >
-                            <span>{formatMessageTime(message.created_at)}</span>
-                            {message.is_edited && <span>(edited)</span>}
-                            {/* Read status checkmarks (only for own messages) */}
-                            {isMine &&
-                                (message.is_read ? (
-                                    <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
-                                ) : (
-                                    <Check className="h-3.5 w-3.5 text-slate-400 dark:text-slate-300" />
-                                ))}
+                            {/* Reactions - left side */}
+                            {message.reactions && message.reactions.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                    {message.reactions.map((reaction) => (
+                                        <TooltipProvider key={reaction.emoji}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        onClick={() => onReaction?.(reaction.emoji)}
+                                                        className={cn(
+                                                            'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] transition-colors',
+                                                            reaction.reacted_by_me
+                                                                ? isMine
+                                                                    ? 'bg-white/20 text-primary-foreground'
+                                                                    : 'bg-primary/20 text-primary'
+                                                                : isMine
+                                                                    ? 'bg-white/10 text-primary-foreground/80 hover:bg-white/20'
+                                                                    : 'bg-black/5 text-slate-600 hover:bg-black/10 dark:bg-white/10 dark:text-slate-300',
+                                                        )}
+                                                        type="button"
+                                                    >
+                                                        <span>{reaction.emoji}</span>
+                                                        <span className="font-medium">
+                                                            {reaction.count}
+                                                        </span>
+                                                    </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <div className="text-xs">
+                                                        {reaction.users
+                                                            .slice(0, 10)
+                                                            .map((u) => u.name)
+                                                            .join(', ')}
+                                                        {reaction.users.length > 10 &&
+                                                            ` and ${reaction.users.length - 10} more`}
+                                                    </div>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Spacer to push time to right */}
+                            <div className="flex-1" />
+
+                            {/* Time & Status - right side */}
+                            <div className="flex shrink-0 items-center gap-1">
+                                <span>{formatMessageTime(message.created_at)}</span>
+                                {message.is_edited && <span>(edited)</span>}
+                                {/* Read status checkmarks (only for own messages) */}
+                                {isMine &&
+                                    (message.is_read ? (
+                                        <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+                                    ) : (
+                                        <Check className="h-3.5 w-3.5 opacity-70" />
+                                    ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Reactions */}
-                {onReaction && message.reactions && (
-                    <MessageReactions
-                        reactions={message.reactions}
-                        onToggle={onReaction}
-                        isMine={isMine}
-                    />
-                )}
             </div>
-        </div>
+        </Wrapper>
     );
 });
