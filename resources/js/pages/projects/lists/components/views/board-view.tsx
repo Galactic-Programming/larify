@@ -30,7 +30,7 @@ import {
 import { router } from '@inertiajs/react';
 import { Circle, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Permissions, Project, Task, TaskList } from '../../lib/types';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { SortableTaskCard } from '../../tasks/components/sortable-task-card';
@@ -62,6 +62,25 @@ export function BoardView({
     useMemo(() => {
         setLocalLists(project.lists);
     }, [project.lists]);
+
+    // Sync selectedTask with updated task data from project.lists
+    useEffect(() => {
+        if (selectedTask) {
+            // Find the updated task from project.lists
+            for (const list of project.lists) {
+                const updatedTask = list.tasks.find((t) => t.id === selectedTask.id);
+                if (updatedTask) {
+                    // Only update if task data has changed
+                    if (JSON.stringify(updatedTask) !== JSON.stringify(selectedTask)) {
+                        setSelectedTask(updatedTask);
+                    }
+                    return;
+                }
+            }
+            // Task was deleted (not found in any list)
+            setSelectedTask(null);
+        }
+    }, [project.lists, selectedTask]);
 
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
     const handleTaskDeleted = useCallback(

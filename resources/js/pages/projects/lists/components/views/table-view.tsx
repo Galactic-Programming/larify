@@ -247,6 +247,25 @@ export function TableView({ project, permissions }: TableViewProps) {
         setCurrentPage(1);
     };
 
+    // Sync selectedTask with updated task data from project.lists
+    useEffect(() => {
+        if (selectedTask) {
+            // Find the updated task from project.lists
+            for (const list of project.lists) {
+                const updatedTask = list.tasks.find((t) => t.id === selectedTask.id);
+                if (updatedTask) {
+                    // Only update if task data has changed
+                    if (JSON.stringify(updatedTask) !== JSON.stringify(selectedTask)) {
+                        setSelectedTask(updatedTask);
+                    }
+                    return;
+                }
+            }
+            // Task was deleted (not found in any list)
+            setSelectedTask(null);
+        }
+    }, [project.lists, selectedTask]);
+
     // Handle task deletion from real-time updates - close sheet if viewing deleted task
     const handleTaskDeleted = useCallback(
         (taskId: number) => {
