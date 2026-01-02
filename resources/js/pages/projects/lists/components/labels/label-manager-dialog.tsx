@@ -4,6 +4,16 @@ import {
     update,
 } from '@/actions/App/Http/Controllers/Projects/LabelController';
 import InputError from '@/components/input-error';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,6 +60,7 @@ export function LabelManagerDialog({
     const [internalOpen, setInternalOpen] = useState(false);
     const [editingLabel, setEditingLabel] = useState<LabelType | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [labelToDelete, setLabelToDelete] = useState<LabelType | null>(null);
 
     // Form state
     const [name, setName] = useState('');
@@ -98,6 +109,7 @@ export function LabelManagerDialog({
             { name, color },
             {
                 preserveScroll: true,
+                preserveState: false,
                 onSuccess: () => {
                     resetForm();
                 },
@@ -120,6 +132,7 @@ export function LabelManagerDialog({
             { name, color },
             {
                 preserveScroll: true,
+                preserveState: false,
                 onSuccess: () => {
                     resetForm();
                 },
@@ -132,14 +145,16 @@ export function LabelManagerDialog({
     };
 
     const handleDelete = (label: LabelType) => {
-        if (
-            !confirm(`Are you sure you want to delete the label "${label.name}"?`)
-        ) {
-            return;
-        }
+        setLabelToDelete(label);
+    };
 
-        router.delete(destroy({ project, label }).url, {
+    const confirmDelete = () => {
+        if (!labelToDelete) return;
+
+        router.delete(destroy({ project, label: labelToDelete }).url, {
             preserveScroll: true,
+            preserveState: false,
+            onFinish: () => setLabelToDelete(null),
         });
     };
 
@@ -277,8 +292,8 @@ export function LabelManagerDialog({
                                     {isProcessing
                                         ? 'Saving...'
                                         : editingLabel
-                                          ? 'Update'
-                                          : 'Create'}
+                                            ? 'Update'
+                                            : 'Create'}
                                 </Button>
                             </div>
                         </div>
@@ -337,7 +352,7 @@ export function LabelManagerDialog({
                                                     className={cn(
                                                         'inline-flex h-3 w-3 rounded-full',
                                                         LABEL_SOLID_CLASSES[
-                                                            label.color
+                                                        label.color
                                                         ],
                                                     )}
                                                 />
@@ -391,6 +406,35 @@ export function LabelManagerDialog({
                     </Button>
                 </DialogFooter>
             </DialogContent>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog
+                open={!!labelToDelete}
+                onOpenChange={(open) => !open && setLabelToDelete(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Label</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete the label{' '}
+                            <span className="font-medium text-foreground">
+                                "{labelToDelete?.name}"
+                            </span>
+                            ? This will remove it from all tasks that use it.
+                            This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Dialog>
     );
 }

@@ -348,21 +348,26 @@ export function ListsHeader({
 
                 {/* Labels Manager - Only for editors */}
                 {permissions.canEdit && (
-                    <LabelManagerDialog
-                        project={project}
-                        permissions={permissions}
-                        trigger={
-                            <Button variant="outline" size="sm">
-                                <Tag className="size-4" />
-                                Labels
-                                {project.labels && project.labels.length > 0 && (
-                                    <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">
-                                        {project.labels.length}
-                                    </Badge>
-                                )}
-                            </Button>
-                        }
-                    />
+                    <Tooltip>
+                        <LabelManagerDialog
+                            project={project}
+                            permissions={permissions}
+                            trigger={
+                                <TooltipTrigger asChild>
+                                    <Button>
+                                        <Tag className="size-4" />
+                                        Labels
+                                        {project.labels && project.labels.length > 0 && (
+                                            <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">
+                                                {project.labels.length}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </TooltipTrigger>
+                            }
+                        />
+                        <TooltipContent>Manage Labels</TooltipContent>
+                    </Tooltip>
                 )}
 
                 {/* Project Trash - Only for editors */}
