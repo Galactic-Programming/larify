@@ -29,18 +29,29 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { router } from '@inertiajs/react';
-import { Pencil, Plus, Tag, Trash2, X } from 'lucide-react';
+import { Check, Lock, Palette, Pencil, Plus, Tag, Trash2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState, type ReactNode } from 'react';
 import {
     FREE_LABEL_COLORS,
+    LABEL_COLORS,
     type Label as LabelType,
     type LabelColorName,
     type Permissions,
     type Project,
     PRO_LABEL_COLORS,
 } from '../../lib/types';
+
+// Helper to check if a color is a preset color name
+const ALL_PRESET_COLORS = [...FREE_LABEL_COLORS, ...PRO_LABEL_COLORS];
+const isPresetColor = (color: string): color is LabelColorName =>
+    ALL_PRESET_COLORS.includes(color as LabelColorName);
 import { LABEL_BG_CLASSES, LABEL_SOLID_CLASSES } from './label-badge';
 
 interface LabelManagerSheetProps {
@@ -64,7 +75,8 @@ export function LabelManagerSheet({
 
     // Form state
     const [name, setName] = useState('');
-    const [color, setColor] = useState<LabelColorName>('blue');
+    const [color, setColor] = useState<string>('blue');
+    const [customColor, setCustomColor] = useState('#3b82f6'); // Default blue hex
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -95,6 +107,7 @@ export function LabelManagerSheet({
     const resetForm = () => {
         setName('');
         setColor('blue');
+        setCustomColor('#3b82f6');
         setErrors({});
         setEditingLabel(null);
     };
@@ -162,7 +175,15 @@ export function LabelManagerSheet({
     const startEditing = (label: LabelType) => {
         setEditingLabel(label);
         setName(label.name);
-        setColor(label.color);
+        // Check if the label has a custom color (hex) or preset
+        if (isPresetColor(label.color)) {
+            setColor(label.color);
+            setCustomColor(LABEL_COLORS[label.color]);
+        } else {
+            // Custom hex color
+            setColor(label.color);
+            setCustomColor(label.color);
+        }
         setErrors({});
     };
 
@@ -244,7 +265,7 @@ export function LabelManagerSheet({
 
                                 <div className="space-y-2">
                                     <Label>Color</Label>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex flex-wrap items-center gap-1.5">
                                         {availableColors.map((c) => (
                                             <motion.button
                                                 key={c}
@@ -269,6 +290,54 @@ export function LabelManagerSheet({
                                                 title={c}
                                             />
                                         ))}
+                                        {/* Custom color picker - Pro only */}
+                                        {hasExtendedColors ? (
+                                            <motion.div
+                                                className="relative"
+                                                whileHover={{ scale: 1.15 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <input
+                                                    type="color"
+                                                    value={customColor}
+                                                    onChange={(e) => {
+                                                        setCustomColor(e.target.value);
+                                                        setColor(e.target.value);
+                                                    }}
+                                                    className="absolute inset-0 size-6 cursor-pointer opacity-0"
+                                                    title="Pick custom color"
+                                                />
+                                                <div
+                                                    className={cn(
+                                                        'flex size-6 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 transition-colors hover:border-foreground',
+                                                        !isPresetColor(color) &&
+                                                        'ring-2 ring-primary ring-offset-2',
+                                                    )}
+                                                    style={{
+                                                        backgroundColor: !isPresetColor(color)
+                                                            ? color
+                                                            : 'transparent',
+                                                    }}
+                                                >
+                                                    {isPresetColor(color) ? (
+                                                        <Palette className="size-3 text-muted-foreground" />
+                                                    ) : (
+                                                        <Check className="size-3 text-white" />
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ) : (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex size-6 cursor-not-allowed items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 opacity-50">
+                                                        <Palette className="size-3 text-muted-foreground" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Custom colors - Upgrade to Pro</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )}
                                     </div>
                                     {!hasExtendedColors && (
                                         <p className="text-xs text-muted-foreground">
@@ -298,8 +367,19 @@ export function LabelManagerSheet({
                                                     <Badge
                                                         className={cn(
                                                             'border',
-                                                            LABEL_BG_CLASSES[color],
+                                                            isPresetColor(color)
+                                                                ? LABEL_BG_CLASSES[color]
+                                                                : 'text-white border-transparent',
                                                         )}
+                                                        style={
+                                                            !isPresetColor(color)
+                                                                ? {
+                                                                    backgroundColor: `color-mix(in srgb, ${color} 20%, transparent)`,
+                                                                    color: color,
+                                                                    borderColor: `color-mix(in srgb, ${color} 30%, transparent)`,
+                                                                }
+                                                                : undefined
+                                                        }
                                                     >
                                                         {name}
                                                     </Badge>

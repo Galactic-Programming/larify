@@ -24,7 +24,7 @@ import { Check, Plus, Tag } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useMemo, useState } from 'react';
 import type { Label, Project, Task } from '../../lib/types';
-import { LabelList, LABEL_SOLID_CLASSES } from './label-badge';
+import { isPresetColor, LabelList, LABEL_SOLID_CLASSES } from './label-badge';
 
 interface LabelFieldProps {
     project: Project;
@@ -222,10 +222,14 @@ export function LabelField({
                                                         <span
                                                             className={cn(
                                                                 'inline-flex size-3.5 rounded-full',
-                                                                LABEL_SOLID_CLASSES[
-                                                                label.color
-                                                                ],
+                                                                isPresetColor(label.color) &&
+                                                                    LABEL_SOLID_CLASSES[label.color],
                                                             )}
+                                                            style={
+                                                                !isPresetColor(label.color)
+                                                                    ? { backgroundColor: label.color }
+                                                                    : undefined
+                                                            }
                                                         />
                                                         <span
                                                             className={cn(

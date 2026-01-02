@@ -357,11 +357,6 @@ export function ListsHeader({
                                     <Button>
                                         <Tag className="size-4" />
                                         Labels
-                                        {project.labels && project.labels.length > 0 && (
-                                            <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">
-                                                {project.labels.length}
-                                            </Badge>
-                                        )}
                                     </Button>
                                 </TooltipTrigger>
                             }

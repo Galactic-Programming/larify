@@ -25,6 +25,13 @@ const LABEL_COLOR_MAP: Record<LabelColorName, string> = {
     lime: '#84cc16',
 };
 
+// All preset color names
+const ALL_PRESET_COLORS = Object.keys(LABEL_COLOR_MAP) as LabelColorName[];
+
+// Helper to check if a color is a preset color name
+const isPresetColor = (color: string): color is LabelColorName =>
+    ALL_PRESET_COLORS.includes(color as LabelColorName);
+
 // Tailwind classes for label background colors (with opacity for better readability)
 const LABEL_BG_CLASSES: Record<LabelColorName, string> = {
     gray: 'bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-500/30',
@@ -78,10 +85,29 @@ export function LabelBadge({
     showTooltip = false,
     maxWidth,
 }: LabelBadgeProps) {
-    const colorClasses =
-        variant === 'solid'
-            ? LABEL_SOLID_CLASSES[label.color]
-            : LABEL_BG_CLASSES[label.color];
+    // Check if color is a preset or custom hex
+    const isCustomColor = !isPresetColor(label.color);
+
+    const colorClasses = isCustomColor
+        ? ''
+        : variant === 'solid'
+            ? LABEL_SOLID_CLASSES[label.color as LabelColorName]
+            : LABEL_BG_CLASSES[label.color as LabelColorName];
+
+    // Custom color styles for hex colors
+    const customColorStyle = isCustomColor
+        ? variant === 'solid'
+            ? {
+                backgroundColor: label.color,
+                color: '#ffffff',
+                borderColor: 'transparent',
+            }
+            : {
+                backgroundColor: `color-mix(in srgb, ${label.color} 15%, transparent)`,
+                color: label.color,
+                borderColor: `color-mix(in srgb, ${label.color} 30%, transparent)`,
+            }
+        : undefined;
 
     const sizeClasses =
         size === 'sm'
@@ -97,7 +123,10 @@ export function LabelBadge({
                 removable && 'pr-1',
                 className,
             )}
-            style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}
+            style={{
+                ...(maxWidth ? { maxWidth: `${maxWidth}px` } : {}),
+                ...customColorStyle,
+            }}
         >
             <span className="truncate">{label.name}</span>
             {removable && onRemove && (
@@ -218,4 +247,4 @@ export function LabelList({
 }
 
 // Export color utilities for use in other components
-export { LABEL_BG_CLASSES, LABEL_COLOR_MAP, LABEL_SOLID_CLASSES };
+export { isPresetColor, LABEL_BG_CLASSES, LABEL_COLOR_MAP, LABEL_SOLID_CLASSES };

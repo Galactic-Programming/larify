@@ -21,7 +21,7 @@ export interface Label {
     id: number;
     project_id: number;
     name: string;
-    color: LabelColorName;
+    color: LabelColorName | string; // Can be preset name or custom hex
     created_at: string;
     updated_at: string;
 }
