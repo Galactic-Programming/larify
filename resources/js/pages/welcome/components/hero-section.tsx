@@ -116,11 +116,11 @@ export function HeroSection({ canRegister = true }: HeroSectionProps) {
                     <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-muted-foreground delay-400 duration-500">
                         <span className="flex items-center gap-1.5">
                             <CheckIcon className="size-4 text-green-500" />
-                            Free 14-day trial
+                            Free plan available
                         </span>
                         <span className="flex items-center gap-1.5">
                             <CheckIcon className="size-4 text-green-500" />
-                            No credit card required
+                            Secure payments via Stripe
                         </span>
                         <span className="flex items-center gap-1.5">
                             <CheckIcon className="size-4 text-green-500" />

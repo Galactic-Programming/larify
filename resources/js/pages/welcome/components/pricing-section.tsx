@@ -3,17 +3,24 @@ import { CheckIcon, SparklesIcon, XIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+} from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 import { type SharedData } from '@/types';
-import { cn } from '@/lib/utils';
 
 type PricingPlan = {
     name: string;
     description: string;
     price: string;
     period: string;
+    priceNote?: string;
     popular?: boolean;
+    badge?: string;
     features: { name: string; included: boolean }[];
     cta: string;
     ctaVariant: 'default' | 'outline';
@@ -22,58 +29,63 @@ type PricingPlan = {
 const pricingPlans: PricingPlan[] = [
     {
         name: 'Free',
-        description: 'Perfect for getting started',
+        description: 'Perfect for personal use',
         price: '$0',
         period: '/month',
         features: [
-            { name: 'Up to 10 tasks per day', included: true },
-            { name: 'Basic focus timer', included: true },
-            { name: 'Single device sync', included: true },
-            { name: 'Community support', included: true },
-            { name: 'AI task suggestions', included: false },
+            { name: 'Up to 3 projects', included: true },
+            { name: 'Up to 5 lists per project', included: true },
+            { name: 'Unlimited tasks', included: true },
+            { name: 'Task priorities & due dates', included: true },
+            { name: '7-day activity history', included: true },
+            { name: 'Basic color & icon palette', included: true },
+            { name: 'In-app chat', included: true },
             { name: 'Team collaboration', included: false },
-            { name: 'Advanced analytics', included: false },
-            { name: 'Priority support', included: false },
+            { name: 'Real-time updates', included: false },
         ],
-        cta: 'Get Started',
+        cta: 'Get Started Free',
         ctaVariant: 'outline',
     },
     {
-        name: 'Pro',
-        description: 'Best for professionals',
-        price: '$12',
+        name: 'Pro Monthly',
+        description: 'For teams and professionals',
+        price: '$9.99',
         period: '/month',
         popular: true,
         features: [
+            { name: 'Unlimited projects', included: true },
+            { name: 'Unlimited lists per project', included: true },
             { name: 'Unlimited tasks', included: true },
-            { name: 'Advanced focus mode', included: true },
-            { name: 'All devices sync', included: true },
-            { name: 'Email support', included: true },
-            { name: 'AI task suggestions', included: true },
-            { name: 'Team collaboration (up to 5)', included: true },
-            { name: 'Advanced analytics', included: true },
-            { name: 'Priority support', included: false },
+            { name: 'Full activity history', included: true },
+            { name: 'Full color & icon palette', included: true },
+            { name: 'Team collaboration', included: true },
+            { name: 'In-app chat', included: true },
+            { name: 'Real-time updates', included: true },
+            { name: 'Priority support', included: true },
         ],
-        cta: 'Start Free Trial',
+        cta: 'Get Started',
         ctaVariant: 'default',
     },
     {
-        name: 'Enterprise',
-        description: 'For large teams',
-        price: '$49',
-        period: '/month',
+        name: 'Pro Yearly',
+        description: 'Best value for teams',
+        price: '$99.90',
+        period: '/year',
+        priceNote: '$8.33/month',
+        badge: 'Save 17%',
         features: [
-            { name: 'Everything in Pro', included: true },
-            { name: 'Unlimited team members', included: true },
-            { name: 'SSO & SAML', included: true },
-            { name: 'Custom integrations', included: true },
-            { name: 'Advanced AI features', included: true },
-            { name: 'Dedicated account manager', included: true },
-            { name: 'Custom analytics', included: true },
-            { name: '24/7 Priority support', included: true },
+            { name: 'Unlimited projects', included: true },
+            { name: 'Unlimited lists per project', included: true },
+            { name: 'Unlimited tasks', included: true },
+            { name: 'Full activity history', included: true },
+            { name: 'Full color & icon palette', included: true },
+            { name: 'Team collaboration', included: true },
+            { name: 'In-app chat', included: true },
+            { name: 'Real-time updates', included: true },
+            { name: 'Priority support', included: true },
         ],
-        cta: 'Contact Sales',
-        ctaVariant: 'outline',
+        cta: 'Get Started',
+        ctaVariant: 'default',
     },
 ];
 
@@ -84,16 +96,16 @@ export function PricingSection() {
         <section id="pricing" className="py-12 sm:py-16 lg:py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mx-auto max-w-3xl text-center mb-10 sm:mb-14">
+                <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
                     <Badge variant="secondary" className="mb-4">
                         Pricing
                     </Badge>
-                    <h2 className="text-2xl font-semibold mb-4 md:text-3xl lg:text-4xl">
+                    <h2 className="mb-4 text-2xl font-semibold md:text-3xl lg:text-4xl">
                         Simple, Transparent Pricing
                     </h2>
                     <p className="text-base text-muted-foreground sm:text-lg">
-                        Choose the plan that fits your needs. All plans include a
-                        14-day free trial with no credit card required.
+                        Choose the plan that fits your needs. Upgrade or
+                        downgrade anytime.
                     </p>
                 </div>
 
@@ -104,7 +116,8 @@ export function PricingSection() {
                             key={plan.name}
                             className={cn(
                                 'relative flex flex-col transition-all duration-300 hover:shadow-lg',
-                                plan.popular && 'border-primary shadow-lg scale-[1.02] lg:scale-105'
+                                plan.popular &&
+                                'scale-[1.02] border-primary shadow-lg lg:scale-105',
                             )}
                         >
                             {plan.popular && (
@@ -116,8 +129,21 @@ export function PricingSection() {
                                 </div>
                             )}
 
-                            <CardHeader className="text-center pb-2">
-                                <h3 className="text-xl font-semibold">{plan.name}</h3>
+                            {plan.badge && !plan.popular && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-green-100 px-3 py-1 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    >
+                                        {plan.badge}
+                                    </Badge>
+                                </div>
+                            )}
+
+                            <CardHeader className="pb-2 text-center">
+                                <h3 className="text-xl font-semibold">
+                                    {plan.name}
+                                </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {plan.description}
                                 </p>
@@ -125,9 +151,18 @@ export function PricingSection() {
 
                             <CardContent className="flex-1">
                                 {/* Price */}
-                                <div className="text-center mb-6">
-                                    <span className="text-4xl font-bold">{plan.price}</span>
-                                    <span className="text-muted-foreground">{plan.period}</span>
+                                <div className="mb-6 text-center">
+                                    <span className="text-4xl font-bold">
+                                        {plan.price}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                        {plan.period}
+                                    </span>
+                                    {plan.priceNote && (
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            ({plan.priceNote})
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Features */}
@@ -138,15 +173,15 @@ export function PricingSection() {
                                             className="flex items-start gap-2 text-sm"
                                         >
                                             {feature.included ? (
-                                                <CheckIcon className="size-4 shrink-0 text-green-500 mt-0.5" />
+                                                <CheckIcon className="mt-0.5 size-4 shrink-0 text-green-500" />
                                             ) : (
-                                                <XIcon className="size-4 shrink-0 text-muted-foreground/50 mt-0.5" />
+                                                <XIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground/50" />
                                             )}
                                             <span
                                                 className={cn(
                                                     feature.included
                                                         ? 'text-foreground'
-                                                        : 'text-muted-foreground/50'
+                                                        : 'text-muted-foreground/50',
                                                 )}
                                             >
                                                 {feature.name}
@@ -164,10 +199,12 @@ export function PricingSection() {
                                             'w-full',
                                             plan.popular &&
                                             plan.ctaVariant === 'default' &&
-                                            'bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
+                                            'bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90',
                                         )}
                                     >
-                                        {plan.name === 'Enterprise' ? 'Contact Sales' : 'Upgrade Now'}
+                                        {plan.name === 'Free'
+                                            ? 'Current Plan'
+                                            : 'Upgrade Now'}
                                     </Button>
                                 ) : (
                                     <Button
@@ -176,7 +213,7 @@ export function PricingSection() {
                                             'w-full',
                                             plan.popular &&
                                             plan.ctaVariant === 'default' &&
-                                            'bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
+                                            'bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90',
                                         )}
                                         asChild
                                     >
@@ -190,9 +227,9 @@ export function PricingSection() {
                     ))}
                 </div>
 
-                {/* Money back guarantee */}
+                {/* Additional info */}
                 <p className="mt-8 text-center text-sm text-muted-foreground">
-                    💰 30-day money-back guarantee • No questions asked
+                    🔒 Secure payments via Stripe • Cancel anytime
                 </p>
             </div>
         </section>

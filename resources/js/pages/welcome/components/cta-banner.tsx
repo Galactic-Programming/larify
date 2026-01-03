@@ -45,8 +45,9 @@ export function CTABanner({ canRegister = true }: CTABannerProps) {
 
                 {/* Description */}
                 <p className="mx-auto mb-8 max-w-2xl text-base text-white/80 sm:text-lg">
-                    Join thousands of professionals who have transformed their workflow
-                    with Laraflow. Start your free trial today and experience the difference.
+                    Join thousands of professionals who have transformed their
+                    workflow with Laraflow. Get started for free and upgrade
+                    when you're ready.
                 </p>
 
                 {/* CTA Buttons */}
@@ -71,7 +72,7 @@ export function CTABanner({ canRegister = true }: CTABannerProps) {
                                     asChild
                                 >
                                     <Link href={register()}>
-                                        Start Free Trial
+                                        Get Started Free
                                         <ArrowRightIcon className="ml-2 size-4" />
                                     </Link>
                                 </Button>
@@ -90,8 +91,8 @@ export function CTABanner({ canRegister = true }: CTABannerProps) {
 
                 {/* Trust badges */}
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-white/70">
-                    <span>✓ 14-day free trial</span>
-                    <span>✓ No credit card required</span>
+                    <span>✓ Free plan available</span>
+                    <span>✓ Secure payments via Stripe</span>
                     <span>✓ Cancel anytime</span>
                 </div>
             </div>
