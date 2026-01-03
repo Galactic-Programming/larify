@@ -114,6 +114,14 @@ class Task extends Model
     }
 
     /**
+     * Get the attachments for this task.
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(TaskAttachment::class);
+    }
+
+    /**
      * Check if the task is completed.
      */
     public function isCompleted(): bool

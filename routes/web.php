@@ -16,6 +16,7 @@ use App\Http\Controllers\Projects\ProjectTrashController;
 use App\Http\Controllers\TaskComments\TaskCommentController;
 use App\Http\Controllers\TaskComments\TaskCommentReactionController;
 use App\Http\Controllers\TaskLists\TaskListController;
+use App\Http\Controllers\Tasks\TaskAttachmentController;
 use App\Http\Controllers\Tasks\TaskController;
 use App\Http\Controllers\Tasks\TaskLabelController;
 use App\Http\Controllers\Trash\TrashController;
@@ -116,6 +117,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('projects/{project}/tasks/{task}/comments/{comment}/reactions', [TaskCommentReactionController::class, 'toggle'])
         ->middleware('throttle:60,1')
         ->name('projects.tasks.comments.reactions.toggle');
+
+    // Task Attachments
+    Route::get('api/projects/{project}/tasks/{task}/attachments', [TaskAttachmentController::class, 'index'])
+        ->name('api.projects.tasks.attachments.index');
+    Route::post('projects/{project}/tasks/{task}/attachments', [TaskAttachmentController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('projects.tasks.attachments.store');
+    Route::delete('projects/{project}/tasks/{task}/attachments/{taskAttachment}', [TaskAttachmentController::class, 'destroy'])
+        ->middleware('throttle:30,1')
+        ->name('projects.tasks.attachments.destroy');
+    Route::get('task-attachments/{taskAttachment}', [TaskAttachmentController::class, 'show'])
+        ->name('task-attachments.show');
+    Route::get('task-attachments/{taskAttachment}/download', [TaskAttachmentController::class, 'download'])
+        ->name('task-attachments.download');
 
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index'])

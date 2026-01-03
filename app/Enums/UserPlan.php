@@ -145,6 +145,54 @@ enum UserPlan: string
     }
 
     /**
+     * Check if this plan can upload task attachments.
+     */
+    public function canUploadAttachments(): bool
+    {
+        return $this === self::Pro;
+    }
+
+    /**
+     * Get maximum file size in bytes for attachments.
+     */
+    public function maxAttachmentSize(): int
+    {
+        return match ($this) {
+            self::Free => 5 * 1024 * 1024,  // 5 MB
+            self::Pro => 25 * 1024 * 1024,   // 25 MB
+        };
+    }
+
+    /**
+     * Get maximum storage in bytes for attachments.
+     */
+    public function maxAttachmentStorage(): int
+    {
+        return match ($this) {
+            self::Free => 50 * 1024 * 1024,   // 50 MB
+            self::Pro => 1024 * 1024 * 1024,  // 1 GB
+        };
+    }
+
+    /**
+     * Get allowed file extensions for attachments.
+     *
+     * @return array<string>
+     */
+    public function allowedAttachmentExtensions(): array
+    {
+        $basic = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'txt', 'md'];
+
+        return match ($this) {
+            self::Free => $basic,
+            self::Pro => array_merge($basic, [
+                'svg', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+                'csv', 'json', 'zip', 'rar',
+            ]),
+        };
+    }
+
+    /**
      * Get all limits as array (useful for frontend).
      *
      * @return array<string, mixed>
@@ -164,6 +212,12 @@ enum UserPlan: string
             'can_create_comments' => $this->canCreateComments(),
             'can_use_mentions' => $this->canUseMentions(),
             'can_use_comment_reactions' => $this->canUseCommentReactions(),
+            'can_upload_attachments' => $this->canUploadAttachments(),
+            'max_attachment_size' => $this->maxAttachmentSize(),
+            'max_attachment_size_mb' => $this->maxAttachmentSize() / 1024 / 1024,
+            'max_attachment_storage' => $this->maxAttachmentStorage(),
+            'max_attachment_storage_mb' => $this->maxAttachmentStorage() / 1024 / 1024,
+            'allowed_attachment_extensions' => $this->allowedAttachmentExtensions(),
         ];
     }
 }

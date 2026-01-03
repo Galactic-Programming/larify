@@ -22,6 +22,7 @@ export function usePlanFeatures() {
         canInviteMembers: limits?.can_invite_members ?? false,
         canUseDueDateReminders: limits?.can_use_due_date_reminders ?? false,
         hasFullPalette: limits?.has_full_palette ?? false,
+        canUploadAttachments: limits?.can_upload_attachments ?? false,
 
         // Limit checks
         canCreateProject: limits?.can_create_project ?? false,
@@ -29,6 +30,15 @@ export function usePlanFeatures() {
         maxProjects: limits?.max_projects ?? 3,
         maxListsPerProject: limits?.max_lists_per_project ?? 5,
         activityRetentionDays: limits?.activity_retention_days ?? 7,
+
+        // Attachment limits
+        maxAttachmentSize: limits?.max_attachment_size ?? 5 * 1024 * 1024,
+        maxAttachmentSizeMb: limits?.max_attachment_size_mb ?? 5,
+        maxAttachmentStorage:
+            limits?.max_attachment_storage ?? 50 * 1024 * 1024,
+        maxAttachmentStorageMb: limits?.max_attachment_storage_mb ?? 50,
+        allowedAttachmentExtensions:
+            limits?.allowed_attachment_extensions ?? [],
 
         // Current usage
         currentProjects: limits?.current_projects ?? 0,

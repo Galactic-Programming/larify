@@ -28,6 +28,7 @@ import {
     TaskFooterActions,
     TaskHeader,
 } from './task-detail';
+import { TaskAttachmentsPanel } from './task-attachments';
 import { TaskCommentsPanel } from './task-comments';
 
 interface TaskDetailSheetProps {
@@ -263,7 +264,7 @@ export function TaskDetailSheet({
     return (
         <>
             <Sheet open={open} onOpenChange={onOpenChange}>
-                <SheetContent className="flex w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
+                <SheetContent className="flex w-full max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
                     <TaskHeader
                         task={task}
                         project={project}
@@ -275,7 +276,7 @@ export function TaskDetailSheet({
 
                     <ResizablePanelGroup direction="horizontal" className="flex-1">
                         {/* Task Details Panel */}
-                        <ResizablePanel defaultSize={50} minSize={35}>
+                        <ResizablePanel defaultSize={35} minSize={25}>
                             <div className="flex h-full flex-col">
                                 <ScrollArea className="flex-1">
                                     <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
@@ -327,10 +328,21 @@ export function TaskDetailSheet({
                         <ResizableHandle withHandle />
 
                         {/* Comments Panel */}
-                        <ResizablePanel defaultSize={50} minSize={30}>
+                        <ResizablePanel defaultSize={40} minSize={25}>
                             <TaskCommentsPanel
                                 projectId={project.id}
                                 taskId={task.id}
+                            />
+                        </ResizablePanel>
+
+                        <ResizableHandle withHandle />
+
+                        {/* Attachments Panel */}
+                        <ResizablePanel defaultSize={25} minSize={20}>
+                            <TaskAttachmentsPanel
+                                projectId={project.id}
+                                taskId={task.id}
+                                canEdit={permissions.canEdit}
                             />
                         </ResizablePanel>
                     </ResizablePanelGroup>

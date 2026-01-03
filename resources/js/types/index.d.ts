@@ -35,6 +35,13 @@ export interface PlanLimits {
     current_projects: number;
     can_create_project: boolean;
     remaining_project_slots: number | null;
+    // Attachment limits
+    can_upload_attachments: boolean;
+    max_attachment_size: number;
+    max_attachment_size_mb: number;
+    max_attachment_storage: number;
+    max_attachment_storage_mb: number;
+    allowed_attachment_extensions: string[];
 }
 
 export interface SharedData {
