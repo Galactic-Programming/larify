@@ -25,7 +25,7 @@ use Laravel\Fortify\Features;
 
 // Guest
 Route::get('/', function () {
-    return Inertia::render('welcome', [
+    return Inertia::render('welcome/index', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
