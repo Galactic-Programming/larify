@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { CircleCheckIcon } from 'lucide-react';
-import { motion } from 'motion/react';
 
 import { socialProofFeatures } from '../data/constants';
 
@@ -21,8 +20,8 @@ function AnimatedCounter({
             ([entry]) => {
                 if (entry.isIntersecting && !hasAnimated) {
                     setHasAnimated(true);
-                    const duration = 2000;
-                    const steps = 60;
+                    const duration = 1500; // Faster animation
+                    const steps = 40;
                     const increment = target / steps;
                     let current = 0;
 
@@ -48,7 +47,7 @@ function AnimatedCounter({
     }, [target, hasAnimated]);
 
     return (
-        <div ref={ref} className="mb-2 text-5xl font-bold lg:text-6xl">
+        <div ref={ref} className="mb-2 text-4xl font-bold sm:text-5xl lg:text-6xl">
             {count.toLocaleString()}
             {suffix}
         </div>
@@ -59,71 +58,55 @@ export function SocialProofSection() {
     return (
         <section className="py-12 sm:py-16 lg:py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center gap-12 max-lg:flex-col lg:gap-16">
-                    <motion.div
-                        initial={{ opacity: 0, x: -40 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-100px' }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <div className="space-y-4">
+                <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-16">
+                    {/* Content */}
+                    <div className="flex-1">
+                        <div className="space-y-3 sm:space-y-4">
                             <p className="text-sm font-medium text-primary uppercase">
-                                Why Larify
+                                Why Laraflow
                             </p>
                             <h2 className="text-2xl font-semibold md:text-3xl lg:text-4xl">
                                 Everything You Need to Achieve Peak Productivity
                             </h2>
-                            <p className="text-lg text-muted-foreground">
-                                Larify combines the best productivity techniques
+                            <p className="text-base text-muted-foreground sm:text-lg">
+                                Laraflow combines the best productivity techniques
                                 with modern AI to help you work smarter, not
                                 harder. Join thousands of professionals who have
                                 transformed their workflow.
                             </p>
                         </div>
 
-                        <ul className="mt-11 space-y-6 text-lg font-medium">
+                        <ul className="mt-6 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:grid-cols-1">
                             {socialProofFeatures.map((feature, index) => (
-                                <motion.li
+                                <li
                                     key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{
-                                        delay: 0.3 + index * 0.1,
-                                        duration: 0.4,
-                                    }}
-                                    className="flex gap-2"
+                                    className="flex items-start gap-2 text-base font-medium sm:text-lg"
                                 >
-                                    <CircleCheckIcon className="mt-0.75 size-5 text-primary" />
+                                    <CircleCheckIcon className="mt-0.5 size-5 shrink-0 text-primary" />
                                     <span>{feature.title}</span>
-                                </motion.li>
+                                </li>
                             ))}
                         </ul>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true, margin: '-100px' }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        whileHover={{ scale: 1.02 }}
-                        className="shrink-0"
-                    >
-                        <div className="relative flex size-72 items-center justify-center overflow-hidden rounded-2xl lg:size-80">
+                    {/* Stats Image */}
+                    <div className="w-full max-w-sm shrink-0 lg:w-auto">
+                        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl sm:size-72 lg:size-80">
                             <img
                                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80"
                                 alt="Team working together"
                                 className="absolute inset-0 h-full w-full object-cover"
+                                loading="lazy"
                             />
                             <div className="absolute inset-0 bg-black/60" />
                             <div className="relative z-10 text-center text-white">
                                 <AnimatedCounter target={1000} suffix="+" />
-                                <div className="text-base opacity-90 lg:text-lg">
+                                <div className="text-sm opacity-90 sm:text-base lg:text-lg">
                                     Active Users
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

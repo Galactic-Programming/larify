@@ -61,6 +61,7 @@ export type ContactInfo = {
 
 export const navigationItems: NavigationItem[] = [
     { title: 'Features', href: '#features' },
+    { title: 'Pricing', href: '#pricing' },
     { title: 'Testimonials', href: '#testimonials' },
     { title: 'FAQ', href: '#faq' },
     { title: 'Contact', href: '#contact' },
@@ -78,7 +79,7 @@ export const contactInfo: ContactInfo[] = [
     {
         title: 'Email Us',
         icon: MailIcon,
-        description: 'support@larify.com',
+        description: 'support@laraflow.com',
     },
     {
         title: 'Call Us',
@@ -101,7 +102,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
         rating: 5,
         content:
-            'Larify has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
+            'Laraflow has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
     },
     {
         name: 'Michael Rodriguez',
@@ -119,7 +120,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
         rating: 4.5,
         content:
-            'As a freelancer, tracking time across multiple projects was always a pain. Larify makes it effortless and even enjoyable.',
+            'As a freelancer, tracking time across multiple projects was always a pain. Laraflow makes it effortless and even enjoyable.',
     },
     {
         name: 'David Kim',
@@ -134,24 +135,24 @@ export const testimonials: Testimonial[] = [
 
 export const faqItems: FAQItem[] = [
     {
-        question: 'What is Larify?',
-        answer: 'Larify is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
+        question: 'What is Laraflow?',
+        answer: 'Laraflow is an AI-powered productivity application designed to help you achieve deep focus, manage tasks efficiently, and track your time. It combines intelligent scheduling, distraction blocking, and project management in one seamless experience.',
     },
     {
         question: 'Is there a free plan available?',
-        answer: 'Yes! We offer a free plan with essential features to get you started. You can explore Larify and upgrade to a paid plan anytime for access to premium features.',
+        answer: 'Yes! We offer a free plan with essential features to get you started. You can explore Laraflow and upgrade to a paid plan anytime for access to premium features.',
     },
     {
         question: 'How does the Focus Mode work?',
         answer: 'Focus Mode creates a distraction-free environment by blocking notifications, muting non-essential apps, and tracking your focus sessions. You can customize the duration and intensity of your focus sessions based on your preferences.',
     },
     {
-        question: 'Can I use Larify with my team?',
-        answer: 'Absolutely! Larify offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
+        question: 'Can I use Laraflow with my team?',
+        answer: 'Absolutely! Laraflow offers team plans that include shared projects, collaborative task management, and team analytics. You can easily assign tasks, track team progress, and improve overall productivity together.',
     },
     {
-        question: 'What platforms does Larify support?',
-        answer: 'Larify is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
+        question: 'What platforms does Laraflow support?',
+        answer: 'Laraflow is available on Web, macOS, Windows, iOS, and Android. Your data syncs seamlessly across all devices, so you can stay productive wherever you are.',
     },
     {
         question: 'How secure is my data?',

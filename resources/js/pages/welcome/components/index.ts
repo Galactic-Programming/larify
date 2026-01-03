@@ -1,8 +1,13 @@
+export { BackToTop } from './back-to-top';
 export { ContactSection } from './contact-section';
+export { CTABanner } from './cta-banner';
 export { FAQSection } from './faq-section';
 export { FeaturesSection } from './features-section';
 export { Footer } from './footer';
 export { Header } from './header';
 export { HeroSection } from './hero-section';
+export { LazyImage } from './lazy-image';
+export { LazySection } from './lazy-section';
+export { PricingSection } from './pricing-section';
 export { SocialProofSection } from './social-proof-section';
 export { TestimonialsSection } from './testimonials-section';
