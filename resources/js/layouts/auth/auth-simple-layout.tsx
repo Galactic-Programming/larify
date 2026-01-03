@@ -1,6 +1,7 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
-import { Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { motion, Variants } from 'motion/react';
 import { type PropsWithChildren } from 'react';
 
@@ -53,8 +54,20 @@ export default function AuthSimpleLayout({
     title,
     description,
 }: PropsWithChildren<AuthLayoutProps>) {
+    const { name } = usePage<SharedData>().props;
+
     return (
         <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 overflow-hidden bg-background p-6 md:p-10">
+            {/* Subtle dot pattern */}
+            <div
+                className="pointer-events-none absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(circle, currentColor 1px, transparent 1px)',
+                    backgroundSize: '24px 24px',
+                }}
+            />
+
             {/* Animated background gradient */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <motion.div
@@ -103,7 +116,7 @@ export default function AuthSimpleLayout({
                                 >
                                     <AppLogoIcon className="size-9 fill-current text-(--foreground) dark:text-white" />
                                 </motion.div>
-                                <span className="sr-only">{title}</span>
+                                <span className="text-lg font-semibold">{name}</span>
                             </Link>
                         </motion.div>
 
@@ -119,6 +132,30 @@ export default function AuthSimpleLayout({
                     </div>
                     <motion.div variants={itemVariants}>{children}</motion.div>
                 </div>
+            </motion.div>
+
+            {/* Footer security badge */}
+            <motion.div
+                className="relative z-10 text-center text-xs text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+            >
+                <p className="flex items-center gap-1.5">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        className="size-3.5"
+                    >
+                        <path
+                            fillRule="evenodd"
+                            d="M8 1a3.5 3.5 0 0 0-3.5 3.5V7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7V4.5A3.5 3.5 0 0 0 8 1Zm2 6V4.5a2 2 0 1 0-4 0V7h4Zm-1 2.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+                            clipRule="evenodd"
+                        />
+                    </svg>
+                    Secured with SSL encryption
+                </p>
             </motion.div>
         </div>
     );
