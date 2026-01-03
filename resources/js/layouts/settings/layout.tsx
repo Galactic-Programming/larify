@@ -1,5 +1,13 @@
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
@@ -7,46 +15,138 @@ import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
+import { Link, router } from '@inertiajs/react';
+import {
+    CreditCard,
+    Key,
+    Link2,
+    Palette,
+    Receipt,
+    ShieldCheck,
+    User,
+} from 'lucide-react';
+import { type PropsWithChildren, useState, type JSX } from 'react';
 
-const sidebarNavItems: NavItem[] = [
+type SettingsNavItem = NavItem & {
+    icon: JSX.Element;
+};
+
+const sidebarNavItems: SettingsNavItem[] = [
     {
         title: 'Profile',
         href: edit(),
-        icon: null,
+        icon: <User size={18} />,
     },
     {
         title: 'Password',
         href: editPassword(),
-        icon: null,
+        icon: <Key size={18} />,
     },
     {
         title: 'Two-Factor Auth',
         href: show(),
-        icon: null,
+        icon: <ShieldCheck size={18} />,
     },
     {
         title: 'Appearance',
         href: editAppearance(),
-        icon: null,
+        icon: <Palette size={18} />,
     },
     {
         title: 'Connections',
         href: '/settings/connections',
-        icon: null,
+        icon: <Link2 size={18} />,
     },
     {
         title: 'Subscription',
         href: '/settings/subscription',
-        icon: null,
+        icon: <CreditCard size={18} />,
     },
     {
         title: 'Invoices',
         href: '/settings/invoices',
-        icon: null,
+        icon: <Receipt size={18} />,
     },
 ];
+
+function SidebarNav({
+    items,
+    currentPath,
+}: {
+    items: SettingsNavItem[];
+    currentPath: string;
+}) {
+    const [val, setVal] = useState(currentPath);
+
+    const handleSelect = (href: string) => {
+        setVal(href);
+        router.visit(href);
+    };
+
+    const currentItem = items.find((item) => isSameUrl(currentPath, item.href));
+
+    return (
+        <>
+            {/* Mobile: Select Dropdown */}
+            <div className="p-1 md:hidden">
+                <Select value={val} onValueChange={handleSelect}>
+                    <SelectTrigger className="h-12 w-full">
+                        <SelectValue>
+                            {currentItem && (
+                                <div className="flex items-center gap-3">
+                                    <span className="scale-110">
+                                        {currentItem.icon}
+                                    </span>
+                                    <span>{currentItem.title}</span>
+                                </div>
+                            )}
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {items.map((item) => (
+                            <SelectItem
+                                key={resolveUrl(item.href)}
+                                value={resolveUrl(item.href)}
+                            >
+                                <div className="flex items-center gap-3 px-2 py-1">
+                                    <span className="scale-110">
+                                        {item.icon}
+                                    </span>
+                                    <span>{item.title}</span>
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Desktop: Vertical Nav with ScrollArea */}
+            <ScrollArea
+                orientation="horizontal"
+                className="hidden w-full min-w-40 bg-background px-1 py-2 md:block"
+            >
+                <nav className="flex flex-col space-y-1">
+                    {items.map((item) => (
+                        <Link
+                            key={resolveUrl(item.href)}
+                            href={item.href}
+                            className={cn(
+                                buttonVariants({ variant: 'ghost' }),
+                                isSameUrl(currentPath, item.href)
+                                    ? 'bg-muted hover:bg-accent'
+                                    : 'hover:bg-accent hover:underline',
+                                'justify-start',
+                            )}
+                        >
+                            <span className="me-2">{item.icon}</span>
+                            {item.title}
+                        </Link>
+                    ))}
+                </nav>
+            </ScrollArea>
+        </>
+    );
+}
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     // When server-side rendering, we only render the layout on the client...
@@ -63,40 +163,18 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 description="Manage your profile and account settings"
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full lg:w-48 lg:shrink-0">
-                    <nav className="scrollbar-none flex flex-row gap-1 overflow-x-auto pb-2 lg:flex-col lg:gap-0 lg:space-y-1 lg:overflow-visible lg:pb-0">
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
-                                key={`${resolveUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn(
-                                    'shrink-0 justify-start whitespace-nowrap lg:w-full',
-                                    {
-                                        'bg-muted': isSameUrl(
-                                            currentPath,
-                                            item.href,
-                                        ),
-                                    },
-                                )}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
-                                    )}
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
+            <Separator className="my-4 lg:my-6" />
+
+            <div className="flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-x-12 lg:space-y-0">
+                <aside className="top-0 lg:sticky lg:w-1/5">
+                    <SidebarNav
+                        items={sidebarNavItems}
+                        currentPath={currentPath}
+                    />
                 </aside>
 
-                <Separator className="my-4 lg:my-6 lg:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-8 sm:space-y-12">
+                <div className="flex w-full overflow-y-hidden p-1">
+                    <section className="max-w-xl flex-1 space-y-8 sm:space-y-12">
                         {children}
                     </section>
                 </div>
