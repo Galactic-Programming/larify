@@ -136,10 +136,19 @@ export function FileUpload({ projectId, taskId, onSuccess, onError }: FileUpload
             });
 
             xhr.open('POST', `/projects/${projectId}/tasks/${taskId}/attachments`);
-            xhr.setRequestHeader(
-                'X-CSRF-TOKEN',
-                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
-            );
+
+            // Get CSRF token from meta tag or cookie
+            const csrfToken =
+                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ||
+                document.cookie
+                    .split('; ')
+                    .find((row) => row.startsWith('XSRF-TOKEN='))
+                    ?.split('=')[1];
+
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                xhr.setRequestHeader('X-XSRF-TOKEN', decodeURIComponent(csrfToken));
+            }
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(formData);
         } catch {
