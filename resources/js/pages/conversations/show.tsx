@@ -496,7 +496,7 @@ export default function ConversationShow({
                     <div
                         ref={messagesContainerRef}
                         onScroll={handleScroll}
-                        className="h-full overflow-y-auto"
+                        className="h-full overflow-y-auto overscroll-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     >
                         <div className="space-y-4 p-4">
                             {/* Load more indicator */}
