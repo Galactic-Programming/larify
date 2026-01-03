@@ -9,12 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { Message, MessageMention } from '@/types/chat';
 import { format } from 'date-fns';
-import {
-    Check,
-    CheckCheck,
-    MoreVertical,
-    Trash2,
-} from 'lucide-react';
+import { Check, CheckCheck, MoreVertical, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { memo } from 'react';
 import { AttachmentsSection } from './attachment-renderer';
@@ -85,6 +80,49 @@ function renderContentWithMentions(
     return parts.length > 0 ? parts : content;
 }
 
+/**
+ * Time and read status indicator component
+ */
+export function MessageStatus({
+    time,
+    isRead,
+    isMine,
+    variant = 'default',
+}: {
+    time: string;
+    isRead: boolean;
+    isMine: boolean;
+    variant?: 'default' | 'overlay';
+}) {
+    const isOverlay = variant === 'overlay';
+
+    return (
+        <div
+            className={cn(
+                'flex shrink-0 items-center gap-1 text-xs',
+                isOverlay
+                    ? 'rounded-full bg-black/50 px-2 py-0.5 text-white/90'
+                    : isMine
+                      ? 'text-primary-foreground/70'
+                      : 'text-muted-foreground',
+            )}
+        >
+            <span>{formatMessageTime(time)}</span>
+            {isMine &&
+                (isRead ? (
+                    <CheckCheck
+                        className={cn(
+                            'h-3.5 w-3.5',
+                            isOverlay ? 'text-blue-300' : 'text-blue-400',
+                        )}
+                    />
+                ) : (
+                    <Check className="h-3.5 w-3.5 opacity-70" />
+                ))}
+        </div>
+    );
+}
+
 interface MessageBubbleProps {
     message: Message;
     showAvatar: boolean;
@@ -95,6 +133,11 @@ interface MessageBubbleProps {
 /**
  * Memoized MessageBubble component to prevent unnecessary re-renders
  * when other messages in the list change.
+ *
+ * iMessage-style layout:
+ * - Text content in colored bubble
+ * - Attachments (images) displayed separately with rounded corners
+ * - Time/status shown inline or as overlay on images
  */
 export const MessageBubble = memo(function MessageBubble({
     message,
@@ -103,26 +146,26 @@ export const MessageBubble = memo(function MessageBubble({
     canDelete,
 }: MessageBubbleProps) {
     const isMine = message.is_mine;
+    const hasContent = message.content?.trim();
+    const hasAttachments = message.attachments.length > 0;
 
     // For own messages, use a regular div to avoid animation glitches from optimistic updates
-    // When server response replaces the optimistic message, the key changes causing re-mount
-    // Using motion.div would trigger animation again, causing the "flicker" effect
     const Wrapper = isMine ? 'div' : motion.div;
 
     // Animation props only for other people's messages
     const motionProps = isMine
         ? {}
         : {
-            initial: { opacity: 0, y: 20, scale: 0.95 },
-            animate: { opacity: 1, y: 0, scale: 1 },
-            exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
-            transition: {
-                type: 'spring' as const,
-                stiffness: 400,
-                damping: 25,
-                mass: 0.5,
-            },
-        };
+              initial: { opacity: 0, y: 20, scale: 0.95 },
+              animate: { opacity: 1, y: 0, scale: 1 },
+              exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
+              transition: {
+                  type: 'spring' as const,
+                  stiffness: 400,
+                  damping: 25,
+                  mass: 0.5,
+              },
+          };
 
     return (
         <Wrapper
@@ -162,7 +205,7 @@ export const MessageBubble = memo(function MessageBubble({
                     </span>
                 )}
 
-                {/* Bubble */}
+                {/* Content wrapper with actions */}
                 <div className="relative flex items-center gap-1">
                     {/* Actions (visible on hover) */}
                     {canDelete && (
@@ -197,51 +240,49 @@ export const MessageBubble = memo(function MessageBubble({
                         </div>
                     )}
 
-                    <div
-                        className={cn(
-                            'min-w-0 overflow-hidden rounded-2xl px-3 py-2',
-                            isMine
-                                ? 'rounded-br-md bg-primary text-primary-foreground'
-                                : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
-                        )}
-                    >
-                        <p className="whitespace-pre-wrap break-all text-sm">
-                            {renderContentWithMentions(
-                                message.content,
-                                message.mentions,
-                                isMine,
-                            )}
-                        </p>
+                    <div className="flex min-w-0 flex-col gap-1">
+                        {/* Text Bubble - only if there's text content */}
+                        {hasContent && (
+                            <div
+                                className={cn(
+                                    'min-w-0 overflow-hidden rounded-2xl px-3 py-2',
+                                    isMine
+                                        ? 'rounded-br-md bg-primary text-primary-foreground'
+                                        : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
+                                    // If only text (no attachments), show time inline
+                                    !hasAttachments && 'pb-1',
+                                )}
+                            >
+                                <p className="whitespace-pre-wrap break-all text-sm">
+                                    {renderContentWithMentions(
+                                        message.content,
+                                        message.mentions,
+                                        isMine,
+                                    )}
+                                </p>
 
-                        {/* Attachments */}
-                        {message.attachments.length > 0 && (
+                                {/* Time inline in bubble when no attachments */}
+                                {!hasAttachments && (
+                                    <div className="mt-1 flex justify-end">
+                                        <MessageStatus
+                                            time={message.created_at}
+                                            isRead={message.is_read ?? false}
+                                            isMine={isMine}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Attachments - displayed outside the text bubble */}
+                        {hasAttachments && (
                             <AttachmentsSection
                                 attachments={message.attachments}
                                 isMine={isMine}
+                                time={message.created_at}
+                                isRead={message.is_read ?? false}
                             />
                         )}
-
-                        {/* Footer: Time & Status */}
-                        <div
-                            className={cn(
-                                'mt-1 flex items-end justify-end gap-2 text-xs',
-                                isMine
-                                    ? 'text-primary-foreground/70'
-                                    : 'text-muted-foreground',
-                            )}
-                        >
-                            {/* Time & Status */}
-                            <div className="flex shrink-0 items-center gap-1">
-                                <span>{formatMessageTime(message.created_at)}</span>
-                                {/* Read status checkmarks (only for own messages) */}
-                                {isMine &&
-                                    (message.is_read ? (
-                                        <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
-                                    ) : (
-                                        <Check className="h-3.5 w-3.5 opacity-70" />
-                                    ))}
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
