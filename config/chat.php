@@ -4,12 +4,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Message Edit Time Limit
+    | Edit Time Limit
     |--------------------------------------------------------------------------
     |
-    | The number of minutes after sending a message during which users
-    | can still edit their messages. After this time limit, messages
-    | become read-only.
+    | The number of minutes after creation during which users can still
+    | edit their content (e.g., task comments). After this time limit,
+    | the content becomes read-only.
     |
     */
 
