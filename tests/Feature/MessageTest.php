@@ -66,126 +66,9 @@ it('enforces max message length', function () {
     $response->assertSessionHasErrors('content');
 });
 
-// === REPLY TO MESSAGE ===
-
-it('allows replying to a message', function () {
-    $originalMessage = Message::create([
-        'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->member->id,
-        'content' => 'Original message',
-    ]);
-
-    $response = $this->actingAs($this->owner)->post(
-        route('conversations.messages.store', $this->conversation),
-        [
-            'content' => 'This is a reply',
-            'parent_id' => $originalMessage->id,
-        ]
-    );
-
-    $response->assertRedirect();
-
-    $reply = Message::where('parent_id', $originalMessage->id)->first();
-    expect($reply)->not->toBeNull();
-    expect($reply->content)->toBe('This is a reply');
-});
-
-it('prevents replying to message from different conversation', function () {
-    // Create another project with conversation
-    $otherOwner = User::factory()->create();
-    $otherMember = User::factory()->create();
-    $otherProject = Project::factory()->create(['user_id' => $otherOwner->id]);
-    $otherProject->members()->attach($otherMember->id, [
-        'role' => ProjectRole::Editor->value,
-        'joined_at' => now(),
-    ]);
-    $otherConversation = $otherProject->getOrCreateConversation();
-
-    $otherMessage = Message::create([
-        'conversation_id' => $otherConversation->id,
-        'sender_id' => $otherOwner->id,
-        'content' => 'Message in other conversation',
-    ]);
-
-    $response = $this->actingAs($this->owner)->post(
-        route('conversations.messages.store', $this->conversation),
-        [
-            'content' => 'Trying to reply to wrong conversation',
-            'parent_id' => $otherMessage->id,
-        ]
-    );
-
-    $response->assertSessionHasErrors('parent_id');
-});
-
-// === EDITING MESSAGES ===
-
-it('allows sender to edit their message within time limit', function () {
-    $message = Message::create([
-        'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->owner->id,
-        'content' => 'Original content',
-        'created_at' => now(),
-    ]);
-
-    $response = $this->actingAs($this->owner)->patch(
-        route('conversations.messages.update', [$this->conversation, $message]),
-        ['content' => 'Edited content']
-    );
-
-    $response->assertRedirect();
-
-    $message->refresh();
-    expect($message->content)->toBe('Edited content');
-    expect($message->is_edited)->toBeTrue();
-    expect($message->edited_at)->not->toBeNull();
-});
-
-it('prevents editing message after time limit', function () {
-    $message = Message::create([
-        'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->owner->id,
-        'content' => 'Original content',
-    ]);
-
-    // Manually update created_at to be in the past (beyond 15 minute limit)
-    Message::where('id', $message->id)->update([
-        'created_at' => now()->subMinutes(20),
-    ]);
-
-    $response = $this->actingAs($this->owner)->patch(
-        route('conversations.messages.update', [$this->conversation, $message]),
-        ['content' => 'Too late edit']
-    );
-
-    // Form Request authorization failure returns 403
-    $response->assertForbidden();
-
-    $message->refresh();
-    expect($message->content)->toBe('Original content');
-});
-
-it('prevents user from editing others message', function () {
-    $message = Message::create([
-        'conversation_id' => $this->conversation->id,
-        'sender_id' => $this->member->id,
-        'content' => 'Member message',
-    ]);
-
-    $response = $this->actingAs($this->owner)->patch(
-        route('conversations.messages.update', [$this->conversation, $message]),
-        ['content' => 'Hacked content']
-    );
-
-    $response->assertForbidden();
-
-    $message->refresh();
-    expect($message->content)->toBe('Member message');
-});
-
 // === DELETING MESSAGES ===
 
-it('allows sender to delete their message', function () {
+it('allows sender to delete their message within time limit', function () {
     $message = Message::create([
         'conversation_id' => $this->conversation->id,
         'sender_id' => $this->owner->id,
@@ -200,6 +83,27 @@ it('allows sender to delete their message', function () {
 
     $response->assertRedirect();
     $this->assertSoftDeleted('messages', ['id' => $messageId]);
+});
+
+it('prevents deleting message after time limit', function () {
+    $message = Message::create([
+        'conversation_id' => $this->conversation->id,
+        'sender_id' => $this->owner->id,
+        'content' => 'Old message',
+    ]);
+
+    // Manually update created_at to be in the past (beyond 5 minute limit)
+    Message::where('id', $message->id)->update([
+        'created_at' => now()->subMinutes(10),
+    ]);
+    $message->refresh();
+
+    $response = $this->actingAs($this->owner)->delete(
+        route('conversations.messages.destroy', [$this->conversation, $message])
+    );
+
+    $response->assertForbidden();
+    $this->assertNotSoftDeleted('messages', ['id' => $message->id]);
 });
 
 it('prevents user from deleting others message', function () {
@@ -436,110 +340,4 @@ it('includes sender information in search results', function () {
     expect($messages)->toHaveCount(1);
     expect($messages[0]['sender'])->not->toBeNull();
     expect($messages[0]['sender']['id'])->toBe($this->owner->id);
-});
-
-// === MESSAGE REACTIONS ===
-
-it('allows participant to add a reaction', function () {
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
-
-    $response = $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '👍']
-    );
-
-    $response->assertOk();
-    $response->assertJsonStructure([
-        'added',
-        'emoji',
-        'reactions' => [
-            '*' => ['emoji', 'count', 'users', 'reacted_by_me'],
-        ],
-    ]);
-    expect($response->json('added'))->toBeTrue();
-    expect($response->json('emoji'))->toBe('👍');
-});
-
-it('allows participant to remove their own reaction', function () {
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
-
-    // First add the reaction
-    $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '❤️']
-    );
-
-    // Then toggle it off
-    $response = $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '❤️']
-    );
-
-    $response->assertOk();
-    expect($response->json('added'))->toBeFalse();
-});
-
-it('prevents non-participant from reacting to message', function () {
-    $outsider = User::factory()->create();
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
-
-    $response = $this->actingAs($outsider)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '👍']
-    );
-
-    $response->assertForbidden();
-});
-
-it('validates emoji is required for reaction', function () {
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
-
-    $response = $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        []
-    );
-
-    $response->assertUnprocessable();
-    $response->assertJsonValidationErrors('emoji');
-});
-
-it('allows multiple users to react with same emoji', function () {
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->owner->id]);
-
-    // Owner reacts
-    $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '🎉']
-    );
-
-    // Member reacts with same emoji
-    $response = $this->actingAs($this->member)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '🎉']
-    );
-
-    $response->assertOk();
-    $reactions = $response->json('reactions');
-    expect($reactions[0]['count'])->toBe(2);
-    expect($reactions[0]['users'])->toHaveCount(2);
-});
-
-it('replaces user reaction when adding different emoji', function () {
-    $message = Message::factory()->for($this->conversation)->create(['sender_id' => $this->member->id]);
-
-    $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '👍']
-    );
-
-    $response = $this->actingAs($this->owner)->postJson(
-        route('messages.reactions.toggle', $message),
-        ['emoji' => '❤️']
-    );
-
-    $response->assertOk();
-    $reactions = $response->json('reactions');
-    // User can only have one reaction per message - the old one is replaced
-    expect($reactions)->toHaveCount(1);
-    expect($reactions[0]['emoji'])->toBe('❤️');
 });

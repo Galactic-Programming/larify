@@ -116,7 +116,7 @@ class ConversationController extends Controller
             'participants:id,name,email,avatar',
             'participantRecords',
             'messages' => fn ($query) => $query
-                ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name', 'reactions.user:id,name'])
+                ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
                 ->orderBy('created_at', 'asc')
                 ->limit(50),
         ]);
@@ -157,8 +157,6 @@ class ConversationController extends Controller
                     return [
                         'id' => $message->id,
                         'content' => $message->content,
-                        'is_edited' => $message->is_edited,
-                        'edited_at' => $message->edited_at?->toISOString(),
                         'created_at' => $message->created_at->toISOString(),
                         'sender' => $message->sender ? [
                             'id' => $message->sender->id,
@@ -167,12 +165,12 @@ class ConversationController extends Controller
                         ] : null,
                         'is_mine' => $isMine,
                         'is_read' => $isRead,
-                        'parent' => $message->parent ? [
-                            'id' => $message->parent->id,
-                            'content' => $message->parent->trashed() ? null : $message->parent->content,
-                            'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
-                            'is_deleted' => $message->parent->trashed(),
-                        ] : null,
+                        'can_delete' => $isMine && $message->canBeDeletedBySender(),
+                        'mentions' => $message->mentions->map(fn ($m) => [
+                            'user_id' => $m->user_id,
+                            'name' => $m->user?->name,
+                            'email' => $m->user?->email,
+                        ])->values()->toArray(),
                         'attachments' => $message->attachments->map(fn ($a) => [
                             'id' => $a->id,
                             'original_name' => $a->original_name,
@@ -181,7 +179,6 @@ class ConversationController extends Controller
                             'human_size' => $a->human_size,
                             'url' => $a->url,
                         ]),
-                        'reactions' => $this->getGroupedReactions($message, $request->user()->id),
                     ];
                 }),
             ],
@@ -217,36 +214,5 @@ class ConversationController extends Controller
 
         // Redirect to the conversation view
         return $this->show($request, $conversation);
-    }
-
-    /**
-     * Get reactions grouped by emoji.
-     *
-     * @return array<int, array{emoji: string, count: int, users: array, reacted_by_me: bool}>
-     */
-    private function getGroupedReactions(Message $message, int $currentUserId): array
-    {
-        $grouped = [];
-        foreach ($message->reactions as $reaction) {
-            $emoji = $reaction->emoji;
-            if (! isset($grouped[$emoji])) {
-                $grouped[$emoji] = [
-                    'emoji' => $emoji,
-                    'count' => 0,
-                    'users' => [],
-                    'reacted_by_me' => false,
-                ];
-            }
-            $grouped[$emoji]['count']++;
-            $grouped[$emoji]['users'][] = [
-                'id' => $reaction->user_id,
-                'name' => $reaction->user?->name,
-            ];
-            if ($reaction->user_id === $currentUserId) {
-                $grouped[$emoji]['reacted_by_me'] = true;
-            }
-        }
-
-        return array_values($grouped);
     }
 }

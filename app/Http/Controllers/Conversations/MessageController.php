@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Conversations;
 
 use App\Events\MessageDeleted;
-use App\Events\MessageEdited;
 use App\Events\MessageSent;
 use App\Events\UserTyping;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversations\StoreMessageRequest;
-use App\Http\Requests\Conversations\UpdateMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Notifications\MentionedInMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +30,7 @@ class MessageController extends Controller
         $limit = min((int) $request->query('limit', 50), 100);
 
         $query = $conversation->messages()
-            ->with(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name', 'reactions.user:id,name'])
+            ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
             ->orderBy('created_at', 'desc');
 
         if ($before) {
@@ -60,7 +59,6 @@ class MessageController extends Controller
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->id,
             'content' => $validated['content'] ?? '',
-            'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
         // Handle file attachments
@@ -78,8 +76,20 @@ class MessageController extends Controller
             }
         }
 
+        // Parse and sync @mentions
+        $participantIds = $conversation->participants()->pluck('users.id')->toArray();
+        $message->syncMentions($participantIds);
+
+        // Notify mentioned users (queue for performance)
+        $mentionedUsers = $message->mentions()->with('user')->get()->pluck('user');
+        foreach ($mentionedUsers as $mentionedUser) {
+            if ($mentionedUser && $mentionedUser->id !== $request->user()->id) {
+                $mentionedUser->notify(new MentionedInMessage($message));
+            }
+        }
+
         // Load relationships for broadcasting
-        $message->load(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name']);
+        $message->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
 
         // Broadcast the message
         broadcast(new MessageSent($message))->toOthers();
@@ -87,32 +97,7 @@ class MessageController extends Controller
         // Return JSON for AJAX requests
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => [
-                    'id' => $message->id,
-                    'content' => $message->content,
-                    'is_edited' => $message->is_edited,
-                    'created_at' => $message->created_at->toISOString(),
-                    'sender' => [
-                        'id' => $message->sender->id,
-                        'name' => $message->sender->name,
-                        'avatar' => $message->sender->avatar,
-                    ],
-                    'is_mine' => true,
-                    'parent' => $message->parent ? [
-                        'id' => $message->parent->id,
-                        'content' => $message->parent->trashed() ? null : $message->parent->content,
-                        'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
-                        'is_deleted' => $message->parent->trashed(),
-                    ] : null,
-                    'attachments' => $message->attachments->map(fn ($a) => [
-                        'id' => $a->id,
-                        'original_name' => $a->original_name,
-                        'mime_type' => $a->mime_type,
-                        'size' => $a->size,
-                        'human_size' => $a->human_size,
-                        'url' => $a->url,
-                    ]),
-                ],
+                'message' => $this->formatMessage($message, true),
             ], 201);
         }
 
@@ -120,60 +105,8 @@ class MessageController extends Controller
     }
 
     /**
-     * Update the specified message.
-     */
-    public function update(UpdateMessageRequest $request, Conversation $conversation, Message $message): RedirectResponse|JsonResponse
-    {
-        // Verify message belongs to conversation
-        if ($message->conversation_id !== $conversation->id) {
-            abort(404);
-        }
-
-        $message->edit($request->validated('content'));
-
-        // Broadcast the edit
-        broadcast(new MessageEdited($message))->toOthers();
-
-        if ($request->expectsJson()) {
-            $message->load(['sender:id,name,avatar', 'attachments', 'parent.sender:id,name']);
-
-            return response()->json([
-                'message' => [
-                    'id' => $message->id,
-                    'content' => $message->content,
-                    'is_edited' => $message->is_edited,
-                    'edited_at' => $message->edited_at->toISOString(),
-                    'created_at' => $message->created_at->toISOString(),
-                    'sender' => $message->sender ? [
-                        'id' => $message->sender->id,
-                        'name' => $message->sender->name,
-                        'avatar' => $message->sender->avatar,
-                    ] : null,
-                    'is_mine' => $message->sender_id === $request->user()->id,
-                    'is_read' => true, // Own message, always "read" by self
-                    'parent' => $message->parent ? [
-                        'id' => $message->parent->id,
-                        'content' => $message->parent->trashed() ? null : $message->parent->content,
-                        'sender_name' => $message->parent->trashed() ? null : $message->parent->sender?->name,
-                        'is_deleted' => $message->parent->trashed(),
-                    ] : null,
-                    'attachments' => $message->attachments->map(fn ($a) => [
-                        'id' => $a->id,
-                        'original_name' => $a->original_name,
-                        'mime_type' => $a->mime_type,
-                        'size' => $a->size,
-                        'human_size' => $a->human_size,
-                        'url' => $a->url,
-                    ])->values()->toArray(),
-                ],
-            ]);
-        }
-
-        return back();
-    }
-
-    /**
      * Delete the specified message.
+     * Messages can only be deleted within 5 minutes of being sent.
      */
     public function destroy(Request $request, Conversation $conversation, Message $message): RedirectResponse|JsonResponse
     {
@@ -192,6 +125,9 @@ class MessageController extends Controller
             Storage::disk($attachment->disk)->delete($attachment->path);
             $attachment->delete();
         }
+
+        // Delete mentions
+        $message->mentions()->delete();
 
         // Soft delete the message
         $message->delete();
@@ -262,7 +198,7 @@ class MessageController extends Controller
         $limit = min((int) $request->query('limit', 20), 50);
 
         $messages = $conversation->messages()
-            ->with(['sender:id,name,avatar', 'attachments'])
+            ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
             ->where('content', 'like', "%{$query}%")
             ->orderBy('created_at', 'desc')
             ->limit($limit)
@@ -276,5 +212,63 @@ class MessageController extends Controller
                 ->where('content', 'like', "%{$query}%")
                 ->count(),
         ]);
+    }
+
+    /**
+     * Get participants for @mention autocomplete.
+     */
+    public function participants(Request $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('view', $conversation);
+
+        $search = $request->query('q', '');
+
+        $participants = $conversation->participants()
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->select('users.id', 'users.name', 'users.email', 'users.avatar')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'participants' => $participants,
+        ]);
+    }
+
+    /**
+     * Format a message for JSON response.
+     */
+    private function formatMessage(Message $message, bool $isMine): array
+    {
+        return [
+            'id' => $message->id,
+            'content' => $message->content,
+            'created_at' => $message->created_at->toISOString(),
+            'sender' => $message->sender ? [
+                'id' => $message->sender->id,
+                'name' => $message->sender->name,
+                'avatar' => $message->sender->avatar,
+            ] : null,
+            'is_mine' => $isMine,
+            'can_delete' => $isMine && $message->canBeDeletedBySender(),
+            'mentions' => $message->mentions->map(fn ($m) => [
+                'user_id' => $m->user_id,
+                'name' => $m->user->name,
+                'email' => $m->user->email,
+            ])->values()->toArray(),
+            'attachments' => $message->attachments->map(fn ($a) => [
+                'id' => $a->id,
+                'original_name' => $a->original_name,
+                'mime_type' => $a->mime_type,
+                'size' => $a->size,
+                'human_size' => $a->human_size,
+                'url' => $a->url,
+            ])->values()->toArray(),
+            'reactions' => [],
+        ];
     }
 }

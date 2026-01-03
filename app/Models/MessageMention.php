@@ -5,16 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MessageReaction extends Model
+class MessageMention extends Model
 {
     protected $fillable = [
         'message_id',
         'user_id',
-        'emoji',
     ];
 
     /**
-     * Get the message that owns the reaction.
+     * Get the message that contains this mention.
      */
     public function message(): BelongsTo
     {
@@ -22,7 +21,7 @@ class MessageReaction extends Model
     }
 
     /**
-     * Get the user who created the reaction.
+     * Get the user who was mentioned.
      */
     public function user(): BelongsTo
     {

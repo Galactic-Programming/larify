@@ -12,20 +12,20 @@ class Message extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Time window (in minutes) during which a message can be deleted by its sender.
+     */
+    public const DELETE_WINDOW_MINUTES = 5;
+
     protected $fillable = [
         'conversation_id',
         'sender_id',
         'content',
-        'parent_id',
-        'is_edited',
-        'edited_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_edited' => 'boolean',
-            'edited_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
     }
@@ -60,23 +60,6 @@ class Message extends Model
     }
 
     /**
-     * Get the parent message (for replies).
-     * Include soft-deleted messages so we can show "Deleted message" placeholder.
-     */
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(Message::class, 'parent_id')->withTrashed();
-    }
-
-    /**
-     * Get the replies to this message.
-     */
-    public function replies(): HasMany
-    {
-        return $this->hasMany(Message::class, 'parent_id');
-    }
-
-    /**
      * Get the attachments.
      */
     public function attachments(): HasMany
@@ -85,11 +68,11 @@ class Message extends Model
     }
 
     /**
-     * Get the reactions.
+     * Get the mentions in this message.
      */
-    public function reactions(): HasMany
+    public function mentions(): HasMany
     {
-        return $this->hasMany(MessageReaction::class);
+        return $this->hasMany(MessageMention::class);
     }
 
     /**
@@ -101,14 +84,6 @@ class Message extends Model
     }
 
     /**
-     * Check if the message is a reply.
-     */
-    public function isReply(): bool
-    {
-        return $this->parent_id !== null;
-    }
-
-    /**
      * Check if the message was sent by a specific user.
      */
     public function isSentBy(User $user): bool
@@ -117,14 +92,68 @@ class Message extends Model
     }
 
     /**
-     * Edit the message content.
+     * Check if the message can still be deleted by its sender.
+     * Messages can only be deleted within DELETE_WINDOW_MINUTES of being sent.
      */
-    public function edit(string $content): void
+    public function canBeDeletedBySender(): bool
     {
-        $this->update([
-            'content' => $content,
-            'is_edited' => true,
-            'edited_at' => now(),
-        ]);
+        return $this->created_at->diffInMinutes(now()) <= self::DELETE_WINDOW_MINUTES;
+    }
+
+    /**
+     * Parse @mentions from message content and return user IDs.
+     * Supports formats: @username, @email@domain.com
+     *
+     * @param  array<int>  $participantIds  List of valid participant IDs to match against
+     * @return array<int> Array of mentioned user IDs
+     */
+    public function parseMentions(array $participantIds = []): array
+    {
+        if (empty($this->content)) {
+            return [];
+        }
+
+        // Match @mentions: @word or @email@domain.com
+        preg_match_all('/@([\w.+-]+(?:@[\w.-]+)?)/u', $this->content, $matches);
+
+        if (empty($matches[1])) {
+            return [];
+        }
+
+        $mentionTexts = array_unique($matches[1]);
+
+        // Query users by name or email that are in the participant list
+        $query = User::query();
+
+        if (! empty($participantIds)) {
+            $query->whereIn('id', $participantIds);
+        }
+
+        $query->where(function ($q) use ($mentionTexts) {
+            foreach ($mentionTexts as $text) {
+                $q->orWhere('name', $text)
+                    ->orWhere('email', $text);
+            }
+        });
+
+        return $query->pluck('id')->toArray();
+    }
+
+    /**
+     * Sync mentions for this message based on its content.
+     *
+     * @param  array<int>  $participantIds  List of valid participant IDs
+     */
+    public function syncMentions(array $participantIds = []): void
+    {
+        $mentionedUserIds = $this->parseMentions($participantIds);
+
+        // Delete existing mentions
+        $this->mentions()->delete();
+
+        // Create new mentions
+        foreach ($mentionedUserIds as $userId) {
+            $this->mentions()->create(['user_id' => $userId]);
+        }
     }
 }

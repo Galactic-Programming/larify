@@ -8,7 +8,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 class StoreMessageRequest extends FormRequest
 {
@@ -112,16 +111,8 @@ class StoreMessageRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Conversation $conversation */
-        $conversation = $this->route('conversation');
-
         return [
             'content' => ['required_without:attachments', 'nullable', 'string', 'max:10000'],
-            'parent_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('messages', 'id')->where('conversation_id', $conversation->id),
-            ],
             'attachments' => ['nullable', 'array', 'max:10'],
             'attachments.*' => [
                 'file',
@@ -187,7 +178,6 @@ class StoreMessageRequest extends FormRequest
         return [
             'content.required_without' => 'Message content or attachments are required.',
             'content.max' => 'Message cannot exceed 10,000 characters.',
-            'parent_id.exists' => 'The message you are replying to does not exist.',
             'attachments.max' => 'You can upload a maximum of 10 files.',
             'attachments.*.max' => 'Each file cannot exceed 10MB.',
         ];

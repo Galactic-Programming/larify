@@ -14,8 +14,8 @@ import {
     ConversationHeader,
     DeleteMessageDialog,
     MembersSheet,
+    MentionAutocomplete,
     MessageBubble,
-    ReplyEditIndicator,
     TypingIndicator,
 } from './components';
 
@@ -49,8 +49,6 @@ export default function ConversationShow({
     const [messages, setMessages] = useState<Message[]>(conversation.messages);
     const [inputValue, setInputValue] = useState('');
     const [isSending, setIsSending] = useState(false);
-    const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-    const [editingMessage, setEditingMessage] = useState<Message | null>(null);
     const [typingUsers, setTypingUsers] = useState<Map<number, string>>(
         new Map(),
     );
@@ -192,53 +190,10 @@ export default function ConversationShow({
 
     useEcho(
         `conversation.${conversation.id}`,
-        '.message.edited',
-        (data: {
-            message: {
-                id: number;
-                content: string;
-                is_edited: boolean;
-                edited_at: string;
-            };
-        }) => {
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === data.message.id
-                        ? {
-                            ...m,
-                            content: data.message.content,
-                            is_edited: data.message.is_edited,
-                            edited_at: data.message.edited_at,
-                        }
-                        : m,
-                ),
-            );
-        },
-        [],
-        'private',
-    );
-
-    useEcho(
-        `conversation.${conversation.id}`,
         '.message.deleted',
         (data: { message_id: number }) => {
             setMessages((prev) =>
-                prev
-                    .filter((m) => m.id !== data.message_id)
-                    .map((m) => {
-                        if (m.parent?.id === data.message_id) {
-                            return {
-                                ...m,
-                                parent: {
-                                    ...m.parent,
-                                    content: null,
-                                    sender_name: null,
-                                    is_deleted: true,
-                                },
-                            };
-                        }
-                        return m;
-                    }),
+                prev.filter((m) => m.id !== data.message_id)
             );
         },
         [],
@@ -281,9 +236,10 @@ export default function ConversationShow({
 
     // Cleanup typing timeouts on unmount
     useEffect(() => {
+        const timeouts = typingTimeoutsRef.current;
         return () => {
-            typingTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
-            typingTimeoutsRef.current.clear();
+            timeouts.forEach((timeout) => clearTimeout(timeout));
+            timeouts.clear();
         };
     }, []);
 
@@ -335,6 +291,25 @@ export default function ConversationShow({
         }
     };
 
+    // Handle mention selection from autocomplete
+    const handleMentionSelect = useCallback(
+        (participant: { id: number; name: string }, mentionStart: number) => {
+            const beforeMention = inputValue.slice(0, mentionStart);
+            // Find end of current mention query (until space or end)
+            const afterMentionStart = inputValue.slice(mentionStart + 1);
+            const spaceIndex = afterMentionStart.indexOf(' ');
+            const afterMention = spaceIndex >= 0
+                ? afterMentionStart.slice(spaceIndex)
+                : '';
+
+            const mentionText = `@${participant.name}`;
+            const newValue = beforeMention + mentionText + (afterMention || ' ');
+
+            setInputValue(newValue);
+        },
+        [inputValue],
+    );
+
     // Generate a temporary ID for optimistic messages
     const generateTempId = () => -Date.now();
 
@@ -346,7 +321,6 @@ export default function ConversationShow({
 
         const content = inputValue.trim();
         const tempId = generateTempId();
-        const currentReplyingTo = replyingTo;
         const currentFiles = [...selectedFiles];
 
         // Create optimistic message (only if text-only, files need server processing)
@@ -355,7 +329,6 @@ export default function ConversationShow({
                 ? {
                     id: tempId,
                     content,
-                    is_edited: false,
                     created_at: new Date().toISOString(),
                     sender: {
                         id: auth.user.id,
@@ -364,15 +337,8 @@ export default function ConversationShow({
                     },
                     is_mine: true,
                     is_read: false,
-                    parent: currentReplyingTo
-                        ? {
-                            id: currentReplyingTo.id,
-                            content: currentReplyingTo.content,
-                            sender_name:
-                                currentReplyingTo.sender?.name ?? null,
-                        }
-                        : undefined,
                     attachments: [],
+                    mentions: [],
                 }
                 : null;
 
@@ -383,7 +349,6 @@ export default function ConversationShow({
 
         // Clear input immediately for better UX
         setInputValue('');
-        setReplyingTo(null);
         setSelectedFiles([]);
         setIsSending(true);
 
@@ -391,9 +356,6 @@ export default function ConversationShow({
             const formData = new FormData();
             if (content) {
                 formData.append('content', content);
-            }
-            if (currentReplyingTo) {
-                formData.append('parent_id', currentReplyingTo.id.toString());
             }
             currentFiles.forEach((file) => {
                 formData.append('attachments[]', file);
@@ -434,7 +396,6 @@ export default function ConversationShow({
                 if (optimisticMessage) {
                     setMessages((prev) => prev.filter((m) => m.id !== tempId));
                     setInputValue(content);
-                    setReplyingTo(currentReplyingTo);
                 }
                 console.error('Failed to send message');
             }
@@ -443,85 +404,8 @@ export default function ConversationShow({
             if (optimisticMessage) {
                 setMessages((prev) => prev.filter((m) => m.id !== tempId));
                 setInputValue(content);
-                setReplyingTo(currentReplyingTo);
             }
             console.error('Failed to send message:', error);
-        } finally {
-            setIsSending(false);
-        }
-    };
-
-    // Edit message with optimistic update
-    const handleEdit = async () => {
-        if (!editingMessage || !inputValue.trim()) return;
-
-        const newContent = inputValue.trim();
-        const originalContent = editingMessage.content;
-        const messageId = editingMessage.id;
-
-        // Optimistically update the message
-        setMessages((prev) =>
-            prev.map((m) =>
-                m.id === messageId
-                    ? {
-                        ...m,
-                        content: newContent,
-                        is_edited: true,
-                        edited_at: new Date().toISOString(),
-                    }
-                    : m,
-            ),
-        );
-
-        // Clear editing state immediately
-        setEditingMessage(null);
-        setInputValue('');
-        setIsSending(true);
-
-        try {
-            const response = await fetch(
-                `/conversations/${conversation.id}/messages/${messageId}`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
-                    },
-                    body: JSON.stringify({ content: newContent }),
-                },
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                // Update with server response (in case of any differences)
-                setMessages((prev) =>
-                    prev.map((m) => (m.id === messageId ? data.message : m)),
-                );
-            } else {
-                // Revert on error
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === messageId
-                            ? { ...m, content: originalContent, is_edited: editingMessage.is_edited }
-                            : m,
-                    ),
-                );
-                console.error('Failed to edit message');
-            }
-        } catch (error) {
-            // Revert on error
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === messageId
-                        ? { ...m, content: originalContent, is_edited: editingMessage.is_edited }
-                        : m,
-                ),
-            );
-            console.error('Failed to edit message:', error);
         } finally {
             setIsSending(false);
         }
@@ -537,24 +421,7 @@ export default function ConversationShow({
         const originalMessages = messages;
 
         // Optimistically remove the message
-        setMessages((prev) =>
-            prev
-                .filter((m) => m.id !== messageId)
-                .map((m) => {
-                    if (m.parent?.id === messageId) {
-                        return {
-                            ...m,
-                            parent: {
-                                ...m.parent,
-                                content: null,
-                                sender_name: null,
-                                is_deleted: true,
-                            },
-                        };
-                    }
-                    return m;
-                }),
-        );
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
 
         // Close dialog immediately
         setDeleteMessageId(null);
@@ -588,22 +455,6 @@ export default function ConversationShow({
         }
     };
 
-    const startEditing = (message: Message) => {
-        setEditingMessage(message);
-        setInputValue(message.content);
-        setReplyingTo(null);
-    };
-
-    const cancelEditing = () => {
-        setEditingMessage(null);
-        setInputValue('');
-    };
-
-    const handleCancelReplyEdit = () => {
-        setReplyingTo(null);
-        cancelEditing();
-    };
-
     // Scroll to a specific message (for search results)
     const scrollToMessage = useCallback((message: Message) => {
         // Find the message element and scroll to it
@@ -619,43 +470,6 @@ export default function ConversationShow({
             }, 2000);
         }
     }, []);
-
-    // Toggle reaction on a message
-    const handleReaction = useCallback(
-        async (messageId: number, emoji: string) => {
-            try {
-                const response = await fetch(`/messages/${messageId}/reactions`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
-                    },
-                    body: JSON.stringify({ emoji }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    // Update message reactions
-                    setMessages((prev) =>
-                        prev.map((m) =>
-                            m.id === messageId
-                                ? { ...m, reactions: data.reactions }
-                                : m,
-                        ),
-                    );
-                } else {
-                    console.error('Failed to toggle reaction');
-                }
-            } catch (error) {
-                console.error('Failed to toggle reaction:', error);
-            }
-        },
-        [],
-    );
 
     return (
         <ChatLayout
@@ -702,8 +516,8 @@ export default function ConversationShow({
                             )}
 
                             <AnimatePresence mode="popLayout" initial={false}>
-                                {messages.map((message, index) => {
-                                    const prevMessage = messages[index - 1];
+                                {messages.map((message, idx) => {
+                                    const prevMessage = messages[idx - 1];
                                     const showDateSeparator =
                                         shouldShowDateSeparator(
                                             message,
@@ -735,20 +549,10 @@ export default function ConversationShow({
                                             <MessageBubble
                                                 message={message}
                                                 showAvatar={showAvatar}
-                                                index={index}
-                                                onReply={() => {
-                                                    setReplyingTo(message);
-                                                    setEditingMessage(null);
-                                                }}
-                                                onEdit={() => startEditing(message)}
                                                 onDelete={() =>
                                                     setDeleteMessageId(message.id)
                                                 }
-                                                onReaction={(emoji) =>
-                                                    handleReaction(message.id, emoji)
-                                                }
-                                                canEdit={message.is_mine}
-                                                canDelete={message.is_mine}
+                                                canDelete={message.can_delete}
                                             />
                                         </div>
                                     );
@@ -762,44 +566,26 @@ export default function ConversationShow({
                 {/* Typing indicator */}
                 <TypingIndicator names={Array.from(typingUsers.values())} />
 
-                {/* Reply/Edit indicator */}
-                <ReplyEditIndicator
-                    replyingTo={replyingTo}
-                    editingMessage={editingMessage}
-                    onCancel={handleCancelReplyEdit}
-                />
-
                 {/* Input */}
                 <div className="border-t p-4">
-                    <form
-                        onSubmit={
-                            editingMessage
-                                ? (e) => {
-                                    e.preventDefault();
-                                    handleEdit();
-                                }
-                                : handleSubmit
-                        }
-                    >
+                    <form onSubmit={handleSubmit} className="relative">
+                        <MentionAutocomplete
+                            participants={conversation.participants}
+                            inputValue={inputValue}
+                            onSelect={handleMentionSelect}
+                        />
                         <MessageInput
-                            placeholder={
-                                editingMessage
-                                    ? 'Edit your message...'
-                                    : 'Type a message...'
-                            }
+                            placeholder="Type a message... Use @ to mention"
                             value={inputValue}
                             onChange={(e) => handleInputChange(e.target.value)}
                             isGenerating={isSending}
                             allowAttachments={true}
                             files={
-                                editingMessage
-                                    ? null
-                                    : selectedFiles.length > 0
-                                        ? selectedFiles
-                                        : null
+                                selectedFiles.length > 0
+                                    ? selectedFiles
+                                    : null
                             }
                             setFiles={(files) => {
-                                if (editingMessage) return;
                                 if (typeof files === 'function') {
                                     setSelectedFiles((prev) => {
                                         const result = files(

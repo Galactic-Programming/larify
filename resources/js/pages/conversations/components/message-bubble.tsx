@@ -6,44 +6,90 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import type { Message } from '@/types/chat';
+import type { Message, MessageMention } from '@/types/chat';
 import { format } from 'date-fns';
 import {
     Check,
     CheckCheck,
-    Edit2,
     MoreVertical,
-    Reply,
     Trash2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { memo } from 'react';
 import { AttachmentsSection } from './attachment-renderer';
-import { MessageReactions, ReactionPicker } from './message-reactions';
 
 function formatMessageTime(dateString: string): string {
     const date = new Date(dateString);
     return format(date, 'HH:mm');
 }
 
+/**
+ * Parse message content and render mentions with highlighting
+ */
+function renderContentWithMentions(
+    content: string,
+    mentions: MessageMention[],
+    isMine: boolean,
+): React.ReactNode {
+    if (!content || mentions.length === 0) {
+        return content;
+    }
+
+    // Build a set of mention names for quick lookup
+    const mentionNames = new Set(mentions.map((m) => m.name.toLowerCase()));
+
+    // Match @mentions in content
+    const mentionRegex = /@([\w\s.+-]+(?:@[\w.-]+)?)/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = mentionRegex.exec(content)) !== null) {
+        // Add text before mention
+        if (match.index > lastIndex) {
+            parts.push(content.slice(lastIndex, match.index));
+        }
+
+        const mentionText = match[1];
+        // Check if this is an actual mention (exists in mentions array)
+        const isMentioned = mentionNames.has(mentionText.toLowerCase());
+
+        if (isMentioned) {
+            parts.push(
+                <span
+                    key={match.index}
+                    className={cn(
+                        'font-medium',
+                        isMine
+                            ? 'text-primary-foreground'
+                            : 'text-blue-600 dark:text-blue-400',
+                    )}
+                >
+                    @{mentionText}
+                </span>,
+            );
+        } else {
+            // Not a valid mention, keep as-is
+            parts.push(`@${mentionText}`);
+        }
+
+        lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+        parts.push(content.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : content;
+}
+
 interface MessageBubbleProps {
     message: Message;
     showAvatar: boolean;
-    onReply?: () => void;
-    onEdit?: () => void;
     onDelete?: () => void;
-    onReaction?: (emoji: string) => void;
-    canEdit?: boolean;
     canDelete?: boolean;
-    /** Index in the messages array, used for stagger animation */
-    index?: number;
 }
 
 /**
@@ -53,13 +99,8 @@ interface MessageBubbleProps {
 export const MessageBubble = memo(function MessageBubble({
     message,
     showAvatar,
-    onReply,
-    onEdit,
     onDelete,
-    onReaction,
-    canEdit,
     canDelete,
-    index = 0,
 }: MessageBubbleProps) {
     const isMine = message.is_mine;
 
@@ -76,7 +117,7 @@ export const MessageBubble = memo(function MessageBubble({
             animate: { opacity: 1, y: 0, scale: 1 },
             exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
             transition: {
-                type: 'spring',
+                type: 'spring' as const,
                 stiffness: 400,
                 damping: 25,
                 mass: 0.5,
@@ -124,67 +165,37 @@ export const MessageBubble = memo(function MessageBubble({
                 {/* Bubble */}
                 <div className="relative flex items-center gap-1">
                     {/* Actions (visible on hover) */}
-                    <div
-                        className={cn(
-                            'flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100',
-                            isMine ? 'order-first' : 'order-last',
-                        )}
-                    >
-                        <TooltipProvider>
-                            {onReaction && (
-                                <ReactionPicker onSelect={onReaction} />
+                    {canDelete && (
+                        <div
+                            className={cn(
+                                'flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100',
+                                isMine ? 'order-first' : 'order-last',
                             )}
-
-                            {onReply && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                            onClick={onReply}
-                                        >
-                                            <Reply className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Reply</TooltipContent>
-                                </Tooltip>
-                            )}
-
-                            {(canEdit || canDelete) && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                        >
-                                            <MoreVertical className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align={isMine ? 'end' : 'start'}
+                        >
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
                                     >
-                                        {canEdit && (
-                                            <DropdownMenuItem onClick={onEdit}>
-                                                <Edit2 className="mr-2 h-4 w-4" />
-                                                Edit
-                                            </DropdownMenuItem>
-                                        )}
-                                        {canDelete && (
-                                            <DropdownMenuItem
-                                                onClick={onDelete}
-                                                className="text-destructive"
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            )}
-                        </TooltipProvider>
-                    </div>
+                                        <MoreVertical className="h-3.5 w-3.5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align={isMine ? 'end' : 'start'}
+                                >
+                                    <DropdownMenuItem
+                                        onClick={onDelete}
+                                        className="text-destructive"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    )}
 
                     <div
                         className={cn(
@@ -194,49 +205,12 @@ export const MessageBubble = memo(function MessageBubble({
                                 : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
                         )}
                     >
-                        {/* Reply reference - Telegram style (inside bubble) */}
-                        {message.parent && (
-                            <div
-                                className={cn(
-                                    'mb-2 rounded-md border-l-2 py-1 pl-2 pr-3',
-                                    isMine
-                                        ? 'border-slate-300 bg-slate-700'
-                                        : 'border-primary bg-primary/10 dark:border-primary/70 dark:bg-primary/20',
-                                )}
-                            >
-                                {message.parent.is_deleted ? (
-                                    <p className="text-xs italic opacity-70">
-                                        Deleted message
-                                    </p>
-                                ) : (
-                                    <>
-                                        <span
-                                            className={cn(
-                                                'text-xs font-semibold',
-                                                isMine
-                                                    ? 'text-slate-200'
-                                                    : 'text-primary dark:text-primary',
-                                            )}
-                                        >
-                                            {message.parent.sender_name}
-                                        </span>
-                                        <p
-                                            className={cn(
-                                                'truncate text-xs',
-                                                isMine
-                                                    ? 'text-slate-300'
-                                                    : 'text-slate-600 dark:text-slate-300',
-                                            )}
-                                        >
-                                            {message.parent.content}
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
                         <p className="whitespace-pre-wrap break-all text-sm">
-                            {message.content}
+                            {renderContentWithMentions(
+                                message.content,
+                                message.mentions,
+                                isMine,
+                            )}
                         </p>
 
                         {/* Attachments */}
@@ -247,65 +221,18 @@ export const MessageBubble = memo(function MessageBubble({
                             />
                         )}
 
-                        {/* Footer: Reactions (left) + Time & Status (right) - Telegram style */}
+                        {/* Footer: Time & Status */}
                         <div
                             className={cn(
-                                'mt-1 flex items-end gap-2 text-xs',
+                                'mt-1 flex items-end justify-end gap-2 text-xs',
                                 isMine
                                     ? 'text-primary-foreground/70'
                                     : 'text-muted-foreground',
                             )}
                         >
-                            {/* Reactions - left side */}
-                            {message.reactions && message.reactions.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                    {message.reactions.map((reaction) => (
-                                        <TooltipProvider key={reaction.emoji}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        onClick={() => onReaction?.(reaction.emoji)}
-                                                        className={cn(
-                                                            'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] transition-colors',
-                                                            reaction.reacted_by_me
-                                                                ? isMine
-                                                                    ? 'bg-white/20 text-primary-foreground'
-                                                                    : 'bg-primary/20 text-primary'
-                                                                : isMine
-                                                                    ? 'bg-white/10 text-primary-foreground/80 hover:bg-white/20'
-                                                                    : 'bg-black/5 text-slate-600 hover:bg-black/10 dark:bg-white/10 dark:text-slate-300',
-                                                        )}
-                                                        type="button"
-                                                    >
-                                                        <span>{reaction.emoji}</span>
-                                                        <span className="font-medium">
-                                                            {reaction.count}
-                                                        </span>
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <div className="text-xs">
-                                                        {reaction.users
-                                                            .slice(0, 10)
-                                                            .map((u) => u.name)
-                                                            .join(', ')}
-                                                        {reaction.users.length > 10 &&
-                                                            ` and ${reaction.users.length - 10} more`}
-                                                    </div>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Spacer to push time to right */}
-                            <div className="flex-1" />
-
-                            {/* Time & Status - right side */}
+                            {/* Time & Status */}
                             <div className="flex shrink-0 items-center gap-1">
                                 <span>{formatMessageTime(message.created_at)}</span>
-                                {message.is_edited && <span>(edited)</span>}
                                 {/* Read status checkmarks (only for own messages) */}
                                 {isMine &&
                                     (message.is_read ? (

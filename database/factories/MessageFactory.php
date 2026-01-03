@@ -25,30 +25,6 @@ class MessageFactory extends Factory
             'conversation_id' => Conversation::factory(),
             'sender_id' => User::factory(),
             'content' => fake()->paragraph(),
-            'is_edited' => false,
-            'edited_at' => null,
         ];
-    }
-
-    /**
-     * Indicate that the message has been edited.
-     */
-    public function edited(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_edited' => true,
-            'edited_at' => now(),
-        ]);
-    }
-
-    /**
-     * Indicate that the message is a reply to another message.
-     */
-    public function reply(Message $parent): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'parent_id' => $parent->id,
-            'conversation_id' => $parent->conversation_id,
-        ]);
     }
 }

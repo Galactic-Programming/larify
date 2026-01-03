@@ -15,16 +15,23 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
-            $table->text('content');
-            $table->foreignId('parent_id')->nullable()->constrained('messages')->nullOnDelete(); // Reply to message
-            $table->boolean('is_edited')->default(false);
-            $table->timestamp('edited_at')->nullable();
+            $table->text('content')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['conversation_id', 'created_at']);
-            $table->index(['sender_id']);
-            $table->index(['parent_id']);
+            $table->index('sender_id');
+        });
+
+        // Create the message_mentions table for @mention feature
+        Schema::create('message_mentions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('message_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['message_id', 'user_id']);
+            $table->index('user_id');
         });
     }
 
@@ -33,6 +40,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('message_mentions');
         Schema::dropIfExists('messages');
     }
 };

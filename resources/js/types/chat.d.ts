@@ -18,25 +18,15 @@ export interface MessageAttachment {
     url: string;
 }
 
-export interface MessageParent {
-    id: number;
-    content: string | null;
-    sender_name?: string | null;
-    is_deleted?: boolean;
-}
-
-export interface MessageReaction {
-    emoji: string;
-    count: number;
-    users: { id: number; name: string }[];
-    reacted_by_me: boolean;
+export interface MessageMention {
+    user_id: number;
+    name: string;
+    email: string;
 }
 
 export interface Message {
     id: number;
     content: string;
-    is_edited: boolean;
-    edited_at?: string;
     created_at: string;
     sender: {
         id: number;
@@ -44,10 +34,10 @@ export interface Message {
         avatar?: string;
     } | null;
     is_mine: boolean;
+    can_delete?: boolean;
     is_read?: boolean;
-    parent?: MessageParent;
+    mentions: MessageMention[];
     attachments: MessageAttachment[];
-    reactions?: MessageReaction[];
 }
 
 export interface ConversationLastMessage {
