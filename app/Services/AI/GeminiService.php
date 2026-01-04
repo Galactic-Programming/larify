@@ -59,7 +59,11 @@ class GeminiService
      */
     public function parseTaskFromText(string $text): ?array
     {
-        $systemPrompt = config('ai.prompts.task_creation');
+        $systemPrompt = str_replace(
+            '{current_date}',
+            now()->format('Y-m-d (l, F j, Y)'),
+            config('ai.prompts.task_creation')
+        );
         $response = $this->generate($text, 'task_creation', $systemPrompt);
 
         if (! $response) {

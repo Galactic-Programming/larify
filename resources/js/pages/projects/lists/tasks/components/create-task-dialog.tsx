@@ -162,6 +162,26 @@ export function CreateTaskDialog({
             if (result.due_date) {
                 setDueDate(new Date(result.due_date));
             }
+            if (result.due_time) {
+                setDueTime(result.due_time);
+            }
+            // Auto-match assignee hint with project members
+            if (result.assignee_hint && canAssignTask) {
+                const hint = result.assignee_hint.toLowerCase();
+                const matchedMember = allMembers.find((member) => {
+                    const name = member.name.toLowerCase();
+                    const email = member.email?.toLowerCase() ?? '';
+                    // Match by name contains, starts with, or email contains
+                    return (
+                        name.includes(hint) ||
+                        hint.includes(name.split(' ')[0]) ||
+                        email.includes(hint)
+                    );
+                });
+                if (matchedMember) {
+                    setAssigneeId(matchedMember.id);
+                }
+            }
             // Switch to manual mode to show populated fields
             setIsSmartMode(false);
             setSmartInput('');

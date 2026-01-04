@@ -15,6 +15,7 @@ export interface AITaskParseResult {
     description: string | null;
     priority: 'low' | 'medium' | 'high' | 'urgent';
     due_date: string | null;
+    due_time: string | null;
     assignee_hint: string | null;
 }
 
