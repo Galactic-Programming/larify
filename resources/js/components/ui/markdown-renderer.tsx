@@ -184,11 +184,15 @@ const COMPONENTS = {
   hr: withClass("hr", "border-foreground/20"),
 }
 
-function withClass(Tag: keyof JSX.IntrinsicElements, classes: string) {
-  const Component = ({ node, ...props }: any) => (
-    <Tag className={classes} {...props} />
-  )
-  Component.displayName = Tag
+function withClass<T extends keyof React.JSX.IntrinsicElements>(
+  Tag: T,
+  classes: string
+) {
+  const Component = ({ node, ...props }: any) => {
+    const Element = Tag as React.ElementType
+    return <Element className={classes} {...props} />
+  }
+  Component.displayName = String(Tag)
   return Component
 }
 

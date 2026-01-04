@@ -6,14 +6,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { index as listsIndex } from '@/routes/projects/lists';
 import { index as membersIndex } from '@/routes/projects/members';
 import { Link } from '@inertiajs/react';
 import {
     Archive,
     ArchiveRestore,
     Eye,
-    FolderKanban,
     MoreHorizontal,
     Pencil,
     Trash2,
@@ -59,12 +57,6 @@ export function ProjectDropdownMenu({
                 <DropdownMenuItem onClick={() => onView(project)}>
                     <Eye className="mr-2 size-4" />
                     View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href={listsIndex(project).url}>
-                        <FolderKanban className="mr-2 size-4" />
-                        Open Board
-                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link href={membersIndex(project).url}>
