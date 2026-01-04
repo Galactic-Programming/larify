@@ -23,7 +23,6 @@ Route::middleware(['auth', 'verified'])->prefix('api/ai')->name('api.ai.')->grou
         Route::post('/tasks/parse', [AIController::class, 'parseTask'])->name('tasks.parse');
         Route::post('/tasks/description', [AIController::class, 'generateDescription'])->name('tasks.description');
         Route::post('/tasks/priority', [AIController::class, 'suggestPriority'])->name('tasks.priority');
-        Route::post('/tasks/meeting-notes', [AIController::class, 'parseMeetingNotes'])->name('tasks.meeting-notes');
 
         // Project-specific AI features
         Route::post('/projects/{project}/labels/suggest', [AIController::class, 'suggestLabels'])

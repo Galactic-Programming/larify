@@ -6,7 +6,6 @@ import type {
     AIDescriptionResult,
     AIErrorResponse,
     AILabelResult,
-    AIMeetingNotesResult,
     AIPrioritySuggestionResult,
     AIResponse,
     AIStatus,
@@ -203,17 +202,6 @@ export function useAIChat(projectId: number, options: UseAIOptions = {}) {
     return useAIRequest<AIChatResult, [string]>(
         `/api/ai/projects/${projectId}/chat`,
         (message) => ({ message }),
-        options,
-    );
-}
-
-/**
- * Hook to parse meeting notes into tasks
- */
-export function useAIParseMeetingNotes(options: UseAIOptions = {}) {
-    return useAIRequest<AIMeetingNotesResult, [string]>(
-        '/api/ai/tasks/meeting-notes',
-        (notes) => ({ notes }),
         options,
     );
 }

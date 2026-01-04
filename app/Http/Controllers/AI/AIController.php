@@ -234,29 +234,4 @@ class AIController extends Controller
             'remaining_requests' => $this->geminiService->getRemainingRequests($request->user()),
         ]);
     }
-
-    /**
-     * Parse meeting notes into multiple tasks.
-     */
-    public function parseMeetingNotes(Request $request): JsonResponse
-    {
-        $request->validate([
-            'notes' => ['required', 'string', 'max:10000'],
-        ]);
-
-        $tasks = $this->geminiService->parseMeetingNotes($request->input('notes'));
-
-        if (empty($tasks)) {
-            return response()->json([
-                'message' => 'No tasks could be extracted from the meeting notes.',
-            ], 422);
-        }
-
-        $this->geminiService->incrementUsage($request->user());
-
-        return response()->json([
-            'data' => ['tasks' => $tasks],
-            'remaining_requests' => $this->geminiService->getRemainingRequests($request->user()),
-        ]);
-    }
 }

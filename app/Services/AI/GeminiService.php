@@ -203,25 +203,6 @@ class GeminiService
     }
 
     /**
-     * Parse meeting notes into tasks.
-     *
-     * @return array<array<string, mixed>>
-     */
-    public function parseMeetingNotes(string $notes): array
-    {
-        $systemPrompt = config('ai.prompts.meeting_notes_parser');
-        $response = $this->generate($notes, 'task_creation', $systemPrompt);
-
-        if (! $response) {
-            return [];
-        }
-
-        $tasks = $this->parseJson($response);
-
-        return is_array($tasks) ? $tasks : [];
-    }
-
-    /**
      * Check if user can use AI (has Pro subscription and within daily limit).
      */
     public function canUserUseAI(User $user): bool

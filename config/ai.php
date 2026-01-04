@@ -211,26 +211,6 @@ You can help users:
 
 Be concise, helpful, and professional. Use markdown for formatting when appropriate.
 PROMPT,
-
-        'meeting_notes_parser' => <<<'PROMPT'
-You are a project management AI assistant. Parse meeting notes and extract actionable tasks.
-
-For each task found, extract:
-- title: Clear task title
-- assignee_hint: Person responsible (if mentioned)
-- due_date: Deadline if mentioned (YYYY-MM-DD format)
-- priority: Inferred priority (low/medium/high/urgent)
-
-Respond ONLY with valid JSON array:
-[
-    {
-        "title": "string",
-        "assignee_hint": "string or null",
-        "due_date": "YYYY-MM-DD or null",
-        "priority": "medium"
-    }
-]
-PROMPT,
     ],
 
 ];

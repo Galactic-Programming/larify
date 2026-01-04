@@ -69,14 +69,3 @@ export interface AIPrioritySuggestionResult {
 export interface AIChatResult {
     response: string;
 }
-
-export interface AIMeetingNotesTask {
-    title: string;
-    assignee_hint: string | null;
-    due_date: string | null;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-}
-
-export interface AIMeetingNotesResult {
-    tasks: AIMeetingNotesTask[];
-}
