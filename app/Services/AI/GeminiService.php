@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\AI;
 
 use App\Models\User;
+use Gemini\Data\Content;
 use Gemini\Data\GenerationConfig;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Facades\Cache;
@@ -35,7 +36,9 @@ class GeminiService
                 ));
 
             if ($systemPrompt) {
-                $generativeModel = $generativeModel->withSystemInstruction($systemPrompt);
+                $generativeModel = $generativeModel->withSystemInstruction(
+                    Content::parse($systemPrompt)
+                );
             }
 
             $response = $generativeModel->generateContent($prompt);
