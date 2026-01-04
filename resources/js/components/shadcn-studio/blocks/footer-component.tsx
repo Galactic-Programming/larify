@@ -35,7 +35,7 @@ const defaultNavLinks: NavLink[] = [
 const defaultSocialLinks: SocialLink[] = [
     {
         icon: <GithubIcon className="size-5" />,
-        href: 'https://github.com/Galactic-Programming/flow-state',
+        href: 'https://github.com/Galactic-Programming/larify',
         label: 'GitHub',
     },
 ];

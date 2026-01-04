@@ -11,7 +11,7 @@ const DashboardFooter = () => {
             </p>
             <div className="flex items-center gap-5">
                 <a
-                    href="https://github.com/Galactic-Programming/flow-state"
+                    href="https://github.com/Galactic-Programming/larify"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
