@@ -18,9 +18,9 @@ class TaskLabelController extends Controller
      */
     public function sync(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
-        Gate::authorize('update', $project);
-
         abort_if($task->project_id !== $project->id, 404);
+
+        Gate::authorize('update', [$task, $project]);
 
         $validated = $request->validate([
             'label_ids' => ['present', 'array'],
@@ -50,9 +50,9 @@ class TaskLabelController extends Controller
      */
     public function attach(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
-        Gate::authorize('update', $project);
-
         abort_if($task->project_id !== $project->id, 404);
+
+        Gate::authorize('update', [$task, $project]);
 
         $validated = $request->validate([
             'label_id' => ['required', 'integer', 'exists:labels,id'],
@@ -79,9 +79,9 @@ class TaskLabelController extends Controller
      */
     public function detach(Request $request, Project $project, Task $task): JsonResponse|RedirectResponse
     {
-        Gate::authorize('update', $project);
-
         abort_if($task->project_id !== $project->id, 404);
+
+        Gate::authorize('update', [$task, $project]);
 
         $validated = $request->validate([
             'label_id' => ['required', 'integer', 'exists:labels,id'],
