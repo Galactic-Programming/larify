@@ -45,10 +45,10 @@ export function AppContent({
         return (
             <SidebarInset
                 {...props}
-                className={cn('relative', props.className)}
+                className={cn('relative min-w-0', props.className)}
             >
                 <BackgroundLayer />
-                <div className="relative z-10 flex flex-1 flex-col">
+                <div className="relative z-10 flex min-w-0 flex-1 flex-col">
                     {children}
                 </div>
             </SidebarInset>

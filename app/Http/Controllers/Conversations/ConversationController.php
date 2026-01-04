@@ -107,8 +107,13 @@ class ConversationController extends Controller
             ->where('user_id', $request->user()->id)
             ->update(['last_read_at' => $now]);
 
-        // Broadcast that messages were read
-        event(new MessagesRead($conversation, $request->user(), $now->toISOString()));
+        // Broadcast that messages were read (silently fail if Reverb is not running)
+        try {
+            event(new MessagesRead($conversation, $request->user(), $now->toISOString()));
+        } catch (\Illuminate\Broadcasting\BroadcastException $e) {
+            // Reverb server not running - continue without broadcasting
+            report($e);
+        }
 
         // Load conversation with messages and participants
         $conversation->load([
@@ -214,5 +219,68 @@ class ConversationController extends Controller
 
         // Redirect to the conversation view
         return $this->show($request, $conversation);
+    }
+
+    /**
+     * Get unread conversations for the notification bell.
+     * Returns conversations with unread messages, limited to 10.
+     */
+    public function unread(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $conversations = $request->user()
+            ->conversations()
+            ->with([
+                'project:id,name,color,icon',
+                'latestMessage.sender:id,name,avatar',
+                'participantRecords' => fn ($query) => $query->where('user_id', $userId),
+            ])
+            ->orderByDesc('last_message_at')
+            ->get();
+
+        // Get all conversation IDs
+        $conversationIds = $conversations->pluck('id')->toArray();
+
+        // Calculate unread counts for all conversations in a single query
+        $unreadCounts = Message::select('conversation_id', DB::raw('COUNT(*) as unread_count'))
+            ->whereIn('conversation_id', $conversationIds)
+            ->where('sender_id', '!=', $userId)
+            ->where(function ($query) use ($userId) {
+                $query->whereRaw('created_at > COALESCE(
+                    (SELECT last_read_at FROM conversation_participants 
+                     WHERE conversation_participants.conversation_id = messages.conversation_id 
+                     AND conversation_participants.user_id = ?),
+                    ?
+                )', [$userId, '1970-01-01 00:00:00']);
+            })
+            ->groupBy('conversation_id')
+            ->pluck('unread_count', 'conversation_id');
+
+        // Filter to only conversations with unread messages
+        $unreadConversations = $conversations
+            ->filter(fn ($conv) => ($unreadCounts[$conv->id] ?? 0) > 0)
+            ->take(10)
+            ->map(function ($conversation) use ($unreadCounts) {
+                return [
+                    'id' => $conversation->id,
+                    'name' => $conversation->getDisplayName(),
+                    'color' => $conversation->getDisplayColor(),
+                    'unread_count' => $unreadCounts[$conversation->id] ?? 0,
+                    'last_message' => $conversation->latestMessage ? [
+                        'content' => $conversation->latestMessage->content,
+                        'sender_name' => $conversation->latestMessage->sender?->name ?? 'Unknown',
+                        'created_at' => $conversation->latestMessage->created_at->toISOString(),
+                    ] : null,
+                ];
+            })
+            ->values();
+
+        $totalUnread = $unreadCounts->sum();
+
+        return response()->json([
+            'conversations' => $unreadConversations,
+            'total_unread' => $totalUnread,
+        ]);
     }
 }

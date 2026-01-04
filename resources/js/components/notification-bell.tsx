@@ -74,7 +74,7 @@ export function NotificationBell({
         PreviewNotification[]
     >([]);
     const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-    const { count, setCount, refetch } = useUnreadCount(initialCount);
+    const { count, refetch } = useUnreadCount(initialCount);
 
     // Real-time updates
     const handleNewNotification = useCallback(
@@ -165,7 +165,7 @@ export function NotificationBell({
         <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     className={cn('relative', className)}
                 >

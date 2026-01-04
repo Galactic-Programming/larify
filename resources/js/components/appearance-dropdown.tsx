@@ -42,7 +42,7 @@ export default function AppearanceToggleDropdown({
                 <DropdownMenuTrigger asChild>
                     <Button
                         ref={buttonRef}
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         className="h-9 w-9 rounded-md"
                     >
