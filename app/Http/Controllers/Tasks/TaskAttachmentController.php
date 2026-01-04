@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Tasks;
 
+use App\Events\TaskAttachmentDeleted;
+use App\Events\TaskAttachmentUploaded;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tasks\StoreTaskAttachmentRequest;
 use App\Models\Project;
@@ -78,7 +80,7 @@ class TaskAttachmentController extends Controller
 
             $attachment->load('uploader:id,name,avatar');
 
-            $attachments[] = [
+            $attachmentData = [
                 'id' => $attachment->id,
                 'original_name' => $attachment->original_name,
                 'mime_type' => $attachment->mime_type,
@@ -95,6 +97,16 @@ class TaskAttachmentController extends Controller
                 ] : null,
                 'created_at' => $attachment->created_at->toISOString(),
             ];
+
+            $attachments[] = $attachmentData;
+
+            // Broadcast to other users
+            broadcast(new TaskAttachmentUploaded(
+                $task->id,
+                $project->id,
+                $attachmentData,
+                $user->id
+            ))->toOthers();
         }
 
         return response()->json([
@@ -156,7 +168,16 @@ class TaskAttachmentController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        $attachmentId = $taskAttachment->id;
         $taskAttachment->delete();
+
+        // Broadcast to other users
+        broadcast(new TaskAttachmentDeleted(
+            $attachmentId,
+            $task->id,
+            $project->id,
+            $user->id
+        ))->toOthers();
 
         return response()->json([
             'message' => 'Attachment deleted',

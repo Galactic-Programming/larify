@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { Crown, Paperclip } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,6 +11,7 @@ import { AttachmentList } from './attachment-list';
 import { DeleteAttachmentDialog } from './delete-attachment-dialog';
 import { FileUpload } from './file-upload';
 import type { AttachmentsResponse, TaskAttachment } from './types';
+import { useTaskAttachmentsRealtime } from './use-task-attachments-realtime';
 
 interface TaskAttachmentsPanelProps {
     projectId: number;
@@ -21,10 +24,36 @@ export function TaskAttachmentsPanel({
     taskId,
     canEdit,
 }: TaskAttachmentsPanelProps) {
+    const { auth } = usePage<SharedData>().props;
     const { canUploadAttachments, isPro } = usePlanFeatures();
     const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deletingAttachment, setDeletingAttachment] = useState<TaskAttachment | null>(null);
+
+    // Real-time attachment handlers
+    const handleRealtimeAttachmentUploaded = useCallback((attachment: TaskAttachment) => {
+        setAttachments((prev) => {
+            // Prevent duplicates
+            if (prev.some((a) => a.id === attachment.id)) {
+                return prev;
+            }
+            // Add to beginning (newest first)
+            return [attachment, ...prev];
+        });
+    }, []);
+
+    const handleRealtimeAttachmentDeleted = useCallback((attachmentId: number) => {
+        setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+    }, []);
+
+    // Set up real-time listeners
+    useTaskAttachmentsRealtime({
+        projectId,
+        taskId,
+        currentUserId: auth.user.id,
+        onAttachmentUploaded: handleRealtimeAttachmentUploaded,
+        onAttachmentDeleted: handleRealtimeAttachmentDeleted,
+    });
 
     // Fetch attachments
     const fetchAttachments = useCallback(async () => {
