@@ -29,12 +29,21 @@ class TaskController extends Controller
     {
         $maxPosition = $list->tasks()->max('position') ?? -1;
 
+        // Extract label_ids before creating task (not part of task fillable)
+        $labelIds = $request->validated('label_ids', []);
+        $taskData = collect($request->validated())->except('label_ids')->toArray();
+
         $task = $list->tasks()->create([
-            ...$request->validated(),
+            ...$taskData,
             'project_id' => $project->id,
             'created_by' => auth()->id(),
             'position' => $maxPosition + 1,
         ]);
+
+        // Attach labels if provided
+        if (! empty($labelIds)) {
+            $task->labels()->attach($labelIds);
+        }
 
         // Log activity
         Activity::log(
@@ -49,7 +58,7 @@ class TaskController extends Controller
         }
 
         // Broadcast real-time update
-        broadcast(new TaskUpdated($task->load('assignee'), 'created'))->toOthers();
+        broadcast(new TaskUpdated($task->load(['assignee', 'labels']), 'created'))->toOthers();
 
         return back();
     }

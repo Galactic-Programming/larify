@@ -445,6 +445,7 @@ export function BoardView({
                                                                 canAssignTask={
                                                                     permissions.canAssignTask
                                                                 }
+                                                                permissions={permissions}
                                                                 trigger={
                                                                     <Button
                                                                         variant="ghost"
@@ -471,6 +472,7 @@ export function BoardView({
                                                     canAssignTask={
                                                         permissions.canAssignTask
                                                     }
+                                                    permissions={permissions}
                                                     trigger={
                                                         <Button
                                                             variant="ghost"

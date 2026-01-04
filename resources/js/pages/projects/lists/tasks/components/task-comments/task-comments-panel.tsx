@@ -1,9 +1,12 @@
-import { toast } from 'sonner';
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { CommentInput } from './comment-input';
 import { CommentList } from './comment-list';
 import { DeleteCommentDialog } from './delete-comment-dialog';
 import type { CommentPermissions, CommentsResponse, TaskComment } from './types';
+import { useTaskCommentsRealtime } from './use-task-comments-realtime';
 
 interface TaskCommentsPanelProps {
     projectId: number;
@@ -11,6 +14,7 @@ interface TaskCommentsPanelProps {
 }
 
 export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps) {
+    const { auth } = usePage<SharedData>().props;
     const [comments, setComments] = useState<TaskComment[]>([]);
     const [permissions, setPermissions] = useState<CommentPermissions>({
         can_create: false,
@@ -21,6 +25,70 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
     const [nextCursor, setNextCursor] = useState<number | null>(null);
     const [editingComment, setEditingComment] = useState<TaskComment | null>(null);
     const [deletingComment, setDeletingComment] = useState<TaskComment | null>(null);
+
+    // Real-time comment handlers
+    const handleRealtimeCommentCreated = useCallback((comment: TaskComment) => {
+        setComments((prev) => {
+            // Prevent duplicates
+            if (prev.some((c) => c.id === comment.id)) {
+                return prev;
+            }
+            return [...prev, comment];
+        });
+    }, []);
+
+    const handleRealtimeCommentUpdated = useCallback(
+        (data: { id: number; content: string; is_edited: boolean }) => {
+            setComments((prev) =>
+                prev.map((c) =>
+                    c.id === data.id
+                        ? { ...c, content: data.content, is_edited: data.is_edited }
+                        : c,
+                ),
+            );
+        },
+        [],
+    );
+
+    const handleRealtimeCommentDeleted = useCallback((commentId: number) => {
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+    }, []);
+
+    const handleRealtimeReactionToggled = useCallback(
+        (commentId: number, newReactions: TaskComment['reactions']) => {
+            setComments((prev) =>
+                prev.map((c) => {
+                    if (c.id !== commentId) return c;
+
+                    // Merge reactions while preserving current user's reacted_by_me state
+                    const mergedReactions = newReactions.map((newReaction) => {
+                        const existingReaction = c.reactions.find(
+                            (r) => r.emoji === newReaction.emoji,
+                        );
+                        return {
+                            ...newReaction,
+                            // Preserve current user's reacted_by_me if they had reacted
+                            reacted_by_me: existingReaction?.reacted_by_me ?? false,
+                        };
+                    });
+
+                    return { ...c, reactions: mergedReactions };
+                }),
+            );
+        },
+        [],
+    );
+
+    // Set up real-time listeners
+    useTaskCommentsRealtime({
+        projectId,
+        taskId,
+        currentUserId: auth.user.id,
+        onCommentCreated: handleRealtimeCommentCreated,
+        onCommentUpdated: handleRealtimeCommentUpdated,
+        onCommentDeleted: handleRealtimeCommentDeleted,
+        onReactionToggled: handleRealtimeReactionToggled,
+    });
 
     // Fetch comments
     const fetchComments = useCallback(

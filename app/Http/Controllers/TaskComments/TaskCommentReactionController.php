@@ -71,7 +71,21 @@ class TaskCommentReactionController extends Controller
             $action = 'added';
         }
 
-        // Broadcast to other users
+        // Return updated reactions
+        $comment->load('reactions.user:id,name');
+
+        $reactions = $this->getGroupedReactions($comment, $user->id);
+
+        // Broadcast to other users (include reactions for real-time update)
+        // For broadcast, set reacted_by_me to false since it's for other users
+        $broadcastReactions = array_map(function ($reaction) {
+            return [
+                'emoji' => $reaction['emoji'],
+                'count' => $reaction['count'],
+                'reacted_by_me' => false, // Other users haven't reacted
+            ];
+        }, $reactions);
+
         broadcast(new TaskCommentReactionToggled(
             $comment->id,
             $task->id,
@@ -79,15 +93,13 @@ class TaskCommentReactionController extends Controller
             $emoji,
             $action,
             $user->id,
-            $user->name
+            $user->name,
+            $broadcastReactions
         ))->toOthers();
-
-        // Return updated reactions
-        $comment->load('reactions.user:id,name');
 
         return response()->json([
             'action' => $action,
-            'reactions' => $this->getGroupedReactions($comment, $user->id),
+            'reactions' => $reactions,
         ]);
     }
 

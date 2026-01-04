@@ -69,6 +69,11 @@ class StoreTaskRequest extends FormRequest
                     }
                 },
             ],
+            'label_ids' => ['nullable', 'array'],
+            'label_ids.*' => [
+                'integer',
+                Rule::exists('labels', 'id')->where('project_id', $project->id),
+            ],
         ];
     }
 }

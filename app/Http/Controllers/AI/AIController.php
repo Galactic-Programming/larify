@@ -85,9 +85,30 @@ class AIController extends Controller
 
     /**
      * Suggest labels for a task.
+     *
+     * If project has labels: suggests from existing labels (Owner & Editor)
+     * If project has no labels: generates new label suggestions (Owner only)
      */
     public function suggestLabels(Request $request, Project $project): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        // Check if user is a member of the project
+        if (! $project->hasMember($user)) {
+            return response()->json([
+                'message' => 'You are not a member of this project.',
+            ], 403);
+        }
+
+        // Check if user can edit (Owner or Editor, not Viewer)
+        $role = $project->getMemberRole($user);
+        if (! $role?->canEdit()) {
+            return response()->json([
+                'message' => 'You do not have permission to use this feature.',
+            ], 403);
+        }
+
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -95,17 +116,53 @@ class AIController extends Controller
 
         $availableLabels = $project->labels()->pluck('name')->toArray();
 
-        $suggestions = $this->geminiService->suggestLabels(
+        // If project has labels, suggest from existing ones (Owner & Editor can use)
+        if (! empty($availableLabels)) {
+            $suggestions = $this->geminiService->suggestLabels(
+                $request->input('title'),
+                $request->input('description'),
+                $availableLabels
+            );
+
+            $this->geminiService->incrementUsage($user);
+
+            return response()->json([
+                'data' => [
+                    'labels' => $suggestions,
+                    'type' => 'existing',
+                ],
+                'remaining_requests' => $this->geminiService->getRemainingRequests($user),
+            ]);
+        }
+
+        // If no labels exist, only Owner can generate new label suggestions
+        $isOwner = $project->user_id === $user->id;
+        if (! $isOwner) {
+            return response()->json([
+                'data' => [
+                    'labels' => [],
+                    'type' => 'none',
+                    'message' => 'No labels available. Ask the project owner to create some.',
+                ],
+                'remaining_requests' => $this->geminiService->getRemainingRequests($user),
+            ]);
+        }
+
+        // Generate new label suggestions (Owner only)
+        $generatedLabels = $this->geminiService->generateLabelSuggestions(
             $request->input('title'),
             $request->input('description'),
-            $availableLabels
+            $project->name
         );
 
-        $this->geminiService->incrementUsage($request->user());
+        $this->geminiService->incrementUsage($user);
 
         return response()->json([
-            'data' => ['labels' => $suggestions],
-            'remaining_requests' => $this->geminiService->getRemainingRequests($request->user()),
+            'data' => [
+                'labels' => $generatedLabels,
+                'type' => 'generated',
+            ],
+            'remaining_requests' => $this->geminiService->getRemainingRequests($user),
         ]);
     }
 
@@ -134,9 +191,20 @@ class AIController extends Controller
 
     /**
      * Chat with AI assistant about a project.
+     * All project members (Owner, Editor, Viewer) can use chat.
      */
     public function chat(Request $request, Project $project): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        // Check if user is a member of the project
+        if (! $project->hasMember($user)) {
+            return response()->json([
+                'message' => 'You are not a member of this project.',
+            ], 403);
+        }
+
         $request->validate([
             'message' => ['required', 'string', 'max:2000'],
         ]);
@@ -159,7 +227,7 @@ class AIController extends Controller
             ], 422);
         }
 
-        $this->geminiService->incrementUsage($request->user());
+        $this->geminiService->incrementUsage($user);
 
         return response()->json([
             'data' => ['response' => $response],

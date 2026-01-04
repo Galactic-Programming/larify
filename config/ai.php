@@ -160,6 +160,29 @@ Respond ONLY with valid JSON array of suggested label names:
 Suggest 1-3 most relevant labels. If no labels match, return empty array [].
 PROMPT,
 
+        'label_generation' => <<<'PROMPT'
+You are a project management AI assistant. Based on the task title, description, and project name, generate appropriate label suggestions that would be useful for organizing tasks in this project.
+
+Available colors: gray, red, yellow, green, blue, purple, pink, indigo, cyan, teal, orange, lime
+
+Guidelines:
+- Suggest 2-4 labels that would be generally useful for the project
+- Use concise, lowercase label names (e.g., "bug", "feature", "documentation", "urgent")
+- Choose colors that intuitively match the label meaning:
+  - red/orange: urgent, bug, critical
+  - green: feature, enhancement, done
+  - blue: documentation, design, planning
+  - purple: review, testing
+  - yellow: in-progress, pending
+  - gray: backlog, low-priority
+
+Respond ONLY with valid JSON array:
+[
+    {"name": "label-name", "color": "color-name"},
+    {"name": "label-name", "color": "color-name"}
+]
+PROMPT,
+
         'priority_suggestion' => <<<'PROMPT'
 You are a project management AI assistant. Based on the task title and description, suggest an appropriate priority level.
 

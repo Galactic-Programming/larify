@@ -5,7 +5,7 @@ import type {
     AIChatResult,
     AIDescriptionResult,
     AIErrorResponse,
-    AILabelSuggestionResult,
+    AILabelResult,
     AIMeetingNotesResult,
     AIPrioritySuggestionResult,
     AIResponse,
@@ -183,12 +183,13 @@ export function useAISuggestPriority(options: UseAIOptions = {}) {
 
 /**
  * Hook to suggest labels for a task
+ * Returns either existing labels to select, or generated labels to create
  */
 export function useAISuggestLabels(
     projectId: number,
     options: UseAIOptions = {},
 ) {
-    return useAIRequest<AILabelSuggestionResult, [string, string | null]>(
+    return useAIRequest<AILabelResult, [string, string | null]>(
         `/api/ai/projects/${projectId}/labels/suggest`,
         (title, description) => ({ title, description }),
         options,

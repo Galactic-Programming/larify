@@ -10,3 +10,4 @@ export type {
     CommentsResponse,
     TaskComment,
 } from './types';
+export { useTaskCommentsRealtime } from './use-task-comments-realtime';

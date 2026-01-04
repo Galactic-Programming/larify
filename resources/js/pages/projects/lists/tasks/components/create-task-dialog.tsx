@@ -31,10 +31,11 @@ import type { SharedData } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { ListTodo, Plus, Sparkles, Wand2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
-import type { Project, TaskList, TaskPriority, User } from '../../lib/types';
+import type { Permissions, Project, TaskList, TaskPriority, User } from '../../lib/types';
 import {
     AssigneeSelect,
     DueDateTimePicker,
+    LabelSelectField,
     PrioritySelect,
 } from './task-form';
 
@@ -43,6 +44,7 @@ interface CreateTaskDialogProps {
     list: TaskList;
     trigger?: ReactNode;
     canAssignTask?: boolean;
+    permissions?: Permissions;
 }
 
 export function CreateTaskDialog({
@@ -50,6 +52,7 @@ export function CreateTaskDialog({
     list,
     trigger,
     canAssignTask = false,
+    permissions,
 }: CreateTaskDialogProps) {
     const { auth } = usePage<SharedData>().props;
     const [open, setOpen] = useState(false);
@@ -57,6 +60,7 @@ export function CreateTaskDialog({
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
     const [dueTime, setDueTime] = useState<string>('');
     const [assigneeId, setAssigneeId] = useState<number | null>(null);
+    const [selectedLabelIds, setSelectedLabelIds] = useState<number[]>([]);
 
     // AI-related state
     const [title, setTitle] = useState('');
@@ -120,6 +124,7 @@ export function CreateTaskDialog({
         setDueDate(undefined);
         setDueTime('');
         setAssigneeId(null);
+        setSelectedLabelIds([]);
         setTitle('');
         setDescription('');
         setSmartInput('');
@@ -390,7 +395,7 @@ export function CreateTaskDialog({
                                     <InputError message={errors.description} />
                                 </div>
 
-                                {/* Priority & Assignee */}
+                                {/* Priority, Assignee & Labels */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <PrioritySelect
                                         value={priority}
@@ -418,6 +423,18 @@ export function CreateTaskDialog({
                                         effectiveAssigneeId={effectiveAssigneeId}
                                     />
                                 </div>
+
+                                {/* Labels */}
+                                <LabelSelectField
+                                    project={project}
+                                    selectedLabelIds={selectedLabelIds}
+                                    onChange={setSelectedLabelIds}
+                                    showAIButton={aiStatus?.can_use}
+                                    canSuggest={!!title.trim()}
+                                    canCreateLabel={permissions?.canCreateLabel ?? false}
+                                    title={title}
+                                    description={description}
+                                />
 
                                 {/* Due Date & Time */}
                                 <DueDateTimePicker

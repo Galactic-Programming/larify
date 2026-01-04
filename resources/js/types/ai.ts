@@ -38,7 +38,29 @@ export interface AIDescriptionResult {
 
 export interface AILabelSuggestionResult {
     labels: string[];
+    type: 'existing'; // Labels from existing project labels
 }
+
+export interface AIGeneratedLabelSuggestion {
+    name: string;
+    color: string;
+}
+
+export interface AIGeneratedLabelResult {
+    labels: AIGeneratedLabelSuggestion[];
+    type: 'generated'; // New labels to be created
+}
+
+export interface AINoLabelsResult {
+    labels: [];
+    type: 'none'; // No labels available (for non-owners when project has no labels)
+    message?: string;
+}
+
+export type AILabelResult =
+    | AILabelSuggestionResult
+    | AIGeneratedLabelResult
+    | AINoLabelsResult;
 
 export interface AIPrioritySuggestionResult {
     priority: 'low' | 'medium' | 'high' | 'urgent';

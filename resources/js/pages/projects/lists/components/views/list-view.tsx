@@ -172,6 +172,7 @@ export function ListView({
                                                         canAssignTask={
                                                             permissions.canAssignTask
                                                         }
+                                                        permissions={permissions}
                                                         trigger={
                                                             <Button
                                                                 variant="ghost"
@@ -197,6 +198,7 @@ export function ListView({
                                                         canAssignTask={
                                                             permissions.canAssignTask
                                                         }
+                                                        permissions={permissions}
                                                         trigger={
                                                             <Button
                                                                 variant="ghost"

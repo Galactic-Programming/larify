@@ -587,6 +587,7 @@ export function TableView({ project, permissions }: TableViewProps) {
                                                         canAssignTask={
                                                             permissions.canAssignTask
                                                         }
+                                                        permissions={permissions}
                                                         trigger={
                                                             <Button
                                                                 variant="outline"
@@ -787,6 +788,7 @@ export function TableView({ project, permissions }: TableViewProps) {
                                                         canAssignTask={
                                                             permissions.canAssignTask
                                                         }
+                                                        permissions={permissions}
                                                         trigger={
                                                             <Tooltip>
                                                                 <TooltipTrigger

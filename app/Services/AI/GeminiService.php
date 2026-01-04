@@ -119,6 +119,49 @@ class GeminiService
     }
 
     /**
+     * Generate new label suggestions for a task when project has no labels.
+     *
+     * @return array<array{name: string, color: string}>
+     */
+    public function generateLabelSuggestions(string $title, ?string $description, string $projectName): array
+    {
+        $systemPrompt = config('ai.prompts.label_generation');
+
+        $prompt = "Project: {$projectName}\nTask: {$title}";
+        if ($description) {
+            $prompt .= "\nDescription: {$description}";
+        }
+
+        $response = $this->generate($prompt, 'suggestions', $systemPrompt);
+
+        if (! $response) {
+            return [];
+        }
+
+        $labels = $this->parseJson($response);
+
+        if (! is_array($labels)) {
+            return [];
+        }
+
+        // Validate and normalize the response
+        $validColors = ['gray', 'red', 'yellow', 'green', 'blue', 'purple', 'pink', 'indigo', 'cyan', 'teal', 'orange', 'lime'];
+
+        return array_values(array_filter(array_map(function ($label) use ($validColors) {
+            if (! is_array($label) || ! isset($label['name'])) {
+                return null;
+            }
+
+            return [
+                'name' => substr($label['name'], 0, 50), // Max 50 chars
+                'color' => in_array($label['color'] ?? 'blue', $validColors)
+                    ? $label['color']
+                    : 'blue',
+            ];
+        }, $labels)));
+    }
+
+    /**
      * Suggest priority for a task.
      */
     public function suggestPriority(string $title, ?string $description): string
