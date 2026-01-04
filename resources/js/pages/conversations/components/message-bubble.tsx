@@ -128,6 +128,7 @@ interface MessageBubbleProps {
     showAvatar: boolean;
     onDelete?: () => void;
     canDelete?: boolean;
+    currentUserId?: number;
 }
 
 /**
@@ -144,10 +145,17 @@ export const MessageBubble = memo(function MessageBubble({
     showAvatar,
     onDelete,
     canDelete,
+    currentUserId,
 }: MessageBubbleProps) {
     const isMine = message.is_mine;
     const hasContent = message.content?.trim();
     const hasAttachments = message.attachments.length > 0;
+
+    // Check if current user is mentioned in this message
+    const isMentioned =
+        currentUserId &&
+        !isMine &&
+        message.mentions?.some((m) => m.user_id === currentUserId);
 
     // For own messages, use a regular div to avoid animation glitches from optimistic updates
     const Wrapper = isMine ? 'div' : motion.div;
@@ -245,10 +253,19 @@ export const MessageBubble = memo(function MessageBubble({
                         {hasContent && (
                             <div
                                 className={cn(
-                                    'min-w-0 overflow-hidden rounded-2xl px-3 py-2',
+                                    'relative min-w-0 overflow-hidden rounded-2xl px-3 py-2',
                                     isMine
                                         ? 'rounded-br-md bg-primary text-primary-foreground'
                                         : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
+                                    // Highlight when current user is mentioned
+                                    isMentioned && [
+                                        // Change background to amber/yellow tint (complementary to purple theme)
+                                        'bg-amber-50! dark:bg-amber-900/30!',
+                                        // Add left accent border
+                                        'border-l-4 border-l-amber-500 dark:border-l-amber-400',
+                                        // Subtle shadow glow
+                                        'shadow-[0_0_12px_rgba(245,158,11,0.25)] dark:shadow-[0_0_12px_rgba(251,191,36,0.2)]',
+                                    ],
                                     // If only text (no attachments), show time inline
                                     !hasAttachments && 'pb-1',
                                 )}

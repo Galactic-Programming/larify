@@ -554,6 +554,7 @@ export default function ConversationShow({
                                                     setDeleteMessageId(message.id)
                                                 }
                                                 canDelete={message.can_delete}
+                                                currentUserId={auth.user.id}
                                             />
                                         </div>
                                     );
