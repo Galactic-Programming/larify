@@ -28,7 +28,7 @@ export function MessageSearch({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const debounceRef = useRef<NodeJS.Timeout>();
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
     const searchMessages = useCallback(
         async (searchQuery: string) => {
@@ -62,7 +62,7 @@ export function MessageSearch({
                 const data = await response.json();
                 setResults(data.messages);
                 setTotal(data.total);
-            } catch (err) {
+            } catch {
                 setError('Failed to search messages');
                 setResults([]);
                 setTotal(0);

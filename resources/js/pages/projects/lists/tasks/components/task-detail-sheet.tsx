@@ -8,7 +8,6 @@ import {
     ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
@@ -61,7 +60,6 @@ export function TaskDetailSheet({
     // Real-time countdown to deadline
     useEffect(() => {
         if (!task?.due_date || !task?.due_time || task?.completed_at) {
-            setTimeRemaining(0);
             return;
         }
 
@@ -78,6 +76,12 @@ export function TaskDetailSheet({
 
         return () => clearInterval(interval);
     }, [task?.due_date, task?.due_time, task?.completed_at]);
+
+    // Reset timeRemaining when task changes or has no deadline
+    const computedTimeRemaining =
+        !task?.due_date || !task?.due_time || task?.completed_at
+            ? 0
+            : timeRemaining;
 
     // Format time as HH:MM:SS
     const formatTimeHHMMSS = useCallback((seconds: number) => {
@@ -137,9 +141,9 @@ export function TaskDetailSheet({
 
     // Status helpers
     const isCompleted = !!task.completed_at;
-    const isOverdue = timeRemaining < 0 && !isCompleted;
+    const isOverdue = computedTimeRemaining < 0 && !isCompleted;
     const completedLate = isCompletedLate(task);
-    const urgencyLevel = getUrgencyLevel(timeRemaining);
+    const urgencyLevel = getUrgencyLevel(computedTimeRemaining);
 
     // Calculate how late the task was completed
     const getLateBySeconds = (): number => {
@@ -287,7 +291,7 @@ export function TaskDetailSheet({
                                             isOverdue={isOverdue}
                                             completedLate={completedLate}
                                             isProcessing={isProcessing}
-                                            timeRemaining={timeRemaining}
+                                            timeRemaining={computedTimeRemaining}
                                             lateBySeconds={lateBySeconds}
                                             urgencyLevel={urgencyLevel}
                                             countdownStyles={countdownStyles}

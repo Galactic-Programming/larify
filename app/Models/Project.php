@@ -300,8 +300,8 @@ class Project extends Model
             'last_message_at' => now(),
         ]);
 
-        // Sync participants with project members
-        $conversation->syncWithProjectMembers();
+        // Sync participants with project members (this is a new conversation, so all are new)
+        $conversation->syncWithProjectMembers(isNewConversation: true);
 
         return $conversation;
     }

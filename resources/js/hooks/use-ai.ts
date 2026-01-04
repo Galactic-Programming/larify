@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type {
     AIChatResult,
@@ -139,6 +139,11 @@ export function useAIStatus() {
             setIsLoading(false);
         }
     }, []);
+
+    // Auto-fetch status on mount
+    useEffect(() => {
+        checkStatus();
+    }, [checkStatus]);
 
     return { status, isLoading, checkStatus };
 }

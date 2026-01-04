@@ -4,6 +4,7 @@ use App\Enums\ProjectRole;
 use App\Enums\UserPlan;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -206,4 +207,104 @@ it('allows member to access shared project board', function () {
 
     // Check it doesn't return forbidden
     expect($response->status())->not->toBe(403);
+});
+
+it('broadcasts conversation added event when member is added', function () {
+    Event::fake([\App\Events\ConversationAdded::class]);
+
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+    $newMember = User::factory()->create();
+
+    // Add first member to trigger conversation creation
+    $this->actingAs($owner)->post(route('projects.members.store', $project), [
+        'user_id' => $newMember->id,
+        'role' => 'editor',
+    ]);
+
+    // Conversation should be created and both users should be participants
+    $conversation = $project->fresh()->conversation;
+    expect($conversation)->not->toBeNull();
+    expect($conversation->participants)->toHaveCount(2);
+    expect($conversation->participants->pluck('id')->toArray())->toContain($owner->id, $newMember->id);
+
+    // Event should be dispatched for new member
+    Event::assertDispatched(\App\Events\ConversationAdded::class, function ($event) use ($newMember, $conversation) {
+        return $event->user->id === $newMember->id && $event->conversation->id === $conversation->id;
+    });
+});
+
+it('broadcasts conversation added event to new member when second member is added', function () {
+    Event::fake([\App\Events\ConversationAdded::class]);
+
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $existingMember = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+
+    // Add first member (conversation created)
+    $project->members()->attach($existingMember->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+    $project->getOrCreateConversation();
+
+    // Clear events to only track new events
+    Event::fake([\App\Events\ConversationAdded::class]);
+
+    // Add second member
+    $newMember = User::factory()->create();
+    $this->actingAs($owner)->post(route('projects.members.store', $project), [
+        'user_id' => $newMember->id,
+        'role' => 'editor',
+    ]);
+
+    // Conversation should now have 3 participants
+    $conversation = $project->fresh()->conversation;
+    expect($conversation->participants)->toHaveCount(3);
+
+    // Event should only be dispatched for new member
+    Event::assertDispatched(\App\Events\ConversationAdded::class, function ($event) use ($newMember) {
+        return $event->user->id === $newMember->id;
+    });
+
+    // Event should NOT be dispatched for existing members
+    Event::assertNotDispatched(\App\Events\ConversationAdded::class, function ($event) use ($owner, $existingMember) {
+        return $event->user->id === $owner->id || $event->user->id === $existingMember->id;
+    });
+});
+
+it('broadcasts conversation removed event when member is removed', function () {
+    Event::fake([\App\Events\ConversationRemoved::class]);
+
+    $owner = User::factory()->create(['plan' => UserPlan::Pro]);
+    $member = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $owner->id]);
+
+    // Add member and create conversation
+    $project->members()->attach($member->id, [
+        'role' => ProjectRole::Editor->value,
+        'joined_at' => now(),
+    ]);
+    $conversation = $project->getOrCreateConversation();
+
+    // Get projectMember record for route
+    $projectMember = $project->projectMembers()->first();
+
+    // Clear events to only track remove events
+    Event::fake([\App\Events\ConversationRemoved::class]);
+
+    // Remove member
+    $this->actingAs($owner)->delete(route('projects.members.destroy', [$project, $projectMember]));
+
+    // Member should be removed from project
+    expect($project->fresh()->members)->toHaveCount(0);
+
+    // Conversation should only have owner as participant
+    expect($conversation->fresh()->participants)->toHaveCount(1);
+    expect($conversation->fresh()->participants->first()->id)->toBe($owner->id);
+
+    // ConversationRemoved event should be dispatched for removed member
+    Event::assertDispatched(\App\Events\ConversationRemoved::class, function ($event) use ($member, $conversation) {
+        return $event->user->id === $member->id && $event->conversationId === $conversation->id;
+    });
 });

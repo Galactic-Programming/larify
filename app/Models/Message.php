@@ -103,6 +103,7 @@ class Message extends Model
     /**
      * Parse @mentions from message content and return user IDs.
      * Supports formats: @Full Name, @username, @email@domain.com
+     * Note: Does not include the message sender (users cannot mention themselves).
      *
      * @param  array<int>  $participantIds  List of valid participant IDs to match against
      * @return array<int> Array of mentioned user IDs
@@ -113,10 +114,14 @@ class Message extends Model
             return [];
         }
 
-        // Get all participants to check for mentions
+        // Get all participants to check for mentions (excluding the sender)
         $query = User::query();
         if (! empty($participantIds)) {
             $query->whereIn('id', $participantIds);
+        }
+        // Exclude the sender - users cannot mention themselves
+        if ($this->sender_id) {
+            $query->where('id', '!=', $this->sender_id);
         }
         $participants = $query->get(['id', 'name', 'email']);
 

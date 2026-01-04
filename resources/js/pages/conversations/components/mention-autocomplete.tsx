@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Participant } from '@/types/chat';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface MentionAutocompleteProps {
     participants: Participant[];
@@ -16,16 +16,11 @@ export function MentionAutocomplete({
     onSelect,
     className,
 }: MentionAutocompleteProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [filteredParticipants, setFilteredParticipants] = useState<
-        Participant[]
-    >([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [mentionStart, setMentionStart] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Find @mention trigger in input (look for last @ followed by text)
-    const findMentionTrigger = useCallback(() => {
+    const mentionTrigger = useMemo(() => {
         // Find the last @ that's not part of an email
         const atIndex = inputValue.lastIndexOf('@');
         if (atIndex === -1) return null;
@@ -44,30 +39,37 @@ export function MentionAutocomplete({
         return { atIndex, query };
     }, [inputValue]);
 
-    // Filter participants based on query
-    useEffect(() => {
-        const trigger = findMentionTrigger();
+    // Calculate filtered participants based on mention trigger
+    const filteredParticipants = useMemo(() => {
+        if (!mentionTrigger) return [];
 
-        if (!trigger) {
-            setIsOpen(false);
-            return;
-        }
-
-        const { atIndex, query } = trigger;
-        setMentionStart(atIndex);
-
-        const filtered = participants.filter((p) => {
+        const { query } = mentionTrigger;
+        return participants.filter((p) => {
             const lowerQuery = query.toLowerCase();
             return (
                 p.name.toLowerCase().includes(lowerQuery) ||
                 (p.email && p.email.toLowerCase().includes(lowerQuery))
             );
         });
+    }, [mentionTrigger, participants]);
 
-        setFilteredParticipants(filtered);
-        setSelectedIndex(0);
-        setIsOpen(filtered.length > 0);
-    }, [inputValue, participants, findMentionTrigger]);
+    // Derived state
+    const isOpen = filteredParticipants.length > 0;
+    const mentionStart = mentionTrigger?.atIndex ?? -1;
+
+    // Ensure selectedIndex is valid when filteredParticipants changes
+    const validSelectedIndex = Math.min(
+        selectedIndex,
+        Math.max(0, filteredParticipants.length - 1),
+    );
+
+    // Handle selecting a participant
+    const handleSelect = useCallback(
+        (participant: Participant) => {
+            onSelect(participant, mentionStart);
+        },
+        [onSelect, mentionStart],
+    );
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -89,26 +91,21 @@ export function MentionAutocomplete({
                     break;
                 case 'Enter':
                 case 'Tab':
-                    if (filteredParticipants[selectedIndex]) {
+                    if (filteredParticipants[validSelectedIndex]) {
                         e.preventDefault();
-                        handleSelect(filteredParticipants[selectedIndex]);
+                        handleSelect(filteredParticipants[validSelectedIndex]);
                     }
                     break;
                 case 'Escape':
                     e.preventDefault();
-                    setIsOpen(false);
+                    // Do nothing - autocomplete will close when input loses @ trigger
                     break;
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, filteredParticipants, selectedIndex]);
-
-    const handleSelect = (participant: Participant) => {
-        onSelect(participant, mentionStart);
-        setIsOpen(false);
-    };
+    }, [isOpen, filteredParticipants, validSelectedIndex, handleSelect]);
 
     const getInitials = (name: string) => {
         return name
@@ -135,7 +132,7 @@ export function MentionAutocomplete({
                     type="button"
                     className={cn(
                         'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors',
-                        index === selectedIndex
+                        index === validSelectedIndex
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent/50',
                     )}

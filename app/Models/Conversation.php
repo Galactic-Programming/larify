@@ -121,18 +121,51 @@ class Conversation extends Model
     /**
      * Sync participants with project members.
      * This should be called whenever project members change.
+     *
+     * @param  bool  $isNewConversation  If true, broadcast to all participants (not just new ones)
      */
-    public function syncWithProjectMembers(): void
+    public function syncWithProjectMembers(bool $isNewConversation = false): void
     {
         if (! $this->project) {
             return;
         }
 
+        // Get current participant IDs
+        $currentParticipantIds = $this->participants()->pluck('users.id')->toArray();
+
         // Get all project member IDs (including owner)
         $memberIds = $this->project->members()->pluck('users.id')->toArray();
         $memberIds[] = $this->project->user_id; // Add owner
 
+        // Find new participants (users being added)
+        // If it's a new conversation, all members are "new"
+        $newParticipantIds = $isNewConversation
+            ? $memberIds
+            : array_diff($memberIds, $currentParticipantIds);
+
+        // Find removed participants (users being removed)
+        $removedParticipantIds = array_diff($currentParticipantIds, $memberIds);
+
         // Sync participants - this will add new members and remove old ones
         $this->participants()->sync($memberIds);
+
+        // Reload conversation with necessary relations for broadcasting
+        $this->load(['project', 'latestMessage.sender', 'participants']);
+
+        // Broadcast to new participants that they have access to this conversation
+        foreach ($newParticipantIds as $userId) {
+            $user = User::find($userId);
+            if ($user) {
+                broadcast(new \App\Events\ConversationAdded($this, $user));
+            }
+        }
+
+        // Broadcast to removed participants that they no longer have access
+        foreach ($removedParticipantIds as $userId) {
+            $user = User::find($userId);
+            if ($user) {
+                broadcast(new \App\Events\ConversationRemoved($this->id, $user));
+            }
+        }
     }
 }

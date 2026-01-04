@@ -167,6 +167,37 @@ export function ChatSidebar({
         'private',
     );
 
+    // Real-time: Listen for new conversations (when user is added to a project)
+    useEcho(
+        `user.${auth.user.id}.conversations`,
+        '.conversation.added',
+        (data: { conversation: Conversation }) => {
+            setConversations((prev) => {
+                // Check if conversation already exists to prevent duplicates
+                if (prev.some((conv) => conv.id === data.conversation.id)) {
+                    return prev;
+                }
+                // Add new conversation at the top
+                return [data.conversation, ...prev];
+            });
+        },
+        [auth.user.id],
+        'private',
+    );
+
+    // Real-time: Listen for removed conversations (when user is removed from a project)
+    useEcho(
+        `user.${auth.user.id}.conversations`,
+        '.conversation.removed',
+        (data: { conversation_id: number }) => {
+            setConversations((prev) =>
+                prev.filter((conv) => conv.id !== data.conversation_id),
+            );
+        },
+        [auth.user.id],
+        'private',
+    );
+
     // Reset unread count when viewing a conversation
     useEffect(() => {
         if (activeConversationId) {

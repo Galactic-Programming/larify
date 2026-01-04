@@ -571,7 +571,9 @@ export default function ConversationShow({
                 <div className="border-t p-4">
                     <form onSubmit={handleSubmit} className="relative">
                         <MentionAutocomplete
-                            participants={conversation.participants}
+                            participants={conversation.participants.filter(
+                                (p) => p.id !== auth.user.id,
+                            )}
                             inputValue={inputValue}
                             onSelect={handleMentionSelect}
                         />

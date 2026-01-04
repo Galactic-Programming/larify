@@ -1,9 +1,7 @@
 import { store } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import InputError from '@/components/input-error';
 import { softToastSuccess } from '@/components/shadcn-studio/soft-sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
     Dialog,
     DialogContent,
@@ -15,84 +13,35 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+    useAIGenerateDescription,
+    useAIParseTask,
+    useAIStatus,
+    useAISuggestPriority,
+} from '@/hooks/use-ai';
 import type { SharedData } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
-import { format } from 'date-fns';
-import {
-    AlertTriangle,
-    ArrowDown,
-    ArrowRight,
-    ArrowUp,
-    CalendarIcon,
-    ChevronDownIcon,
-    ListTodo,
-    Minus,
-    Plus,
-    UserCircle,
-} from 'lucide-react';
+import { ListTodo, Plus, Sparkles, Wand2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Project, TaskList, TaskPriority, User } from '../../lib/types';
+import {
+    AssigneeSelect,
+    DueDateTimePicker,
+    PrioritySelect,
+} from './task-form';
 
 interface CreateTaskDialogProps {
     project: Project;
     list: TaskList;
     trigger?: ReactNode;
     canAssignTask?: boolean;
-}
-
-const PRIORITY_OPTIONS: {
-    value: TaskPriority;
-    label: string;
-    icon: typeof Minus;
-    color: string;
-}[] = [
-    {
-        value: 'none',
-        label: 'None',
-        icon: Minus,
-        color: 'text-muted-foreground',
-    },
-    { value: 'low', label: 'Low', icon: ArrowDown, color: 'text-green-500' },
-    {
-        value: 'medium',
-        label: 'Medium',
-        icon: ArrowRight,
-        color: 'text-yellow-500',
-    },
-    { value: 'high', label: 'High', icon: ArrowUp, color: 'text-orange-500' },
-    {
-        value: 'urgent',
-        label: 'Urgent',
-        icon: AlertTriangle,
-        color: 'text-red-500',
-    },
-];
-
-function getInitials(name: string): string {
-    return name
-        .split(' ')
-        .map((word) => word[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
 }
 
 export function CreateTaskDialog({
@@ -106,8 +55,34 @@ export function CreateTaskDialog({
     const [priority, setPriority] = useState<TaskPriority>('none');
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
     const [dueTime, setDueTime] = useState<string>('');
-    const [datePickerOpen, setDatePickerOpen] = useState(false);
     const [assigneeId, setAssigneeId] = useState<number | null>(null);
+
+    // AI-related state
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [smartInput, setSmartInput] = useState('');
+    const [isSmartMode, setIsSmartMode] = useState(false);
+
+    const { status: aiStatus } = useAIStatus();
+    const {
+        execute: generateDescription,
+        isLoading: isGeneratingDescription,
+    } = useAIGenerateDescription({
+        onError: (error) => {
+            console.error('AI error:', error.message);
+        },
+    });
+    const { execute: suggestPriority, isLoading: isSuggestingPriority } =
+        useAISuggestPriority({
+            onError: (error) => {
+                console.error('AI error:', error.message);
+            },
+        });
+    const { execute: parseTask, isLoading: isParsingTask } = useAIParseTask({
+        onError: (error) => {
+            console.error('AI error:', error.message);
+        },
+    });
 
     // Combine owner and members into a single list
     const allMembers = useMemo((): User[] => {
@@ -135,11 +110,6 @@ export function CreateTaskDialog({
     const effectiveAssigneeId =
         isSoloProject || !canAssignTask ? auth.user.id : assigneeId;
 
-    // Get the selected assignee for display
-    const selectedAssignee = allMembers.find(
-        (m) => m.id === effectiveAssigneeId,
-    );
-
     // For editors, get their info for read-only display
     const currentUserInfo =
         allMembers.find((m) => m.id === auth.user.id) ?? auth.user;
@@ -149,6 +119,52 @@ export function CreateTaskDialog({
         setDueDate(undefined);
         setDueTime('');
         setAssigneeId(null);
+        setTitle('');
+        setDescription('');
+        setSmartInput('');
+        setIsSmartMode(false);
+    };
+
+    const handleGenerateDescription = async () => {
+        if (!title.trim()) return;
+
+        const result = await generateDescription(title.trim());
+        if (result?.description) {
+            setDescription(result.description);
+        }
+    };
+
+    const handleSuggestPriority = async () => {
+        if (!title.trim()) return;
+
+        const result = await suggestPriority(
+            title.trim(),
+            description.trim() || null,
+        );
+        if (result?.priority) {
+            setPriority(result.priority);
+        }
+    };
+
+    const handleSmartParse = async () => {
+        if (!smartInput.trim()) return;
+
+        const result = await parseTask(smartInput.trim());
+        if (result) {
+            setTitle(result.title);
+            if (result.description) {
+                setDescription(result.description);
+            }
+            if (result.priority) {
+                setPriority(result.priority);
+            }
+            if (result.due_date) {
+                setDueDate(new Date(result.due_date));
+            }
+            // Switch to manual mode to show populated fields
+            setIsSmartMode(false);
+            setSmartInput('');
+        }
     };
 
     const handleOpenChange = (isOpen: boolean) => {
@@ -211,12 +227,78 @@ export function CreateTaskDialog({
                             </DialogHeader>
 
                             <div className="space-y-4">
+                                {/* Smart Mode Toggle */}
+                                {aiStatus?.can_use && (
+                                    <div className="rounded-lg border bg-muted/30 p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Wand2 className="size-4 text-primary" />
+                                                <span className="text-sm font-medium">
+                                                    Smart Task Creation
+                                                </span>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant={
+                                                    isSmartMode
+                                                        ? 'default'
+                                                        : 'outline'
+                                                }
+                                                size="sm"
+                                                className="h-7 text-xs"
+                                                onClick={() =>
+                                                    setIsSmartMode(!isSmartMode)
+                                                }
+                                            >
+                                                {isSmartMode ? 'On' : 'Off'}
+                                            </Button>
+                                        </div>
+                                        {isSmartMode && (
+                                            <div className="mt-3 space-y-2">
+                                                <Textarea
+                                                    value={smartInput}
+                                                    onChange={(e) =>
+                                                        setSmartInput(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder='Type naturally, e.g., "Review PR for authentication feature by tomorrow, high priority"'
+                                                    rows={2}
+                                                    className="text-sm"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="w-full gap-2"
+                                                    onClick={handleSmartParse}
+                                                    disabled={
+                                                        isParsingTask ||
+                                                        !smartInput.trim()
+                                                    }
+                                                >
+                                                    {isParsingTask ? (
+                                                        <Spinner className="size-4" />
+                                                    ) : (
+                                                        <Sparkles className="size-4" />
+                                                    )}
+                                                    Parse with AI
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Task Title */}
                                 <div className="grid gap-2">
                                     <Label htmlFor="title">Task Title</Label>
                                     <Input
                                         id="title"
                                         name="title"
+                                        value={title}
+                                        onChange={(e) =>
+                                            setTitle(e.target.value)
+                                        }
                                         placeholder="What needs to be done?"
                                         autoFocus
                                         autoComplete="off"
@@ -226,15 +308,52 @@ export function CreateTaskDialog({
 
                                 {/* Description */}
                                 <div className="grid gap-2">
-                                    <Label htmlFor="description">
-                                        Description{' '}
-                                        <span className="font-normal text-muted-foreground">
-                                            (optional)
-                                        </span>
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="description">
+                                            Description{' '}
+                                            <span className="font-normal text-muted-foreground">
+                                                (optional)
+                                            </span>
+                                        </Label>
+                                        {aiStatus?.can_use && (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 gap-1 px-2 text-xs text-muted-foreground hover:text-primary"
+                                                        onClick={
+                                                            handleGenerateDescription
+                                                        }
+                                                        disabled={
+                                                            isGeneratingDescription ||
+                                                            !title.trim()
+                                                        }
+                                                    >
+                                                        {isGeneratingDescription ? (
+                                                            <Spinner className="size-3" />
+                                                        ) : (
+                                                            <Sparkles className="size-3" />
+                                                        )}
+                                                        AI Generate
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    {!title.trim()
+                                                        ? 'Enter a task title first'
+                                                        : 'Generate description with AI'}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )}
+                                    </div>
                                     <Textarea
                                         id="description"
                                         name="description"
+                                        value={description}
+                                        onChange={(e) =>
+                                            setDescription(e.target.value)
+                                        }
                                         placeholder="Add more details about this task..."
                                         rows={3}
                                     />
@@ -243,282 +362,42 @@ export function CreateTaskDialog({
 
                                 {/* Priority & Assignee */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    {/* Priority */}
-                                    <div className="grid gap-2">
-                                        <Label>Priority</Label>
-                                        <Select
-                                            value={priority}
-                                            onValueChange={(v) =>
-                                                setPriority(v as TaskPriority)
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select priority" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {PRIORITY_OPTIONS.map(
-                                                    (option) => {
-                                                        const Icon =
-                                                            option.icon;
-                                                        return (
-                                                            <SelectItem
-                                                                key={
-                                                                    option.value
-                                                                }
-                                                                value={
-                                                                    option.value
-                                                                }
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <Icon
-                                                                        className={`size-4 ${option.color}`}
-                                                                    />
-                                                                    <span>
-                                                                        {
-                                                                            option.label
-                                                                        }
-                                                                    </span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        );
-                                                    },
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                        <input
-                                            type="hidden"
-                                            name="priority"
-                                            value={priority}
-                                        />
-                                        <InputError message={errors.priority} />
-                                    </div>
+                                    <PrioritySelect
+                                        value={priority}
+                                        onChange={setPriority}
+                                        error={errors.priority}
+                                        showAIButton={aiStatus?.can_use}
+                                        onAISuggest={handleSuggestPriority}
+                                        isAISuggesting={isSuggestingPriority}
+                                        canSuggest={!!title.trim()}
+                                    />
 
-                                    {/* Assignee */}
-                                    <div className="grid gap-2">
-                                        <Label>Assignee</Label>
-                                        {/* Solo project or Editor: show read-only current user */}
-                                        {isSoloProject || !canAssignTask ? (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3">
-                                                        <Avatar className="size-5">
-                                                            <AvatarImage
-                                                                src={
-                                                                    currentUserInfo?.avatar ??
-                                                                    undefined
-                                                                }
-                                                            />
-                                                            <AvatarFallback className="text-[10px]">
-                                                                {currentUserInfo
-                                                                    ? getInitials(
-                                                                          currentUserInfo.name,
-                                                                      )
-                                                                    : '?'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span className="truncate text-sm">
-                                                            {currentUserInfo?.name ??
-                                                                'You'}
-                                                        </span>
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {isSoloProject
-                                                        ? 'Auto-assigned to you'
-                                                        : 'Tasks you create are assigned to you'}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        ) : (
-                                            /* Owner: show dropdown to select assignee */
-                                            <Select
-                                                value={
-                                                    assigneeId?.toString() ??
-                                                    'unassigned'
-                                                }
-                                                onValueChange={(v) =>
-                                                    setAssigneeId(
-                                                        v === 'unassigned'
-                                                            ? null
-                                                            : parseInt(v, 10),
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select assignee">
-                                                        {selectedAssignee ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="size-5">
-                                                                    <AvatarImage
-                                                                        src={
-                                                                            selectedAssignee.avatar ??
-                                                                            undefined
-                                                                        }
-                                                                    />
-                                                                    <AvatarFallback className="text-[10px]">
-                                                                        {getInitials(
-                                                                            selectedAssignee.name,
-                                                                        )}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                <span className="truncate">
-                                                                    {
-                                                                        selectedAssignee.name
-                                                                    }
-                                                                </span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2">
-                                                                <UserCircle className="size-5 text-muted-foreground" />
-                                                                <span>
-                                                                    Unassigned
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                    </SelectValue>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="unassigned">
-                                                        <div className="flex items-center gap-2">
-                                                            <UserCircle className="size-5 text-muted-foreground" />
-                                                            <span>
-                                                                Unassigned
-                                                            </span>
-                                                        </div>
-                                                    </SelectItem>
-                                                    {allMembers.map(
-                                                        (member) => (
-                                                            <SelectItem
-                                                                key={member.id}
-                                                                value={member.id.toString()}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <Avatar className="size-5">
-                                                                        <AvatarImage
-                                                                            src={
-                                                                                member.avatar ??
-                                                                                undefined
-                                                                            }
-                                                                        />
-                                                                        <AvatarFallback className="text-[10px]">
-                                                                            {getInitials(
-                                                                                member.name,
-                                                                            )}
-                                                                        </AvatarFallback>
-                                                                    </Avatar>
-                                                                    <span>
-                                                                        {
-                                                                            member.name
-                                                                        }
-                                                                    </span>
-                                                                    {member.id ===
-                                                                        project.user_id && (
-                                                                        <span className="text-xs text-muted-foreground">
-                                                                            (Owner)
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                        <input
-                                            type="hidden"
-                                            name="assigned_to"
-                                            value={effectiveAssigneeId ?? ''}
-                                        />
-                                        <InputError
-                                            message={errors.assigned_to}
-                                        />
-                                    </div>
+                                    <AssigneeSelect
+                                        value={assigneeId}
+                                        onChange={setAssigneeId}
+                                        error={errors.assigned_to}
+                                        members={allMembers}
+                                        projectOwnerId={project.user_id}
+                                        readOnly={isSoloProject || !canAssignTask}
+                                        readOnlyUser={currentUserInfo}
+                                        readOnlyTooltip={
+                                            isSoloProject
+                                                ? 'Auto-assigned to you'
+                                                : 'Tasks you create are assigned to you'
+                                        }
+                                        effectiveAssigneeId={effectiveAssigneeId}
+                                    />
                                 </div>
 
                                 {/* Due Date & Time */}
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label>Due Date</Label>
-                                        <Popover
-                                            open={datePickerOpen}
-                                            onOpenChange={setDatePickerOpen}
-                                        >
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full justify-between font-normal"
-                                                >
-                                                    <span className="flex items-center gap-2">
-                                                        <CalendarIcon className="size-4 text-muted-foreground" />
-                                                        {dueDate
-                                                            ? format(
-                                                                  dueDate,
-                                                                  'MMM d, yyyy',
-                                                              )
-                                                            : 'Select date'}
-                                                    </span>
-                                                    <ChevronDownIcon className="size-4 text-muted-foreground" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent
-                                                className="w-auto overflow-hidden p-0"
-                                                align="start"
-                                            >
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={dueDate}
-                                                    captionLayout="dropdown"
-                                                    disabled={(date) =>
-                                                        date <
-                                                        new Date(
-                                                            new Date().setHours(
-                                                                0,
-                                                                0,
-                                                                0,
-                                                                0,
-                                                            ),
-                                                        )
-                                                    }
-                                                    onSelect={(date) => {
-                                                        setDueDate(date);
-                                                        setDatePickerOpen(
-                                                            false,
-                                                        );
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <input
-                                            type="hidden"
-                                            name="due_date"
-                                            value={
-                                                dueDate
-                                                    ? format(
-                                                          dueDate,
-                                                          'yyyy-MM-dd',
-                                                      )
-                                                    : ''
-                                            }
-                                        />
-                                        <InputError message={errors.due_date} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Due Time</Label>
-                                        <Input
-                                            type="time"
-                                            value={dueTime}
-                                            onChange={(e) =>
-                                                setDueTime(e.target.value)
-                                            }
-                                            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name="due_time"
-                                            value={dueTime}
-                                        />
-                                        <InputError message={errors.due_time} />
-                                    </div>
-                                </div>
+                                <DueDateTimePicker
+                                    dueDate={dueDate}
+                                    dueTime={dueTime}
+                                    onDateChange={setDueDate}
+                                    onTimeChange={setDueTime}
+                                    dateError={errors.due_date}
+                                    timeError={errors.due_time}
+                                />
                             </div>
 
                             <DialogFooter>
