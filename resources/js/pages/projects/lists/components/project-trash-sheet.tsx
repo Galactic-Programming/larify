@@ -82,6 +82,7 @@ interface ProjectTrashData {
 
 interface ProjectTrashSheetProps {
     projectId: number;
+    canManageTrash?: boolean;
 }
 
 type NormalizedItem = {
@@ -149,10 +150,12 @@ function ProjectTrashItem({
     item,
     projectId,
     onAction,
+    canManageTrash,
 }: {
     item: NormalizedItem;
     projectId: number;
     onAction: () => void;
+    canManageTrash: boolean;
 }) {
     const [isRestoring, setIsRestoring] = React.useState(false);
     const [isDeleting, setIsDeleting] = React.useState(false);
@@ -254,52 +257,57 @@ function ProjectTrashItem({
                 {timeRemaining.text}
             </Badge>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8"
-                            onClick={handleRestore}
-                            disabled={isRestoring || isDeleting}
-                        >
-                            {isRestoring ? (
-                                <RotateCcw className="size-4 animate-spin" />
-                            ) : (
-                                <Undo2 className="size-4" />
-                            )}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        {item.type === 'list' &&
-                        item.tasksCount &&
-                        item.tasksCount > 0
-                            ? `Restore list and ${item.tasksCount} ${item.tasksCount === 1 ? 'task' : 'tasks'}`
-                            : 'Restore'}
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 text-destructive hover:text-destructive"
-                            onClick={handleForceDelete}
-                            disabled={isRestoring || isDeleting}
-                        >
-                            <Trash2 className="size-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Delete Permanently</TooltipContent>
-                </Tooltip>
-            </div>
+            {/* Actions - Only show for users who can manage trash */}
+            {canManageTrash && (
+                <div className="flex items-center gap-1">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                onClick={handleRestore}
+                                disabled={isRestoring || isDeleting}
+                            >
+                                {isRestoring ? (
+                                    <RotateCcw className="size-4 animate-spin" />
+                                ) : (
+                                    <Undo2 className="size-4" />
+                                )}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {item.type === 'list' &&
+                                item.tasksCount &&
+                                item.tasksCount > 0
+                                ? `Restore list and ${item.tasksCount} ${item.tasksCount === 1 ? 'task' : 'tasks'}`
+                                : 'Restore'}
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 text-destructive hover:text-destructive"
+                                onClick={handleForceDelete}
+                                disabled={isRestoring || isDeleting}
+                            >
+                                <Trash2 className="size-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete Permanently</TooltipContent>
+                    </Tooltip>
+                </div>
+            )}
         </motion.div>
     );
 }
 
-export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
+export function ProjectTrashSheet({
+    projectId,
+    canManageTrash = false,
+}: ProjectTrashSheetProps) {
     const [open, setOpen] = React.useState(false);
     const [trashData, setTrashData] = React.useState<ProjectTrashData | null>(
         null,
@@ -576,6 +584,7 @@ export function ProjectTrashSheet({ projectId }: ProjectTrashSheetProps) {
                                             item={item}
                                             projectId={projectId}
                                             onAction={loadTrashData}
+                                            canManageTrash={canManageTrash}
                                         />
                                     ))}
                                 </AnimatePresence>

@@ -346,29 +346,32 @@ export function ListsHeader({
                     </TooltipContent>
                 </Tooltip>
 
-                {/* Labels Manager - Only for editors */}
-                {permissions.canEdit && (
-                    <Tooltip>
-                        <LabelManagerSheet
-                            project={project}
-                            permissions={permissions}
-                            trigger={
-                                <TooltipTrigger asChild>
-                                    <Button>
-                                        <Tag className="size-4" />
-                                        Labels
-                                    </Button>
-                                </TooltipTrigger>
-                            }
-                        />
-                        <TooltipContent>Manage Labels</TooltipContent>
-                    </Tooltip>
-                )}
+                {/* Labels Manager - All members can view */}
+                <Tooltip>
+                    <LabelManagerSheet
+                        project={project}
+                        permissions={permissions}
+                        trigger={
+                            <TooltipTrigger asChild>
+                                <Button>
+                                    <Tag className="size-4" />
+                                    Labels
+                                </Button>
+                            </TooltipTrigger>
+                        }
+                    />
+                    <TooltipContent>
+                        {permissions.canManageSettings
+                            ? 'Manage Labels'
+                            : 'View Labels'}
+                    </TooltipContent>
+                </Tooltip>
 
-                {/* Project Trash - Only for editors */}
-                {permissions.canEdit && (
-                    <ProjectTrashSheet projectId={project.id} />
-                )}
+                {/* Project Trash - All members can view */}
+                <ProjectTrashSheet
+                    projectId={project.id}
+                    canManageTrash={permissions.canDelete}
+                />
 
                 {/* Create List - Only for editors */}
                 {permissions.canEdit && (

@@ -212,8 +212,10 @@ export function LabelManagerSheet({
                         Manage Labels
                     </SheetTitle>
                     <SheetDescription>
-                        Create and manage labels for this project.
-                        {permissions.maxLabels !== null && (
+                        {permissions.canManageSettings
+                            ? 'Create and manage labels for this project.'
+                            : 'View labels for this project.'}
+                        {permissions.canManageSettings && permissions.maxLabels !== null && (
                             <span className="mt-1 block">
                                 {projectLabels.length} / {permissions.maxLabels}{' '}
                                 labels used
@@ -223,8 +225,8 @@ export function LabelManagerSheet({
                 </SheetHeader>
 
                 <div className="flex flex-1 flex-col overflow-hidden">
-                    {/* Create/Edit Form - Always visible at top */}
-                    {(canCreateMore || editingLabel) && (
+                    {/* Create/Edit Form - Only visible for users with manage settings permission */}
+                    {permissions.canManageSettings && (canCreateMore || editingLabel) && (
                         <div className="border-b bg-muted/30 px-4 py-4 sm:px-6">
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -441,7 +443,9 @@ export function LabelManagerSheet({
                                     No labels yet
                                 </p>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Create your first label above to get started
+                                    {permissions.canManageSettings
+                                        ? 'Create your first label above to get started'
+                                        : 'No labels have been created for this project'}
                                 </p>
                             </motion.div>
                         ) : (
@@ -481,28 +485,30 @@ export function LabelManagerSheet({
                                                         {label.name}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-7"
-                                                        onClick={() =>
-                                                            startEditing(label)
-                                                        }
-                                                    >
-                                                        <Pencil className="size-3.5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-7 text-destructive hover:text-destructive"
-                                                        onClick={() =>
-                                                            handleDelete(label)
-                                                        }
-                                                    >
-                                                        <Trash2 className="size-3.5" />
-                                                    </Button>
-                                                </div>
+                                                {permissions.canManageSettings && (
+                                                    <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-7"
+                                                            onClick={() =>
+                                                                startEditing(label)
+                                                            }
+                                                        >
+                                                            <Pencil className="size-3.5" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-7 text-destructive hover:text-destructive"
+                                                            onClick={() =>
+                                                                handleDelete(label)
+                                                            }
+                                                        >
+                                                            <Trash2 className="size-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         ))}
                                     </AnimatePresence>
@@ -510,7 +516,7 @@ export function LabelManagerSheet({
                             </ScrollArea>
                         )}
 
-                        {!canCreateMore && projectLabels.length > 0 && (
+                        {permissions.canManageSettings && !canCreateMore && projectLabels.length > 0 && (
                             <>
                                 <Separator className="my-3" />
                                 <p className="text-center text-xs text-muted-foreground">
