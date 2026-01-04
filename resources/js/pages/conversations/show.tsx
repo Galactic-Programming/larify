@@ -361,16 +361,17 @@ export default function ConversationShow({
                 formData.append('attachments[]', file);
             });
 
+            const csrfToken = document.querySelector<HTMLMetaElement>(
+                'meta[name="csrf-token"]',
+            )?.content ?? '';
+
             const response = await fetch(
                 `/conversations/${conversation.id}/messages`,
                 {
                     method: 'POST',
                     headers: {
                         Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                     body: formData,
                 },

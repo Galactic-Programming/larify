@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Conversations;
 
+use App\Events\MentionNotification;
 use App\Events\MessageDeleted;
 use App\Events\MessageSent;
 use App\Events\UserTyping;
@@ -84,7 +85,19 @@ class MessageController extends Controller
         $mentionedUsers = $message->mentions()->with('user')->get()->pluck('user');
         foreach ($mentionedUsers as $mentionedUser) {
             if ($mentionedUser && $mentionedUser->id !== $request->user()->id) {
-                $mentionedUser->notify(new MentionedInMessage($message));
+                // Save notification to database
+                $notification = $mentionedUser->notify(new MentionedInMessage($message));
+
+                // Get the notification ID from database
+                $dbNotification = $mentionedUser->notifications()
+                    ->where('type', MentionedInMessage::class)
+                    ->where('data->message_id', $message->id)
+                    ->first();
+
+                // Broadcast real-time notification
+                if ($dbNotification) {
+                    broadcast(new MentionNotification($message, $mentionedUser, $dbNotification->id));
+                }
             }
         }
 

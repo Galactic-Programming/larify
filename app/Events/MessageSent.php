@@ -71,6 +71,11 @@ class MessageSent implements ShouldBroadcastNow
                     'sender_name' => $this->message->parent->trashed() ? null : $this->message->parent->sender?->name,
                     'is_deleted' => $this->message->parent->trashed(),
                 ] : null,
+                'mentions' => $this->message->mentions->map(fn ($m) => [
+                    'user_id' => $m->user_id,
+                    'name' => $m->user?->name,
+                    'email' => $m->user?->email,
+                ])->values()->toArray(),
                 'attachments' => $this->message->attachments->map(fn ($a) => [
                     'id' => $a->id,
                     'original_name' => $a->original_name,

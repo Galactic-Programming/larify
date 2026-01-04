@@ -24,10 +24,10 @@ function formatMessageTime(dateString: string): string {
  */
 function renderContentWithMentions(
     content: string,
-    mentions: MessageMention[],
+    mentions: MessageMention[] | undefined,
     isMine: boolean,
 ): React.ReactNode {
-    if (!content || mentions.length === 0) {
+    if (!content || !mentions || mentions.length === 0) {
         return content;
     }
 
@@ -103,8 +103,8 @@ export function MessageStatus({
                 isOverlay
                     ? 'rounded-full bg-black/50 px-2 py-0.5 text-white/90'
                     : isMine
-                      ? 'text-primary-foreground/70'
-                      : 'text-muted-foreground',
+                        ? 'text-primary-foreground/70'
+                        : 'text-muted-foreground',
             )}
         >
             <span>{formatMessageTime(time)}</span>
@@ -156,16 +156,16 @@ export const MessageBubble = memo(function MessageBubble({
     const motionProps = isMine
         ? {}
         : {
-              initial: { opacity: 0, y: 20, scale: 0.95 },
-              animate: { opacity: 1, y: 0, scale: 1 },
-              exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
-              transition: {
-                  type: 'spring' as const,
-                  stiffness: 400,
-                  damping: 25,
-                  mass: 0.5,
-              },
-          };
+            initial: { opacity: 0, y: 20, scale: 0.95 },
+            animate: { opacity: 1, y: 0, scale: 1 },
+            exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
+            transition: {
+                type: 'spring' as const,
+                stiffness: 400,
+                damping: 25,
+                mass: 0.5,
+            },
+        };
 
     return (
         <Wrapper

@@ -11,6 +11,7 @@ import type { Notification } from '@/types/notifications.d';
 import { router } from '@inertiajs/react';
 import {
     AlertTriangle,
+    AtSign,
     Bell,
     Check,
     CheckCircle,
@@ -78,6 +79,12 @@ function getNotificationStyle(type: string): {
                 bgColor: 'bg-indigo-500/10',
                 textColor: 'text-indigo-500',
             };
+        case 'mention':
+            return {
+                icon: <AtSign className="size-4" />,
+                bgColor: 'bg-violet-500/10',
+                textColor: 'text-violet-500',
+            };
         default:
             return {
                 icon: <Bell className="size-4" />,
@@ -93,6 +100,9 @@ function getActorInfo(
 ): { name: string; avatar?: string } | null {
     const data = notification.data;
 
+    if (data.sender_name) {
+        return { name: data.sender_name, avatar: data.sender_avatar };
+    }
     if (data.assigned_by_name) {
         return { name: data.assigned_by_name, avatar: data.assigned_by_avatar };
     }
@@ -118,6 +128,13 @@ function getActorInfo(
 function getNotificationUrl(notification: Notification): string | null {
     const data = notification.data;
 
+    // Mention notification - go to conversation
+    if (data.url) {
+        return data.url;
+    }
+    if (data.conversation_id) {
+        return `/conversations/${data.conversation_id}`;
+    }
     if (data.project_id) {
         return `/projects/${data.project_id}/lists`;
     }
@@ -144,6 +161,7 @@ function getTypeLabel(type: string): string {
         'project.invitation': 'Invitation',
         'project.removed': 'Removed',
         'member.role_changed': 'Role Changed',
+        'mention': 'Mentioned You',
     };
     return labels[type] || 'Notification';
 }

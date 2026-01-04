@@ -36,6 +36,25 @@ it('allows participant to send a message', function () {
     expect($message->sender_id)->toBe($this->owner->id);
 });
 
+it('returns JSON response when sending message via AJAX', function () {
+    $response = $this->actingAs($this->owner)->postJson(
+        route('conversations.messages.store', $this->conversation),
+        ['content' => 'Hello via JSON!']
+    );
+
+    $response->assertCreated()
+        ->assertJson([
+            'message' => [
+                'content' => 'Hello via JSON!',
+                'is_mine' => true,
+            ],
+        ]);
+
+    $message = Message::where('conversation_id', $this->conversation->id)->first();
+    expect($message)->not->toBeNull();
+    expect($message->content)->toBe('Hello via JSON!');
+});
+
 it('prevents non-participant from sending message', function () {
     $outsider = User::factory()->create();
 

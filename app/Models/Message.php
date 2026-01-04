@@ -102,7 +102,7 @@ class Message extends Model
 
     /**
      * Parse @mentions from message content and return user IDs.
-     * Supports formats: @username, @email@domain.com
+     * Supports formats: @Full Name, @username, @email@domain.com
      *
      * @param  array<int>  $participantIds  List of valid participant IDs to match against
      * @return array<int> Array of mentioned user IDs
@@ -113,30 +113,27 @@ class Message extends Model
             return [];
         }
 
-        // Match @mentions: @word or @email@domain.com
-        preg_match_all('/@([\w.+-]+(?:@[\w.-]+)?)/u', $this->content, $matches);
-
-        if (empty($matches[1])) {
-            return [];
-        }
-
-        $mentionTexts = array_unique($matches[1]);
-
-        // Query users by name or email that are in the participant list
+        // Get all participants to check for mentions
         $query = User::query();
-
         if (! empty($participantIds)) {
             $query->whereIn('id', $participantIds);
         }
+        $participants = $query->get(['id', 'name', 'email']);
 
-        $query->where(function ($q) use ($mentionTexts) {
-            foreach ($mentionTexts as $text) {
-                $q->orWhere('name', $text)
-                    ->orWhere('email', $text);
+        $mentionedUserIds = [];
+
+        foreach ($participants as $participant) {
+            // Check if @Name or @Email exists in content (case-insensitive)
+            $namePattern = '@'.preg_quote($participant->name, '/');
+            $emailPattern = '@'.preg_quote($participant->email, '/');
+
+            if (preg_match('/'.$namePattern.'(?!\w)/iu', $this->content) ||
+                preg_match('/'.$emailPattern.'(?!\w)/iu', $this->content)) {
+                $mentionedUserIds[] = $participant->id;
             }
-        });
+        }
 
-        return $query->pluck('id')->toArray();
+        return array_unique($mentionedUserIds);
     }
 
     /**

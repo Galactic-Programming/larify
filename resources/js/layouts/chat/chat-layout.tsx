@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { ChatSidebar } from '@/components/chat/chat-sidebar';
+import { NotificationListener } from '@/components/notification-listener';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -11,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import type { Conversation } from '@/types/chat';
-import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { type PropsWithChildren, useCallback, useState } from 'react';
 
 interface ChatLayoutProps {
     breadcrumbs?: BreadcrumbItem[];
@@ -57,17 +58,6 @@ export default function ChatLayout({
         if (newSize >= MIN_SIDEBAR_SIZE && newSize <= MAX_SIDEBAR_SIZE) {
             setSidebarSize(newSize);
             localStorage.setItem(SIDEBAR_WIDTH_KEY, newSize.toString());
-        }
-    }, []);
-
-    // Sync with localStorage on mount (for SSR hydration)
-    useEffect(() => {
-        const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-        if (saved) {
-            const parsed = parseFloat(saved);
-            if (!isNaN(parsed) && parsed >= MIN_SIDEBAR_SIZE && parsed <= MAX_SIDEBAR_SIZE) {
-                setSidebarSize(parsed);
-            }
         }
     }, []);
     return (
@@ -123,6 +113,7 @@ export default function ChatLayout({
                     </ResizablePanelGroup>
                 </div>
             </AppContent>
+            <NotificationListener />
         </AppShell>
     );
 }

@@ -20,6 +20,15 @@ export interface NotificationData {
     changed_by_avatar?: string;
     removed_by_id?: number;
     removed_by_name?: string;
+    // Mention notification fields
+    message_id?: number;
+    conversation_id?: number;
+    conversation_name?: string;
+    sender_id?: number;
+    sender_name?: string;
+    sender_avatar?: string;
+    content_preview?: string;
+    url?: string;
     due_date?: string;
     due_time?: string;
     time_until_due?: string;
@@ -58,6 +67,7 @@ export const NOTIFICATION_TYPES = {
     PROJECT_INVITATION: 'project.invitation',
     PROJECT_REMOVED: 'project.removed',
     MEMBER_ROLE_CHANGED: 'member.role_changed',
+    MENTION: 'mention',
 } as const;
 
 // Activity types
