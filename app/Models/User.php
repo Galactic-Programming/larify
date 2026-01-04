@@ -168,6 +168,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if user has an active subscription (alias for isPremium).
+     * Used by AI features to check if user can access AI.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->isPremium();
+    }
+
+    /**
      * Get the user's current plan name.
      */
     public function currentPlanName(): string
