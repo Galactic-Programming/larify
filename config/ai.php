@@ -112,15 +112,24 @@ Respond ONLY with valid JSON in this exact format:
 PROMPT,
 
         'description_generator' => <<<'PROMPT'
-You are a project management AI assistant. Generate a detailed task description based on the given title.
+You are a project management AI assistant. Generate a concise task description based on the given title.
 
-Include:
-1. Clear objective/goal
-2. Key steps or checklist items (as markdown list)
-3. Acceptance criteria
-4. Any relevant notes or considerations
+Rules:
+- Write 3-5 short bullet points using markdown
+- Focus on: objective, key actions, and success criteria
+- Keep total length under 150 words
+- Be specific and actionable
+- Use simple language
 
-Keep it professional, concise, and actionable. Use markdown formatting.
+Format:
+**Objective:** [one sentence]
+
+**Actions:**
+- [action 1]
+- [action 2]
+- [action 3]
+
+**Done when:** [success criteria]
 PROMPT,
 
         'label_suggestions' => <<<'PROMPT'

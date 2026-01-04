@@ -26,6 +26,7 @@ import {
     useAIStatus,
     useAISuggestPriority,
 } from '@/hooks/use-ai';
+import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { ListTodo, Plus, Sparkles, Wand2 } from 'lucide-react';
@@ -184,7 +185,12 @@ export function CreateTaskDialog({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent
+                className={cn(
+                    'sm:max-w-lg transition-all duration-200',
+                    description.length > 200 && 'sm:max-w-2xl',
+                )}
+            >
                 <Form
                     {...store.form({ project, list })}
                     className="space-y-6"
@@ -356,6 +362,10 @@ export function CreateTaskDialog({
                                         }
                                         placeholder="Add more details about this task..."
                                         rows={3}
+                                        className="min-h-20 max-h-64 resize-none overflow-y-auto"
+                                        style={{
+                                            height: description.length > 100 ? 'auto' : undefined,
+                                        }}
                                     />
                                     <InputError message={errors.description} />
                                 </div>
