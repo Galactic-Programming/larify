@@ -10,7 +10,7 @@ interface UseConversationRealtimeProps {
     onTypingUser: (userId: number, userName: string) => void;
     onTypingUserClear: (userId: number) => void;
     onMessagesRead: (readerId: number, readAt: string) => void;
-    onAIMessageReceived?: () => void;
+    onAIThinkingChange?: (isThinking: boolean) => void;
 }
 
 /**
@@ -24,7 +24,7 @@ export function useConversationRealtime({
     onTypingUser,
     onTypingUserClear,
     onMessagesRead,
-    onAIMessageReceived,
+    onAIThinkingChange,
 }: UseConversationRealtimeProps) {
     const typingTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
@@ -35,17 +35,22 @@ export function useConversationRealtime({
         (data: { message: Message }) => {
             if (data.message.sender?.id !== currentUserId) {
                 onMessageReceived(data.message);
-
-                // Notify if AI message received
-                if (
-                    (data.message.is_ai || data.message.sender?.is_ai) &&
-                    onAIMessageReceived
-                ) {
-                    onAIMessageReceived();
-                }
             }
         },
-        [currentUserId, onMessageReceived, onAIMessageReceived],
+        [currentUserId, onMessageReceived],
+        'private',
+    );
+
+    // Listen for AI thinking state
+    useEcho(
+        `conversation.${conversationId}`,
+        '.AIThinking',
+        (data: { conversation_id: number; is_thinking: boolean }) => {
+            if (onAIThinkingChange) {
+                onAIThinkingChange(data.is_thinking);
+            }
+        },
+        [onAIThinkingChange],
         'private',
     );
 

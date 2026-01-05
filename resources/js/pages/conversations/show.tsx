@@ -82,7 +82,6 @@ export default function ConversationShow({
         conversationId: conversation.id,
         currentUser: auth.user,
         onMessagesChange: setMessages,
-        onAIThinkingChange: setIsAIThinking,
     });
 
     // Real-time handlers
@@ -136,8 +135,8 @@ export default function ConversationShow({
         [],
     );
 
-    const handleAIMessageReceived = useCallback(() => {
-        setIsAIThinking(false);
+    const handleAIThinkingChange = useCallback((isThinking: boolean) => {
+        setIsAIThinking(isThinking);
     }, []);
 
     // Real-time hook
@@ -149,7 +148,7 @@ export default function ConversationShow({
         onTypingUser: handleTypingUser,
         onTypingUserClear: handleTypingUserClear,
         onMessagesRead: handleMessagesRead,
-        onAIMessageReceived: handleAIMessageReceived,
+        onAIThinkingChange: handleAIThinkingChange,
     });
 
     const breadcrumbs: BreadcrumbItem[] = [

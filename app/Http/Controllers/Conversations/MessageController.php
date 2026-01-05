@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Conversations;
 
+use App\Events\AIThinking;
 use App\Events\MentionNotification;
 use App\Events\MessageDeleted;
 use App\Events\MessageSent;
@@ -165,6 +166,9 @@ class MessageController extends Controller
             return null;
         }
 
+        // Broadcast AI thinking state to all participants
+        broadcast(new AIThinking($conversation, true));
+
         try {
             // Get project context for AI
             $project = $conversation->project;
@@ -191,6 +195,9 @@ class MessageController extends Controller
             $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
             broadcast(new MessageSent($aiMessage));
 
+            // Turn off AI thinking indicator
+            broadcast(new AIThinking($conversation, false));
+
             return $aiMessage;
         } catch (\Exception $e) {
             Log::error('AI Chat Error', [
@@ -198,6 +205,9 @@ class MessageController extends Controller
                 'conversation_id' => $conversation->id,
                 'error' => $e->getMessage(),
             ]);
+
+            // Turn off AI thinking indicator on error
+            broadcast(new AIThinking($conversation, false));
 
             return null;
         }

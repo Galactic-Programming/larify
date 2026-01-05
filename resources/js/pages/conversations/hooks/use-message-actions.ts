@@ -11,7 +11,6 @@ interface UseMessageActionsProps {
     conversationId: number;
     currentUser: User;
     onMessagesChange: React.Dispatch<React.SetStateAction<Message[]>>;
-    onAIThinkingChange?: (isThinking: boolean) => void;
 }
 
 interface UseMessageActionsReturn {
@@ -27,11 +26,6 @@ interface UseMessageActionsReturn {
     confirmDelete: () => Promise<void>;
 }
 
-// Check if message mentions AI
-const hasMentionedAI = (content: string): boolean => {
-    return /@(AI|Laraflow\s*AI)\b/i.test(content);
-};
-
 // Generate a temporary ID for optimistic messages
 const generateTempId = () => -Date.now();
 
@@ -42,7 +36,6 @@ export function useMessageActions({
     conversationId,
     currentUser,
     onMessagesChange,
-    onAIThinkingChange,
 }: UseMessageActionsProps): UseMessageActionsReturn {
     const [isSending, setIsSending] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -60,7 +53,6 @@ export function useMessageActions({
             const content = inputValue.trim();
             const tempId = generateTempId();
             const currentFiles = [...selectedFiles];
-            const mentionedAI = hasMentionedAI(content);
 
             // Create optimistic message (only if text-only, files need server processing)
             const optimisticMessage: Message | null =
@@ -90,11 +82,6 @@ export function useMessageActions({
             setInputValue('');
             setSelectedFiles([]);
             setIsSending(true);
-
-            // Show AI thinking indicator if AI was mentioned
-            if (mentionedAI && onAIThinkingChange) {
-                onAIThinkingChange(true);
-            }
 
             try {
                 const formData = new FormData();
@@ -143,7 +130,7 @@ export function useMessageActions({
                             }
                         }
 
-                        // Add AI response message if present
+                        // Add AI response message if present (for sender who doesn't receive via WebSocket)
                         if (
                             data.ai_message &&
                             !newMessages.some(
@@ -155,11 +142,6 @@ export function useMessageActions({
 
                         return newMessages;
                     });
-
-                    // Turn off AI thinking indicator after receiving response
-                    if (mentionedAI && onAIThinkingChange) {
-                        onAIThinkingChange(false);
-                    }
                 } else {
                     // Revert optimistic update on error
                     if (optimisticMessage) {
@@ -167,10 +149,6 @@ export function useMessageActions({
                             prev.filter((m) => m.id !== tempId),
                         );
                         setInputValue(content);
-                    }
-                    // Turn off AI thinking on error
-                    if (mentionedAI && onAIThinkingChange) {
-                        onAIThinkingChange(false);
                     }
                     console.error('Failed to send message');
                 }
@@ -181,10 +159,6 @@ export function useMessageActions({
                         prev.filter((m) => m.id !== tempId),
                     );
                     setInputValue(content);
-                }
-                // Turn off AI thinking on error
-                if (mentionedAI && onAIThinkingChange) {
-                    onAIThinkingChange(false);
                 }
                 console.error('Failed to send message:', error);
             } finally {
@@ -198,7 +172,6 @@ export function useMessageActions({
             currentUser,
             conversationId,
             onMessagesChange,
-            onAIThinkingChange,
         ],
     );
 
