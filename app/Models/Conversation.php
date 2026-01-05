@@ -149,8 +149,8 @@ class Conversation extends Model
         // Sync participants - this will add new members and remove old ones
         $this->participants()->sync($memberIds);
 
-        // Skip broadcasting during console commands (seeding, migrations, etc.)
-        if (app()->runningInConsole()) {
+        // Skip broadcasting during seeding/migrations (but not during tests)
+        if (app()->runningInConsole() && ! app()->runningUnitTests()) {
             return;
         }
 

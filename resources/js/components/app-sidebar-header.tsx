@@ -1,6 +1,5 @@
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { MessageBell } from '@/components/message-bell';
 import { ProfileDropdown } from '@/components/profile-dropdown';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
@@ -17,9 +16,8 @@ export function AppSidebarHeader({
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
-            {/* Message Bell, Theme Toggle & Profile Dropdown */}
+            {/* Theme Toggle & Profile Dropdown */}
             <div className="ml-auto flex items-center gap-4">
-                <MessageBell />
                 <AppearanceToggleDropdown />
                 <ProfileDropdown />
             </div>

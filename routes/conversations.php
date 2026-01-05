@@ -22,8 +22,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('conversations.show');
     Route::get('projects/{project}/chat', [ConversationController::class, 'showByProject'])
         ->name('projects.chat');
-    Route::get('api/conversations/unread', [ConversationController::class, 'unread'])
-        ->name('api.conversations.unread');
 
     // Messages
     Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])
