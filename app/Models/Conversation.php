@@ -149,6 +149,11 @@ class Conversation extends Model
         // Sync participants - this will add new members and remove old ones
         $this->participants()->sync($memberIds);
 
+        // Skip broadcasting during console commands (seeding, migrations, etc.)
+        if (app()->runningInConsole()) {
+            return;
+        }
+
         // Reload conversation with necessary relations for broadcasting
         $this->load(['project', 'latestMessage.sender', 'participants']);
 
