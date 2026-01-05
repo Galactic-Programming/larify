@@ -29,5 +29,13 @@ Route::middleware(['auth', 'verified'])->prefix('api/ai')->name('api.ai.')->grou
             ->name('projects.labels.suggest');
         Route::post('/projects/{project}/chat', [AIController::class, 'chat'])
             ->name('projects.chat');
+        Route::post('/projects/{project}/chat/stream', [AIController::class, 'streamChat'])
+            ->name('projects.chat.stream');
+
+        // Conversation history management
+        Route::get('/projects/{project}/chat/history', [AIController::class, 'getHistory'])
+            ->name('projects.chat.history');
+        Route::delete('/projects/{project}/chat/history', [AIController::class, 'clearHistory'])
+            ->name('projects.chat.history.clear');
     });
 });

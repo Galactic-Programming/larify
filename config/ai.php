@@ -18,6 +18,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Conversation History Limit
+    |--------------------------------------------------------------------------
+    |
+    | The maximum number of messages to keep in conversation history.
+    | This is used for multi-turn chat to provide context to the AI.
+    | A conversation turn = 2 messages (user + AI response).
+    | Default: 40 messages = 20 conversation turns.
+    |
+    */
+
+    'conversation_history_limit' => env('AI_CONVERSATION_HISTORY_LIMIT', 40),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default AI Model
     |--------------------------------------------------------------------------
     |

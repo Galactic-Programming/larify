@@ -68,4 +68,16 @@ export interface AIPrioritySuggestionResult {
 
 export interface AIChatResult {
     response: string;
+    history_enabled?: boolean;
+}
+
+export interface AIChatHistoryItem {
+    role: 'user' | 'model';
+    content: string;
+    timestamp: string;
+}
+
+export interface AIChatHistoryResult {
+    history: AIChatHistoryItem[];
+    count: number;
 }
