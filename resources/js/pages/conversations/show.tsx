@@ -157,10 +157,20 @@ export default function ConversationShow({
         { title: conversation.name, href: `/conversations/${conversation.id}` },
     ];
 
-    // Scroll to bottom
+    // Scroll to bottom - sử dụng scrollTop thay vì scrollIntoView để tránh layout shift
     const scrollToBottom = useCallback(
         (behavior: ScrollBehavior = 'smooth') => {
-            messagesEndRef.current?.scrollIntoView({ behavior });
+            const container = messagesContainerRef.current;
+            if (container) {
+                if (behavior === 'instant') {
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    container.scrollTo({
+                        top: container.scrollHeight,
+                        behavior: 'smooth',
+                    });
+                }
+            }
         },
         [],
     );
@@ -327,6 +337,7 @@ export default function ConversationShow({
             showContent={true}
         >
             <Head title={conversation.name} />
+
             {/* Header */}
             <ConversationHeader
                 conversationId={conversation.id}
@@ -415,7 +426,7 @@ export default function ConversationShow({
                             })}
                         </AnimatePresence>
 
-                        {/* AI Thinking Bubble - appears in messages area like a chat bubble */}
+                        {/* AI Thinking Bubble */}
                         {isAIThinking && <AIThinkingBubble />}
 
                         <div ref={messagesEndRef} />
@@ -423,7 +434,7 @@ export default function ConversationShow({
                 </div>
             </div>
 
-            {/* Typing indicator - only for regular users now */}
+            {/* Typing indicator */}
             <TypingIndicator names={Array.from(typingUsers.values())} />
 
             {/* Input */}
