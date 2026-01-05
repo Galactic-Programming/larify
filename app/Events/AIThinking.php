@@ -45,4 +45,12 @@ class AIThinking implements ShouldBroadcastNow
             'is_thinking' => $this->isThinking,
         ];
     }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'AIThinking';
+    }
 }
