@@ -2,6 +2,9 @@ import type { Message } from '@/types/chat';
 import { useEcho } from '@laravel/echo-react';
 import { useCallback, useEffect, useRef } from 'react';
 
+// Maximum time to show AI thinking indicator (safety timeout)
+const AI_THINKING_TIMEOUT_MS = 60000; // 60 seconds
+
 interface UseConversationRealtimeProps {
     conversationId: number;
     currentUserId: number;
@@ -27,6 +30,7 @@ export function useConversationRealtime({
     onAIThinkingChange,
 }: UseConversationRealtimeProps) {
     const typingTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
+    const aiThinkingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Listen for new messages
     useEcho(
@@ -35,19 +39,45 @@ export function useConversationRealtime({
         (data: { message: Message }) => {
             if (data.message.sender?.id !== currentUserId) {
                 onMessageReceived(data.message);
+
+                // If we receive an AI message, clear the thinking indicator
+                if (data.message.sender?.is_ai || data.message.is_ai) {
+                    if (aiThinkingTimeoutRef.current) {
+                        clearTimeout(aiThinkingTimeoutRef.current);
+                        aiThinkingTimeoutRef.current = null;
+                    }
+                    onAIThinkingChange?.(false);
+                }
             }
         },
-        [currentUserId, onMessageReceived],
+        [currentUserId, onMessageReceived, onAIThinkingChange],
         'private',
     );
 
-    // Listen for AI thinking state
+    // Listen for AI thinking state with safety timeout
     useEcho(
         `conversation.${conversationId}`,
         '.AIThinking',
         (data: { conversation_id: number; is_thinking: boolean }) => {
             if (onAIThinkingChange) {
+                // Clear any existing timeout
+                if (aiThinkingTimeoutRef.current) {
+                    clearTimeout(aiThinkingTimeoutRef.current);
+                    aiThinkingTimeoutRef.current = null;
+                }
+
                 onAIThinkingChange(data.is_thinking);
+
+                // Set safety timeout to auto-clear thinking indicator
+                if (data.is_thinking) {
+                    aiThinkingTimeoutRef.current = setTimeout(() => {
+                        console.warn(
+                            'AI thinking timeout reached, clearing indicator',
+                        );
+                        onAIThinkingChange(false);
+                        aiThinkingTimeoutRef.current = null;
+                    }, AI_THINKING_TIMEOUT_MS);
+                }
             }
         },
         [onAIThinkingChange],
@@ -110,6 +140,15 @@ export function useConversationRealtime({
         return () => {
             timeouts.forEach((timeout) => clearTimeout(timeout));
             timeouts.clear();
+        };
+    }, []);
+
+    // Cleanup AI thinking timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (aiThinkingTimeoutRef.current) {
+                clearTimeout(aiThinkingTimeoutRef.current);
+            }
         };
     }, []);
 

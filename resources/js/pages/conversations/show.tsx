@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+    AIThinkingBubble,
     ConversationHeader,
     DeleteMessageDialog,
     MembersSheet,
@@ -414,16 +415,17 @@ export default function ConversationShow({
                                     );
                                 })}
                             </AnimatePresence>
+
+                            {/* AI Thinking Bubble - appears in messages area like a chat bubble */}
+                            {isAIThinking && <AIThinkingBubble />}
+
                             <div ref={messagesEndRef} />
                         </div>
                     </div>
                 </div>
 
-                {/* Typing indicator */}
-                <TypingIndicator
-                    names={Array.from(typingUsers.values())}
-                    isAIThinking={isAIThinking}
-                />
+                {/* Typing indicator - only for regular users now */}
+                <TypingIndicator names={Array.from(typingUsers.values())} />
 
                 {/* Input */}
                 <div className="border-t p-4">

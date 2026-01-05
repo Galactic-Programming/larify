@@ -137,6 +137,7 @@ class MessageController extends Controller
     /**
      * Handle @AI mention in message content.
      * Generates AI response if user mentions @AI or @Laraflow AI.
+     * Supports conversation history for context-aware responses.
      */
     protected function handleAIMention(User $user, Conversation $conversation, string $content): ?Message
     {
@@ -145,18 +146,16 @@ class MessageController extends Controller
             return null;
         }
 
+        $aiUser = User::getAIUser();
+
         // Check if user can use AI features
         if (! $this->geminiService->canUserUseAI($user)) {
-            // Create a message explaining AI is not available
-            $aiUser = User::getAIUser();
-            $aiMessage = $conversation->messages()->create([
-                'sender_id' => $aiUser->id,
-                'content' => '⚠️ AI features require a Pro subscription. Please upgrade your plan to chat with me!',
-            ]);
-            $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
-            broadcast(new MessageSent($aiMessage));
-
-            return $aiMessage;
+            return $this->createAIMessage(
+                $conversation,
+                $aiUser,
+                "⚠️ AI features require a Pro subscription. Please upgrade your plan to chat with me!\n\n".
+                '[Upgrade to Pro](/settings/billing)'
+            );
         }
 
         // Extract the question (text after @AI)
@@ -174,29 +173,30 @@ class MessageController extends Controller
             $project = $conversation->project;
             $projectContext = $this->buildProjectContext($project);
 
-            // Call AI service
-            $aiResponse = $this->geminiService->chatInConversation($question, $projectContext);
+            // Get conversation history for context-aware responses
+            $history = $this->getAIConversationHistory($conversation, $aiUser->id);
+
+            // Call AI service with history
+            $aiResponse = $this->geminiService->chatInConversation($question, $projectContext, $history);
+
+            // Retry once if failed
+            if (! $aiResponse) {
+                Log::info('AI Chat: First attempt failed, retrying...', [
+                    'conversation_id' => $conversation->id,
+                ]);
+                usleep(500000); // Wait 500ms before retry
+                $aiResponse = $this->geminiService->chatInConversation($question, $projectContext, $history);
+            }
 
             if (! $aiResponse) {
-                return null;
+                return $this->createAIErrorMessage($conversation, $aiUser, 'service_unavailable');
             }
 
             // Create AI response message
-            $aiUser = User::getAIUser();
-            $aiMessage = $conversation->messages()->create([
-                'sender_id' => $aiUser->id,
-                'content' => $aiResponse,
-            ]);
+            $aiMessage = $this->createAIMessage($conversation, $aiUser, $aiResponse);
 
             // Increment AI usage for the user who triggered it
             $this->geminiService->incrementUsage($user);
-
-            // Load relationships and broadcast
-            $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
-            broadcast(new MessageSent($aiMessage));
-
-            // Turn off AI thinking indicator
-            broadcast(new AIThinking($conversation, false));
 
             return $aiMessage;
         } catch (\Exception $e) {
@@ -204,13 +204,119 @@ class MessageController extends Controller
                 'user_id' => $user->id,
                 'conversation_id' => $conversation->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            // Turn off AI thinking indicator on error
-            broadcast(new AIThinking($conversation, false));
+            // Determine error type and create appropriate message
+            $errorType = $this->determineAIErrorType($e);
 
-            return null;
+            return $this->createAIErrorMessage($conversation, $aiUser, $errorType);
+        } finally {
+            // Always turn off AI thinking indicator (even on error)
+            broadcast(new AIThinking($conversation, false));
         }
+    }
+
+    /**
+     * Create and broadcast an AI message.
+     */
+    protected function createAIMessage(Conversation $conversation, User $aiUser, string $content): Message
+    {
+        $aiMessage = $conversation->messages()->create([
+            'sender_id' => $aiUser->id,
+            'content' => $content,
+        ]);
+
+        $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
+        broadcast(new MessageSent($aiMessage));
+
+        return $aiMessage;
+    }
+
+    /**
+     * Create an AI error message with friendly text.
+     */
+    protected function createAIErrorMessage(Conversation $conversation, User $aiUser, string $errorType): Message
+    {
+        $errorMessages = [
+            'service_unavailable' => "😔 I'm having trouble processing your request right now. Please try again in a moment.\n\n*Tip: If this persists, the AI service might be temporarily unavailable.*",
+            'rate_limit' => "⏳ You've been using me a lot! Please wait a moment before asking another question.\n\n*Your daily limit resets at midnight.*",
+            'timeout' => '⏱️ That took too long to process. Could you try rephrasing your question or making it shorter?',
+            'invalid_response' => '🤔 I generated a response but something went wrong. Please try asking again.',
+            'unknown' => '❌ Something unexpected happened. Please try again or contact support if this continues.',
+        ];
+
+        $content = $errorMessages[$errorType] ?? $errorMessages['unknown'];
+
+        return $this->createAIMessage($conversation, $aiUser, $content);
+    }
+
+    /**
+     * Determine the type of AI error from exception.
+     */
+    protected function determineAIErrorType(\Exception $e): string
+    {
+        $message = strtolower($e->getMessage());
+
+        if (str_contains($message, 'rate limit') || str_contains($message, 'quota')) {
+            return 'rate_limit';
+        }
+
+        if (str_contains($message, 'timeout') || str_contains($message, 'timed out')) {
+            return 'timeout';
+        }
+
+        if (str_contains($message, 'invalid') || str_contains($message, 'parse')) {
+            return 'invalid_response';
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * Get conversation history for AI context.
+     * Returns the last N messages involving AI (both user questions and AI responses).
+     *
+     * @return array<array{role: string, content: string}>
+     */
+    protected function getAIConversationHistory(Conversation $conversation, int $aiUserId): array
+    {
+        // Get recent messages that involve AI interactions
+        // Limit to last 20 messages (10 conversation turns) for token efficiency
+        $recentMessages = $conversation->messages()
+            ->where(function ($query) use ($aiUserId) {
+                $query->where('sender_id', $aiUserId) // AI responses
+                    ->orWhere('content', 'LIKE', '%@AI%') // User @AI mentions
+                    ->orWhere('content', 'LIKE', '%@Laraflow%'); // User @Laraflow AI mentions
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get(['sender_id', 'content', 'created_at'])
+            ->reverse() // Oldest first for chronological order
+            ->values();
+
+        $history = [];
+
+        foreach ($recentMessages as $message) {
+            if ($message->sender_id === $aiUserId) {
+                // AI response
+                $history[] = [
+                    'role' => 'model',
+                    'content' => $message->content,
+                ];
+            } else {
+                // User question - extract just the question part
+                $question = $this->extractAIQuestion($message->content);
+                if (! empty(trim($question))) {
+                    $history[] = [
+                        'role' => 'user',
+                        'content' => $question,
+                    ];
+                }
+            }
+        }
+
+        return $history;
     }
 
     /**

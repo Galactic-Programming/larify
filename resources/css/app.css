@@ -145,3 +145,19 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Typing indicator animation */
+@theme {
+    --animate-typing-dot-bounce: typing-dot-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes typing-dot-bounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-0.35rem);
+    }
+}
