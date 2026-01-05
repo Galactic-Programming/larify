@@ -26,9 +26,74 @@ interface MentionNotificationEvent {
     created_at_human: string;
 }
 
+interface MessageSentEvent {
+    conversation_id: number;
+    conversation_name: string;
+    message: {
+        id: number;
+        conversation_id: number;
+        content: string;
+        sender: {
+            id: number;
+            name: string;
+            avatar?: string;
+        };
+        mentions: Array<{ user_id: number; name: string; email: string }>;
+    };
+}
+
 export function NotificationListener() {
     const { auth } = usePage<SharedData>().props;
     const getInitials = useInitials();
+
+    const handleMessageSent = useCallback(
+        (event: MessageSentEvent) => {
+            // Skip if user is on conversations page (they can see messages directly)
+            if (window.location.pathname.startsWith('/conversations')) {
+                return;
+            }
+
+            // Skip if this message has mentions for current user (will be handled by mention notification)
+            const hasMentionForMe = event.message.mentions.some(
+                (m) => m.user_id === auth?.user?.id,
+            );
+            if (hasMentionForMe) {
+                return;
+            }
+
+            // Show toast notification
+            toast(
+                <div className="flex items-center gap-3">
+                    <Avatar className="size-8 shrink-0">
+                        <AvatarImage
+                            src={event.message.sender.avatar}
+                            alt={event.message.sender.name}
+                        />
+                        <AvatarFallback className="text-xs">
+                            {getInitials(event.message.sender.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">
+                            {event.message.sender.name}
+                        </div>
+                        <div className="text-muted-foreground text-sm truncate">
+                            {event.conversation_name}
+                        </div>
+                    </div>
+                </div>,
+                {
+                    duration: 4000,
+                    action: {
+                        label: 'View',
+                        onClick: () =>
+                            router.visit(`/conversations/${event.conversation_id}`),
+                    },
+                },
+            );
+        },
+        [auth?.user?.id, getInitials],
+    );
 
     const handleMentionNotification = useCallback(
         (event: MentionNotificationEvent) => {
@@ -69,12 +134,23 @@ export function NotificationListener() {
 
     // Only subscribe if user is authenticated
     const userId = auth?.user?.id;
-    const channelName = userId ? `App.Models.User.${userId}` : '';
+    const mentionChannelName = userId ? `App.Models.User.${userId}` : '';
+    const messageChannelName = userId ? `user.${userId}.conversations` : '';
 
+    // Listen for mention notifications
     useEcho(
-        channelName,
+        mentionChannelName,
         '.mention.notification',
         handleMentionNotification,
+        [],
+        'private',
+    );
+
+    // Listen for new messages (for popup notifications)
+    useEcho(
+        messageChannelName,
+        '.message.sent',
+        handleMessageSent,
         [],
         'private',
     );

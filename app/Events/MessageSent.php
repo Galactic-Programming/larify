@@ -52,6 +52,7 @@ class MessageSent implements ShouldBroadcastNow
     {
         return [
             'conversation_id' => $this->message->conversation_id,
+            'conversation_name' => $this->message->conversation->name,
             'message' => [
                 'id' => $this->message->id,
                 'conversation_id' => $this->message->conversation_id,
