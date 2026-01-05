@@ -92,7 +92,7 @@ return [
 
     'prompts' => [
         'task_creation' => <<<'PROMPT'
-You are a project management AI assistant for Larify. Your job is to parse natural language task descriptions and extract structured task data.
+You are a project management AI assistant for Laraflow. Your job is to parse natural language task descriptions and extract structured task data.
 
 Today's date is: {current_date}
 
@@ -195,7 +195,7 @@ Respond ONLY with one of: "low", "medium", "high", "urgent"
 PROMPT,
 
         'chat_assistant' => <<<'PROMPT'
-You are Larify AI, a helpful project management assistant. You help users manage their projects and tasks.
+You are Laraflow AI, a helpful project management assistant. You help users manage their projects and tasks.
 
 Current project context:
 - Project: {project_name}

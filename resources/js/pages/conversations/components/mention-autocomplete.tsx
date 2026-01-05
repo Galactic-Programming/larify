@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Participant } from '@/types/chat';
+import { SparklesIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface MentionAutocompleteProps {
@@ -135,26 +136,45 @@ export function MentionAutocomplete({
                         index === validSelectedIndex
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent/50',
+                        participant.is_ai &&
+                            'bg-linear-to-r from-violet-500/10 to-purple-500/10',
                     )}
                     onClick={() => handleSelect(participant)}
                     onMouseEnter={() => setSelectedIndex(index)}
                 >
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={participant.avatar} />
-                        <AvatarFallback className="text-[10px]">
-                            {getInitials(participant.name)}
-                        </AvatarFallback>
-                    </Avatar>
+                    {participant.is_ai ? (
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-purple-600">
+                            <SparklesIcon className="h-3.5 w-3.5 text-white" />
+                        </div>
+                    ) : (
+                        <Avatar className="h-6 w-6">
+                            <AvatarImage src={participant.avatar} />
+                            <AvatarFallback className="text-[10px]">
+                                {getInitials(participant.name)}
+                            </AvatarFallback>
+                        </Avatar>
+                    )}
                     <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium">
+                        <div
+                            className={cn(
+                                'truncate font-medium',
+                                participant.is_ai &&
+                                    'bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent',
+                            )}
+                        >
                             {participant.name}
                         </div>
-                        {participant.email && (
-                            <div className="truncate text-xs text-muted-foreground">
-                                {participant.email}
-                            </div>
-                        )}
+                        <div className="truncate text-xs text-muted-foreground">
+                            {participant.is_ai
+                                ? 'AI Assistant'
+                                : participant.email}
+                        </div>
                     </div>
+                    {participant.is_ai && (
+                        <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-medium text-violet-600 dark:text-violet-400">
+                            AI
+                        </span>
+                    )}
                 </button>
             ))}
         </div>

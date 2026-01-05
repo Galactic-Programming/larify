@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SocialProvider;
 use App\Enums\UserPlan;
+use Database\Seeders\AIUserSeeder;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -264,5 +265,35 @@ class User extends Authenticatable implements MustVerifyEmail
             'can_create_project' => $this->canCreateProject(),
             'remaining_project_slots' => $this->remainingProjectSlots(),
         ]);
+    }
+
+    /**
+     * Get the AI assistant user instance.
+     * Creates the user if it doesn't exist (for production safety).
+     */
+    public static function getAIUser(): self
+    {
+        return self::where('email', AIUserSeeder::AI_EMAIL)->firstOr(function () {
+            // Run the seeder if AI user doesn't exist
+            (new AIUserSeeder)->run();
+
+            return self::where('email', AIUserSeeder::AI_EMAIL)->firstOrFail();
+        });
+    }
+
+    /**
+     * Check if this user is the AI assistant.
+     */
+    public function isAI(): bool
+    {
+        return $this->email === AIUserSeeder::AI_EMAIL;
+    }
+
+    /**
+     * Get the AI assistant user ID.
+     */
+    public static function getAIUserId(): int
+    {
+        return self::getAIUser()->id;
     }
 }

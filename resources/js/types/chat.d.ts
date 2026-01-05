@@ -7,6 +7,7 @@ export interface Participant {
     name: string;
     email?: string;
     avatar?: string;
+    is_ai?: boolean;
 }
 
 export interface MessageAttachment {
@@ -32,8 +33,10 @@ export interface Message {
         id: number;
         name: string;
         avatar?: string;
+        is_ai?: boolean;
     } | null;
     is_mine: boolean;
+    is_ai?: boolean;
     can_delete?: boolean;
     is_read?: boolean;
     mentions: MessageMention[];

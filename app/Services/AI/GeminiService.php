@@ -203,6 +203,151 @@ class GeminiService
     }
 
     /**
+     * Chat with AI in a conversation context (with richer project data).
+     *
+     * @param  array<string, mixed>  $projectContext
+     */
+    public function chatInConversation(string $message, array $projectContext): ?string
+    {
+        $systemPrompt = $this->buildConversationSystemPrompt($projectContext);
+
+        return $this->generate($message, 'chat_assistant', $systemPrompt);
+    }
+
+    /**
+     * Build a comprehensive system prompt for conversation AI.
+     *
+     * @param  array<string, mixed>  $projectContext
+     */
+    protected function buildConversationSystemPrompt(array $projectContext): string
+    {
+        $prompt = "You are LaraFlow AI, an intelligent project management assistant integrated into team conversations.\n";
+        $prompt .= "Today's date: ".now()->format('Y-m-d').' ('.now()->format('l').")\n\n";
+
+        // Project Overview
+        $prompt .= "# PROJECT: {$projectContext['name']}\n";
+        if (! empty($projectContext['description'])) {
+            $prompt .= "Description: {$projectContext['description']}\n";
+        }
+        $prompt .= "Created: {$projectContext['created_at']}\n\n";
+
+        // Statistics Summary
+        $prompt .= "## 📊 Project Statistics\n";
+        $prompt .= "- Total Tasks: {$projectContext['total_tasks']}\n";
+        $prompt .= "- Completed: {$projectContext['completed_tasks']} ({$projectContext['completion_rate']}%)\n";
+        $prompt .= "- Pending: {$projectContext['pending_tasks']}\n";
+        $prompt .= "- Overdue: {$projectContext['overdue_count']}\n\n";
+
+        // Lists Overview
+        if (! empty($projectContext['lists'])) {
+            $prompt .= "## 📋 Lists\n";
+            foreach ($projectContext['lists'] as $list) {
+                $prompt .= "- **{$list['name']}**: {$list['pending']} pending, {$list['completed']} completed (total: {$list['total']})\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // OVERDUE TASKS (Critical - show first)
+        if (! empty($projectContext['overdue_tasks'])) {
+            $prompt .= "## 🚨 OVERDUE TASKS (Urgent!)\n";
+            foreach ($projectContext['overdue_tasks'] as $task) {
+                $assignee = $task['assignee'] ? " → {$task['assignee']}" : '';
+                $priority = $task['priority'] ? " [{$task['priority']}]" : '';
+                $prompt .= "- **{$task['title']}**{$priority} - {$task['days_overdue']} days overdue (was due {$task['due_date']}){$assignee}\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // Tasks Due Soon (next 3 days)
+        if (! empty($projectContext['tasks_due_soon'])) {
+            $prompt .= "## ⚡ Due Within 3 Days\n";
+            foreach ($projectContext['tasks_due_soon'] as $task) {
+                $assignee = $task['assignee'] ? " → {$task['assignee']}" : '';
+                $priority = $task['priority'] ? " [{$task['priority']}]" : '';
+                $prompt .= "- {$task['title']}{$priority} - Due: {$task['due_date']}{$assignee}\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // ALL Pending Tasks (detailed)
+        if (! empty($projectContext['pending_tasks_details'])) {
+            $prompt .= "## 📝 All Pending Tasks ({$projectContext['pending_tasks']} total)\n";
+            foreach ($projectContext['pending_tasks_details'] as $task) {
+                $priority = $task['priority'] ? "[{$task['priority']}] " : '';
+                $dueInfo = '';
+                if ($task['due_date']) {
+                    $days = $task['days_until_due'];
+                    if ($days < 0) {
+                        $dueInfo = ' | ⚠️ OVERDUE by '.abs($days).' days';
+                    } elseif ($days === 0) {
+                        $dueInfo = ' | 📅 Due TODAY';
+                    } elseif ($days <= 3) {
+                        $dueInfo = " | 📅 Due in {$days} days ({$task['due_date']})";
+                    } else {
+                        $dueInfo = " | Due: {$task['due_date']}";
+                    }
+                }
+                $assignee = $task['assignee'] ? " | Assigned: {$task['assignee']}" : '';
+                $labels = ! empty($task['labels']) ? ' | Labels: '.implode(', ', $task['labels']) : '';
+                $list = $task['list'] ? " | List: {$task['list']}" : '';
+
+                $prompt .= "- {$priority}**{$task['title']}**{$dueInfo}{$assignee}{$list}{$labels}\n";
+                if ($task['description']) {
+                    $prompt .= "  └─ {$task['description']}...\n";
+                }
+            }
+            $prompt .= "\n";
+        }
+
+        // Recently Completed
+        if (! empty($projectContext['recently_completed'])) {
+            $prompt .= "## ✅ Recently Completed (Last 7 Days)\n";
+            foreach ($projectContext['recently_completed'] as $task) {
+                $prompt .= "- {$task['title']} - Completed: {$task['completed_at']}\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // Team Members
+        $prompt .= "## 👥 Team ({$projectContext['team_size']} members)\n";
+        $prompt .= "- **Owner**: {$projectContext['owner']['name']} ({$projectContext['owner']['email']})\n";
+        if (! empty($projectContext['members'])) {
+            foreach ($projectContext['members'] as $member) {
+                $role = ucfirst($member['role'] ?? 'member');
+                $prompt .= "- {$member['name']} ({$member['email']}) - {$role}\n";
+            }
+        }
+        $prompt .= "\n";
+
+        // Labels
+        if (! empty($projectContext['labels'])) {
+            $prompt .= '## 🏷️ Available Labels: ';
+            $labelNames = array_map(fn ($l) => $l['name'], $projectContext['labels']);
+            $prompt .= implode(', ', $labelNames)."\n\n";
+        }
+
+        // AI Instructions
+        $prompt .= "## Your Capabilities\n";
+        $prompt .= "You have access to ALL project data above. You can:\n";
+        $prompt .= "1. **Answer task questions**: List tasks by status, priority, assignee, due date, labels\n";
+        $prompt .= "2. **Provide status reports**: Progress summaries, completion rates, bottlenecks\n";
+        $prompt .= "3. **Alert about deadlines**: Overdue tasks, upcoming due dates\n";
+        $prompt .= "4. **Team workload**: Who's assigned what, workload distribution\n";
+        $prompt .= "5. **Productivity insights**: Completion trends, suggestions for improvement\n";
+        $prompt .= "6. **Answer 'what should I work on next?'**: Prioritize based on urgency/priority\n\n";
+
+        $prompt .= "## Response Guidelines\n";
+        $prompt .= "- Use the ACTUAL data provided above - never make up task names or details\n";
+        $prompt .= "- Adapt response length to question complexity\n";
+        $prompt .= "- Use markdown formatting (headers, lists, bold, tables) for readability\n";
+        $prompt .= "- Be specific with dates, numbers, and names from the context\n";
+        $prompt .= "- For Vietnamese questions, respond in Vietnamese\n";
+        $prompt .= "- Be friendly, professional, and actionable\n";
+
+        return $prompt;
+    }
+
+    /**
      * Check if user can use AI (has Pro subscription and within daily limit).
      */
     public function canUserUseAI(User $user): bool

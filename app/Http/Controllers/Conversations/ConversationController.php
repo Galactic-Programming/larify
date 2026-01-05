@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -145,14 +146,10 @@ class ConversationController extends Controller
                     'color' => $conversation->project->color,
                     'icon' => $conversation->project->icon,
                 ] : null,
-                'participants' => $conversation->participants->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'avatar' => $user->avatar,
-                ]),
+                'participants' => $this->getParticipantsWithAI($conversation),
                 'messages' => $conversation->messages->map(function ($message) use ($request, $otherParticipantsReadAt) {
                     $isMine = $message->sender_id === $request->user()->id;
+                    $isAI = $message->sender?->isAI() ?? false;
 
                     // Check if message is read by at least one other participant
                     $isRead = $isMine && $otherParticipantsReadAt->contains(function ($lastReadAt) use ($message) {
@@ -167,10 +164,12 @@ class ConversationController extends Controller
                             'id' => $message->sender->id,
                             'name' => $message->sender->name,
                             'avatar' => $message->sender->avatar,
+                            'is_ai' => $isAI,
                         ] : null,
-                        'is_mine' => $isMine,
+                        'is_ai' => $isAI,
+                        'is_mine' => $isMine && ! $isAI,
                         'is_read' => $isRead,
-                        'can_delete' => $isMine && $message->canBeDeletedBySender(),
+                        'can_delete' => $isMine && ! $isAI && $message->canBeDeletedBySender(),
                         'mentions' => $message->mentions->map(fn ($m) => [
                             'user_id' => $m->user_id,
                             'name' => $m->user?->name,
@@ -282,5 +281,35 @@ class ConversationController extends Controller
             'conversations' => $unreadConversations,
             'total_unread' => $totalUnread,
         ]);
+    }
+
+    /**
+     * Get participants list with AI assistant included at the top.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    protected function getParticipantsWithAI(Conversation $conversation): \Illuminate\Support\Collection
+    {
+        $aiUser = User::getAIUser();
+
+        // Start with AI User at the top
+        $participants = collect([[
+            'id' => $aiUser->id,
+            'name' => $aiUser->name,
+            'email' => $aiUser->email,
+            'avatar' => null,
+            'is_ai' => true,
+        ]]);
+
+        // Add regular participants
+        $regularParticipants = $conversation->participants->map(fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+            'is_ai' => false,
+        ]);
+
+        return $participants->merge($regularParticipants);
     }
 }

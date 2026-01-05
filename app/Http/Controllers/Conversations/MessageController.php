@@ -11,15 +11,22 @@ use App\Http\Requests\Conversations\StoreMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\User;
 use App\Notifications\MentionedInMessage;
+use App\Services\AI\GeminiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
+    public function __construct(
+        protected GeminiService $geminiService
+    ) {}
+
     /**
      * Fetch more messages (pagination).
      */
@@ -55,11 +62,12 @@ class MessageController extends Controller
     public function store(StoreMessageRequest $request, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
+        $content = $validated['content'] ?? '';
 
         // Create the message
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->id,
-            'content' => $validated['content'] ?? '',
+            'content' => $content,
         ]);
 
         // Handle file attachments
@@ -107,14 +115,253 @@ class MessageController extends Controller
         // Broadcast the message
         broadcast(new MessageSent($message))->toOthers();
 
+        // Check for @AI mention and generate AI response
+        $aiMessage = $this->handleAIMention($request->user(), $conversation, $content);
+
         // Return JSON for AJAX requests
         if ($request->expectsJson()) {
-            return response()->json([
-                'message' => $this->formatMessage($message, true),
-            ], 201);
+            $response = ['message' => $this->formatMessage($message, true)];
+
+            // Include AI message if generated
+            if ($aiMessage) {
+                $response['ai_message'] = $this->formatMessage($aiMessage, false);
+            }
+
+            return response()->json($response, 201);
         }
 
         return back();
+    }
+
+    /**
+     * Handle @AI mention in message content.
+     * Generates AI response if user mentions @AI or @Laraflow AI.
+     */
+    protected function handleAIMention(User $user, Conversation $conversation, string $content): ?Message
+    {
+        // Check for @AI or @Laraflow AI mention (case-insensitive)
+        if (! preg_match('/@(AI|Laraflow\s*AI)\b/i', $content)) {
+            return null;
+        }
+
+        // Check if user can use AI features
+        if (! $this->geminiService->canUserUseAI($user)) {
+            // Create a message explaining AI is not available
+            $aiUser = User::getAIUser();
+            $aiMessage = $conversation->messages()->create([
+                'sender_id' => $aiUser->id,
+                'content' => '⚠️ AI features require a Pro subscription. Please upgrade your plan to chat with me!',
+            ]);
+            $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
+            broadcast(new MessageSent($aiMessage));
+
+            return $aiMessage;
+        }
+
+        // Extract the question (text after @AI)
+        $question = $this->extractAIQuestion($content);
+
+        if (empty(trim($question))) {
+            return null;
+        }
+
+        try {
+            // Get project context for AI
+            $project = $conversation->project;
+            $projectContext = $this->buildProjectContext($project);
+
+            // Call AI service
+            $aiResponse = $this->geminiService->chatInConversation($question, $projectContext);
+
+            if (! $aiResponse) {
+                return null;
+            }
+
+            // Create AI response message
+            $aiUser = User::getAIUser();
+            $aiMessage = $conversation->messages()->create([
+                'sender_id' => $aiUser->id,
+                'content' => $aiResponse,
+            ]);
+
+            // Increment AI usage for the user who triggered it
+            $this->geminiService->incrementUsage($user);
+
+            // Load relationships and broadcast
+            $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
+            broadcast(new MessageSent($aiMessage));
+
+            return $aiMessage;
+        } catch (\Exception $e) {
+            Log::error('AI Chat Error', [
+                'user_id' => $user->id,
+                'conversation_id' => $conversation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Extract the question from message content (text after @AI).
+     */
+    protected function extractAIQuestion(string $content): string
+    {
+        // Remove @AI or @Laraflow AI and get the rest
+        $question = preg_replace('/@(AI|Laraflow\s*AI)\b/i', '', $content);
+
+        return trim($question);
+    }
+
+    /**
+     * Build comprehensive project context for AI.
+     * Includes detailed information about lists, tasks, members, and labels.
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildProjectContext(\App\Models\Project $project): array
+    {
+        // Load lists with task counts
+        $lists = $project->lists()->withCount([
+            'tasks',
+            'tasks as completed_tasks_count' => fn ($q) => $q->whereNotNull('completed_at'),
+            'tasks as pending_tasks_count' => fn ($q) => $q->whereNull('completed_at'),
+        ])->get();
+
+        $totalTasks = $lists->sum('tasks_count');
+        $completedTasks = $lists->sum('completed_tasks_count');
+        $pendingTasks = $lists->sum('pending_tasks_count');
+
+        // Get ALL pending tasks with full details (limit 50 to avoid token overflow)
+        $allPendingTasks = $project->tasks()
+            ->with(['list:id,name', 'assignee:id,name', 'labels:id,name,color'])
+            ->whereNull('completed_at')
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_date')
+            ->orderByRaw("CASE priority 
+                WHEN 'urgent' THEN 1 
+                WHEN 'high' THEN 2 
+                WHEN 'medium' THEN 3 
+                WHEN 'low' THEN 4 
+                ELSE 5 END")
+            ->limit(50)
+            ->get(['id', 'title', 'description', 'due_date', 'priority', 'list_id', 'assigned_to']);
+
+        // Get recently completed tasks (last 7 days)
+        $recentlyCompleted = $project->tasks()
+            ->with(['list:id,name'])
+            ->whereNotNull('completed_at')
+            ->where('completed_at', '>=', now()->subDays(7))
+            ->orderBy('completed_at', 'desc')
+            ->limit(10)
+            ->get(['id', 'title', 'completed_at', 'list_id']);
+
+        // Get overdue tasks
+        $overdueTasks = $project->tasks()
+            ->with(['list:id,name', 'assignee:id,name'])
+            ->whereNull('completed_at')
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', now())
+            ->orderBy('due_date')
+            ->limit(20)
+            ->get(['id', 'title', 'due_date', 'priority', 'list_id', 'assigned_to']);
+
+        // Get project members
+        $members = $project->members()->get(['users.id', 'users.name', 'users.email']);
+        $owner = $project->user;
+
+        // Get project labels
+        $labels = $project->labels()->get(['id', 'name', 'color']);
+
+        // Get tasks due soon (next 3 days) - high priority alert
+        $tasksDueSoon = $project->tasks()
+            ->with(['assignee:id,name'])
+            ->whereNull('completed_at')
+            ->whereNotNull('due_date')
+            ->whereBetween('due_date', [now(), now()->addDays(3)])
+            ->orderBy('due_date')
+            ->limit(10)
+            ->get(['id', 'title', 'due_date', 'priority', 'assigned_to']);
+
+        return [
+            'name' => $project->name,
+            'description' => $project->description,
+            'created_at' => $project->created_at->format('Y-m-d'),
+
+            // Statistics
+            'total_tasks' => $totalTasks,
+            'completed_tasks' => $completedTasks,
+            'pending_tasks' => $pendingTasks,
+            'overdue_count' => $overdueTasks->count(),
+            'completion_rate' => $totalTasks > 0
+                ? round(($completedTasks / $totalTasks) * 100, 1)
+                : 0,
+
+            // Lists details
+            'lists' => $lists->map(fn ($list) => [
+                'id' => $list->id,
+                'name' => $list->name,
+                'total' => $list->tasks_count,
+                'completed' => $list->completed_tasks_count,
+                'pending' => $list->pending_tasks_count,
+            ])->toArray(),
+
+            // All pending tasks with details
+            'pending_tasks_details' => $allPendingTasks->map(fn ($task) => [
+                'title' => $task->title,
+                'description' => $task->description ? mb_substr($task->description, 0, 100) : null,
+                'list' => $task->list?->name,
+                'priority' => $task->priority?->value,
+                'due_date' => $task->due_date?->format('Y-m-d'),
+                'days_until_due' => $task->due_date ? now()->diffInDays($task->due_date, false) : null,
+                'assignee' => $task->assignee?->name,
+                'labels' => $task->labels->pluck('name')->toArray(),
+            ])->toArray(),
+
+            // Overdue tasks (urgent attention needed)
+            'overdue_tasks' => $overdueTasks->map(fn ($task) => [
+                'title' => $task->title,
+                'list' => $task->list?->name,
+                'due_date' => $task->due_date?->format('Y-m-d'),
+                'days_overdue' => now()->diffInDays($task->due_date),
+                'priority' => $task->priority?->value,
+                'assignee' => $task->assignee?->name,
+            ])->toArray(),
+
+            // Tasks due soon (next 3 days)
+            'tasks_due_soon' => $tasksDueSoon->map(fn ($task) => [
+                'title' => $task->title,
+                'due_date' => $task->due_date?->format('Y-m-d'),
+                'priority' => $task->priority?->value,
+                'assignee' => $task->assignee?->name,
+            ])->toArray(),
+
+            // Recently completed (for progress tracking)
+            'recently_completed' => $recentlyCompleted->map(fn ($task) => [
+                'title' => $task->title,
+                'completed_at' => $task->completed_at?->format('Y-m-d H:i'),
+                'list' => $task->list?->name,
+            ])->toArray(),
+
+            // Team members
+            'owner' => [
+                'name' => $owner?->name,
+                'email' => $owner?->email,
+            ],
+            'members' => $members->map(fn ($member) => [
+                'name' => $member->name,
+                'email' => $member->email,
+                'role' => $member->pivot->role ?? 'member',
+            ])->toArray(),
+            'team_size' => $members->count() + 1,
+
+            // Labels available in project
+            'labels' => $labels->map(fn ($label) => [
+                'name' => $label->name,
+                'color' => $label->color,
+            ])->toArray(),
+        ];
     }
 
     /**
@@ -229,6 +476,7 @@ class MessageController extends Controller
 
     /**
      * Get participants for @mention autocomplete.
+     * Includes the AI assistant as a mentionable participant.
      */
     public function participants(Request $request, Conversation $conversation): JsonResponse
     {
@@ -245,7 +493,25 @@ class MessageController extends Controller
             })
             ->select('users.id', 'users.name', 'users.email', 'users.avatar')
             ->limit(10)
-            ->get();
+            ->get()
+            ->toArray();
+
+        // Add AI assistant to the list if it matches the search
+        $aiUser = User::getAIUser();
+        $aiMatches = empty($search)
+            || stripos($aiUser->name, $search) !== false
+            || stripos('AI', $search) !== false;
+
+        if ($aiMatches) {
+            // Add AI at the beginning of the list
+            array_unshift($participants, [
+                'id' => $aiUser->id,
+                'name' => $aiUser->name,
+                'email' => $aiUser->email,
+                'avatar' => null,
+                'is_ai' => true,
+            ]);
+        }
 
         return response()->json([
             'participants' => $participants,
@@ -257,6 +523,8 @@ class MessageController extends Controller
      */
     private function formatMessage(Message $message, bool $isMine): array
     {
+        $isAI = $message->sender?->isAI() ?? false;
+
         return [
             'id' => $message->id,
             'content' => $message->content,
@@ -265,9 +533,11 @@ class MessageController extends Controller
                 'id' => $message->sender->id,
                 'name' => $message->sender->name,
                 'avatar' => $message->sender->avatar,
+                'is_ai' => $isAI,
             ] : null,
-            'is_mine' => $isMine,
-            'can_delete' => $isMine && $message->canBeDeletedBySender(),
+            'is_mine' => $isMine && ! $isAI,
+            'is_ai' => $isAI,
+            'can_delete' => $isMine && ! $isAI && $message->canBeDeletedBySender(),
             'mentions' => $message->mentions->map(fn ($m) => [
                 'user_id' => $m->user_id,
                 'name' => $m->user->name,

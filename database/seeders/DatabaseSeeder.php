@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            AIUserSeeder::class, // Must run first - creates system AI user
             PlanSeeder::class,
             UserSeeder::class,
             ProjectSeeder::class,

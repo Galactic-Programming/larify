@@ -9,7 +9,13 @@ import {
 import { cn } from '@/lib/utils';
 import type { Message, MessageMention } from '@/types/chat';
 import { format } from 'date-fns';
-import { Check, CheckCheck, MoreVertical, Trash2 } from 'lucide-react';
+import {
+    Check,
+    CheckCheck,
+    MoreVertical,
+    SparklesIcon,
+    Trash2,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { memo } from 'react';
 import { AttachmentsSection } from './attachment-renderer';
@@ -148,6 +154,7 @@ export const MessageBubble = memo(function MessageBubble({
     currentUserId,
 }: MessageBubbleProps) {
     const isMine = message.is_mine;
+    const isAI = message.is_ai ?? message.sender?.is_ai ?? false;
     const hasContent = message.content?.trim();
     const hasAttachments = message.attachments.length > 0;
 
@@ -186,15 +193,22 @@ export const MessageBubble = memo(function MessageBubble({
         >
             {/* Avatar */}
             {!isMine && showAvatar ? (
-                <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage
-                        src={message.sender?.avatar}
-                        alt={message.sender?.name ?? 'User'}
-                    />
-                    <AvatarFallback className="text-xs">
-                        {message.sender?.name?.charAt(0).toUpperCase() ?? 'U'}
-                    </AvatarFallback>
-                </Avatar>
+                isAI ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
+                        <SparklesIcon className="h-4 w-4 text-white" />
+                    </div>
+                ) : (
+                    <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage
+                            src={message.sender?.avatar}
+                            alt={message.sender?.name ?? 'User'}
+                        />
+                        <AvatarFallback className="text-xs">
+                            {message.sender?.name?.charAt(0).toUpperCase() ??
+                                'U'}
+                        </AvatarFallback>
+                    </Avatar>
+                )
             ) : !isMine ? (
                 <div className="w-8" />
             ) : null}
@@ -208,8 +222,20 @@ export const MessageBubble = memo(function MessageBubble({
             >
                 {/* Sender name */}
                 {!isMine && showAvatar && message.sender && (
-                    <span className="text-xs text-muted-foreground">
+                    <span
+                        className={cn(
+                            'flex items-center gap-1.5 text-xs',
+                            isAI
+                                ? 'font-medium text-violet-600 dark:text-violet-400'
+                                : 'text-muted-foreground',
+                        )}
+                    >
                         {message.sender.name}
+                        {isAI && (
+                            <span className="rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
+                                AI
+                            </span>
+                        )}
                     </span>
                 )}
 
@@ -256,16 +282,19 @@ export const MessageBubble = memo(function MessageBubble({
                                     'relative min-w-0 overflow-hidden rounded-2xl px-3 py-2',
                                     isMine
                                         ? 'rounded-br-md bg-primary text-primary-foreground'
-                                        : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
+                                        : isAI
+                                          ? 'rounded-bl-md border border-violet-200 bg-linear-to-br from-violet-50 to-purple-50 text-slate-900 dark:border-violet-800/50 dark:from-violet-950/50 dark:to-purple-950/50 dark:text-slate-100'
+                                          : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
                                     // Highlight when current user is mentioned
-                                    isMentioned && [
-                                        // Change background to amber/yellow tint (complementary to purple theme)
-                                        'bg-amber-50! dark:bg-amber-900/30!',
-                                        // Add left accent border
-                                        'border-l-4 border-l-amber-500 dark:border-l-amber-400',
-                                        // Subtle shadow glow
-                                        'shadow-[0_0_12px_rgba(245,158,11,0.25)] dark:shadow-[0_0_12px_rgba(251,191,36,0.2)]',
-                                    ],
+                                    isMentioned &&
+                                        !isAI && [
+                                            // Change background to amber/yellow tint (complementary to purple theme)
+                                            'bg-amber-50! dark:bg-amber-900/30!',
+                                            // Add left accent border
+                                            'border-l-4 border-l-amber-500 dark:border-l-amber-400',
+                                            // Subtle shadow glow
+                                            'shadow-[0_0_12px_rgba(245,158,11,0.25)] dark:shadow-[0_0_12px_rgba(251,191,36,0.2)]',
+                                        ],
                                     // If only text (no attachments), show time inline
                                     !hasAttachments && 'pb-1',
                                 )}
