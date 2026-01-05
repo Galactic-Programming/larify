@@ -1,14 +1,12 @@
 import { MessageInput } from '@/components/ui/message-input';
-// import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import type { Conversation, ConversationDetail, Message } from '@/types/chat';
 import { Head, usePage } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
     ConversationHeader,
@@ -18,6 +16,7 @@ import {
     MessageBubble,
     TypingIndicator,
 } from './components';
+import { useConversationRealtime, useMessageActions } from './hooks';
 
 interface Props {
     conversations: Conversation[];
@@ -46,26 +45,112 @@ export default function ConversationShow({
     conversation,
 }: Props) {
     const { auth } = usePage<SharedData>().props;
+
+    // Message state
     const [messages, setMessages] = useState<Message[]>(conversation.messages);
-    const [inputValue, setInputValue] = useState('');
-    const [isSending, setIsSending] = useState(false);
     const [typingUsers, setTypingUsers] = useState<Map<number, string>>(
         new Map(),
     );
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [isAIThinking, setIsAIThinking] = useState(false);
+
+    // UI state
     const [showMembers, setShowMembers] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasMoreMessages, setHasMoreMessages] = useState(
         conversation.messages.length >= 50,
     );
 
+    // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const typingTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
     const lastTypingRef = useRef<number>(0);
     const hasMarkedAsReadRef = useRef(false);
+
+    // Message actions hook
+    const {
+        isSending,
+        isDeleting,
+        inputValue,
+        selectedFiles,
+        deleteMessageId,
+        setInputValue,
+        setSelectedFiles,
+        setDeleteMessageId,
+        handleSubmit,
+        confirmDelete,
+    } = useMessageActions({
+        conversationId: conversation.id,
+        currentUser: auth.user,
+        onMessagesChange: setMessages,
+        onAIThinkingChange: setIsAIThinking,
+    });
+
+    // Real-time handlers
+    const handleMessageReceived = useCallback(
+        (message: Message) => {
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === message.id)) {
+                    return prev;
+                }
+                return [...prev, message];
+            });
+        },
+        [],
+    );
+
+    const handleMessageDeleted = useCallback((messageId: number) => {
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    }, []);
+
+    const handleTypingUser = useCallback((userId: number, userName: string) => {
+        setTypingUsers((prev) => {
+            const next = new Map(prev);
+            next.set(userId, userName);
+            return next;
+        });
+    }, []);
+
+    const handleTypingUserClear = useCallback((userId: number) => {
+        setTypingUsers((prev) => {
+            const next = new Map(prev);
+            next.delete(userId);
+            return next;
+        });
+    }, []);
+
+    const handleMessagesRead = useCallback(
+        (readerId: number, readAt: string) => {
+            setMessages((prev) =>
+                prev.map((msg) => {
+                    if (
+                        msg.is_mine &&
+                        !msg.is_read &&
+                        new Date(msg.created_at) <= new Date(readAt)
+                    ) {
+                        return { ...msg, is_read: true };
+                    }
+                    return msg;
+                }),
+            );
+        },
+        [],
+    );
+
+    const handleAIMessageReceived = useCallback(() => {
+        setIsAIThinking(false);
+    }, []);
+
+    // Real-time hook
+    const { sendTypingIndicator, markMessagesAsRead } = useConversationRealtime({
+        conversationId: conversation.id,
+        currentUserId: auth.user.id,
+        onMessageReceived: handleMessageReceived,
+        onMessageDeleted: handleMessageDeleted,
+        onTypingUser: handleTypingUser,
+        onTypingUserClear: handleTypingUserClear,
+        onMessagesRead: handleMessagesRead,
+        onAIMessageReceived: handleAIMessageReceived,
+    });
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Conversations', href: '/conversations' },
@@ -143,19 +228,6 @@ export default function ConversationShow({
         [hasMoreMessages, isLoadingMore, loadMoreMessages],
     );
 
-    // Function to mark messages as read and broadcast read receipt
-    const markMessagesAsRead = useCallback(() => {
-        fetch(`/conversations/${conversation.id}/messages/read`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>(
-                        'meta[name="csrf-token"]',
-                    )?.content ?? '',
-            },
-        });
-    }, [conversation.id]);
-
     // Mark as read when component mounts
     useEffect(() => {
         if (!hasMarkedAsReadRef.current) {
@@ -169,127 +241,20 @@ export default function ConversationShow({
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // Real-time message events
-    useEcho(
-        `conversation.${conversation.id}`,
-        '.message.sent',
-        (data: { message: Message }) => {
-            if (data.message.sender?.id !== auth.user.id) {
-                setMessages((prev) => {
-                    if (prev.some((m) => m.id === data.message.id)) {
-                        return prev;
-                    }
-                    return [...prev, data.message];
-                });
-                markMessagesAsRead();
+    // Throttled typing indicator
+    const handleInputChange = useCallback(
+        (value: string) => {
+            setInputValue(value);
+            if (value.trim()) {
+                const now = Date.now();
+                if (now - lastTypingRef.current >= 2000) {
+                    lastTypingRef.current = now;
+                    sendTypingIndicator();
+                }
             }
         },
-        [auth.user.id, markMessagesAsRead],
-        'private',
+        [setInputValue, sendTypingIndicator],
     );
-
-    useEcho(
-        `conversation.${conversation.id}`,
-        '.message.deleted',
-        (data: { message_id: number }) => {
-            setMessages((prev) =>
-                prev.filter((m) => m.id !== data.message_id)
-            );
-        },
-        [],
-        'private',
-    );
-
-    useEcho(
-        `conversation.${conversation.id}`,
-        '.user.typing',
-        (data: { user: { id: number; name: string } }) => {
-            if (data.user.id === auth.user.id) return;
-
-            // Clear existing timeout for this user
-            const existingTimeout = typingTimeoutsRef.current.get(data.user.id);
-            if (existingTimeout) {
-                clearTimeout(existingTimeout);
-            }
-
-            setTypingUsers((prev) => {
-                const next = new Map(prev);
-                next.set(data.user.id, data.user.name);
-                return next;
-            });
-
-            // Set new timeout and store reference
-            const timeoutId = setTimeout(() => {
-                setTypingUsers((prev) => {
-                    const next = new Map(prev);
-                    next.delete(data.user.id);
-                    return next;
-                });
-                typingTimeoutsRef.current.delete(data.user.id);
-            }, 3000);
-
-            typingTimeoutsRef.current.set(data.user.id, timeoutId);
-        },
-        [],
-        'private',
-    );
-
-    // Cleanup typing timeouts on unmount
-    useEffect(() => {
-        const timeouts = typingTimeoutsRef.current;
-        return () => {
-            timeouts.forEach((timeout) => clearTimeout(timeout));
-            timeouts.clear();
-        };
-    }, []);
-
-    useEcho(
-        `conversation.${conversation.id}`,
-        '.messages.read',
-        (data: { reader_id: number; read_at: string }) => {
-            if (data.reader_id === auth.user.id) return;
-
-            setMessages((prev) =>
-                prev.map((msg) => {
-                    if (
-                        msg.is_mine &&
-                        !msg.is_read &&
-                        new Date(msg.created_at) <= new Date(data.read_at)
-                    ) {
-                        return { ...msg, is_read: true };
-                    }
-                    return msg;
-                }),
-            );
-        },
-        [],
-        'private',
-    );
-
-    // Send typing indicator
-    const sendTypingIndicator = useCallback(() => {
-        const now = Date.now();
-        if (now - lastTypingRef.current < 2000) return;
-        lastTypingRef.current = now;
-
-        fetch(`/conversations/${conversation.id}/typing`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>(
-                        'meta[name="csrf-token"]',
-                    )?.content ?? '',
-            },
-        });
-    }, [conversation.id]);
-
-    const handleInputChange = (value: string) => {
-        setInputValue(value);
-        if (value.trim()) {
-            sendTypingIndicator();
-        }
-    };
 
     // Handle mention selection from autocomplete
     const handleMentionSelect = useCallback(
@@ -298,176 +263,38 @@ export default function ConversationShow({
             // Find end of current mention query (until space or end)
             const afterMentionStart = inputValue.slice(mentionStart + 1);
             const spaceIndex = afterMentionStart.indexOf(' ');
-            const afterMention = spaceIndex >= 0
-                ? afterMentionStart.slice(spaceIndex)
-                : '';
+            const afterMention =
+                spaceIndex >= 0 ? afterMentionStart.slice(spaceIndex) : '';
 
             const mentionText = `@${participant.name}`;
-            const newValue = beforeMention + mentionText + (afterMention || ' ');
+            const newValue =
+                beforeMention + mentionText + (afterMention || ' ');
 
             setInputValue(newValue);
         },
-        [inputValue],
+        [inputValue, setInputValue],
     );
-
-    // Generate a temporary ID for optimistic messages
-    const generateTempId = () => -Date.now();
-
-    // Send message with optimistic update
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        if ((!inputValue.trim() && selectedFiles.length === 0) || isSending)
-            return;
-
-        const content = inputValue.trim();
-        const tempId = generateTempId();
-        const currentFiles = [...selectedFiles];
-
-        // Create optimistic message (only if text-only, files need server processing)
-        const optimisticMessage: Message | null =
-            currentFiles.length === 0
-                ? {
-                    id: tempId,
-                    content,
-                    created_at: new Date().toISOString(),
-                    sender: {
-                        id: auth.user.id,
-                        name: auth.user.name,
-                        avatar: auth.user.avatar,
-                    },
-                    is_mine: true,
-                    is_read: false,
-                    attachments: [],
-                    mentions: [],
-                }
-                : null;
-
-        // Optimistically add the message
-        if (optimisticMessage) {
-            setMessages((prev) => [...prev, optimisticMessage]);
-        }
-
-        // Clear input immediately for better UX
-        setInputValue('');
-        setSelectedFiles([]);
-        setIsSending(true);
-
-        try {
-            const formData = new FormData();
-            if (content) {
-                formData.append('content', content);
-            }
-            currentFiles.forEach((file) => {
-                formData.append('attachments[]', file);
-            });
-
-            const csrfToken = document.querySelector<HTMLMetaElement>(
-                'meta[name="csrf-token"]',
-            )?.content ?? '';
-
-            const response = await fetch(
-                `/conversations/${conversation.id}/messages`,
-                {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                    body: formData,
-                },
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setMessages((prev) => {
-                    // Replace optimistic message with real message
-                    if (optimisticMessage) {
-                        return prev.map((m) =>
-                            m.id === tempId ? data.message : m,
-                        );
-                    }
-                    // For file uploads, just add the message if not already present
-                    if (prev.some((m) => m.id === data.message.id)) {
-                        return prev;
-                    }
-                    return [...prev, data.message];
-                });
-            } else {
-                // Revert optimistic update on error
-                if (optimisticMessage) {
-                    setMessages((prev) => prev.filter((m) => m.id !== tempId));
-                    setInputValue(content);
-                }
-                console.error('Failed to send message');
-            }
-        } catch (error) {
-            // Revert optimistic update on error
-            if (optimisticMessage) {
-                setMessages((prev) => prev.filter((m) => m.id !== tempId));
-                setInputValue(content);
-            }
-            console.error('Failed to send message:', error);
-        } finally {
-            setIsSending(false);
-        }
-    };
-
-    // Delete message with optimistic update
-    const confirmDelete = async () => {
-        if (!deleteMessageId) return;
-
-        const messageId = deleteMessageId;
-
-        // Store original messages for potential rollback
-        const originalMessages = messages;
-
-        // Optimistically remove the message
-        setMessages((prev) => prev.filter((m) => m.id !== messageId));
-
-        // Close dialog immediately
-        setDeleteMessageId(null);
-        setIsDeleting(true);
-
-        try {
-            const response = await fetch(
-                `/conversations/${conversation.id}/messages/${messageId}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                // Revert on error
-                setMessages(originalMessages);
-                console.error('Failed to delete message');
-            }
-        } catch (error) {
-            // Revert on error
-            setMessages(originalMessages);
-            console.error('Failed to delete message:', error);
-        } finally {
-            setIsDeleting(false);
-        }
-    };
 
     // Scroll to a specific message (for search results)
     const scrollToMessage = useCallback((message: Message) => {
-        // Find the message element and scroll to it
         const messageElement = document.querySelector(
             `[data-message-id="${message.id}"]`,
         );
         if (messageElement) {
-            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            messageElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
             // Highlight the message briefly
-            messageElement.classList.add('bg-yellow-100', 'dark:bg-yellow-900/30');
+            messageElement.classList.add(
+                'bg-yellow-100',
+                'dark:bg-yellow-900/30',
+            );
             setTimeout(() => {
-                messageElement.classList.remove('bg-yellow-100', 'dark:bg-yellow-900/30');
+                messageElement.classList.remove(
+                    'bg-yellow-100',
+                    'dark:bg-yellow-900/30',
+                );
             }, 2000);
         }
     }, []);
@@ -527,15 +354,21 @@ export default function ConversationShow({
                                     const showAvatar =
                                         !prevMessage ||
                                         prevMessage.sender?.id !==
-                                        message.sender?.id ||
+                                            message.sender?.id ||
                                         showDateSeparator;
 
                                     return (
                                         <div key={message.id}>
                                             {showDateSeparator && (
                                                 <motion.div
-                                                    initial={{ opacity: 0, scale: 0.95 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    initial={{
+                                                        opacity: 0,
+                                                        scale: 0.95,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        scale: 1,
+                                                    }}
                                                     className="my-4 flex items-center gap-4"
                                                 >
                                                     <div className="h-px flex-1 bg-border" />
@@ -551,7 +384,9 @@ export default function ConversationShow({
                                                 message={message}
                                                 showAvatar={showAvatar}
                                                 onDelete={() =>
-                                                    setDeleteMessageId(message.id)
+                                                    setDeleteMessageId(
+                                                        message.id,
+                                                    )
                                                 }
                                                 canDelete={message.can_delete}
                                                 currentUserId={auth.user.id}
@@ -566,7 +401,10 @@ export default function ConversationShow({
                 </div>
 
                 {/* Typing indicator */}
-                <TypingIndicator names={Array.from(typingUsers.values())} />
+                <TypingIndicator
+                    names={Array.from(typingUsers.values())}
+                    isAIThinking={isAIThinking}
+                />
 
                 {/* Input */}
                 <div className="border-t p-4">
@@ -585,9 +423,7 @@ export default function ConversationShow({
                             isGenerating={isSending}
                             allowAttachments={true}
                             files={
-                                selectedFiles.length > 0
-                                    ? selectedFiles
-                                    : null
+                                selectedFiles.length > 0 ? selectedFiles : null
                             }
                             setFiles={(files) => {
                                 if (typeof files === 'function') {

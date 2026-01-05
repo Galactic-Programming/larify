@@ -1,11 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/ui/copy-button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { cn } from '@/lib/utils';
 import type { Message, MessageMention } from '@/types/chat';
 import { format } from 'date-fns';
@@ -279,7 +281,7 @@ export const MessageBubble = memo(function MessageBubble({
                         {hasContent && (
                             <div
                                 className={cn(
-                                    'relative min-w-0 overflow-hidden rounded-2xl px-3 py-2',
+                                    'group/bubble relative min-w-0 overflow-hidden rounded-2xl px-3 py-2',
                                     isMine
                                         ? 'rounded-br-md bg-primary text-primary-foreground'
                                         : isAI
@@ -297,19 +299,43 @@ export const MessageBubble = memo(function MessageBubble({
                                         ],
                                     // If only text (no attachments), show time inline
                                     !hasAttachments && 'pb-1',
+                                    // Extra padding for AI messages with markdown
+                                    isAI && 'px-4 py-3',
                                 )}
                             >
-                                <p className="whitespace-pre-wrap break-all text-sm">
-                                    {renderContentWithMentions(
-                                        message.content,
-                                        message.mentions,
-                                        isMine,
-                                    )}
-                                </p>
+                                {/* AI message with Markdown rendering */}
+                                {isAI ? (
+                                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                                        <MarkdownRenderer>
+                                            {message.content}
+                                        </MarkdownRenderer>
+                                    </div>
+                                ) : (
+                                    <p className="whitespace-pre-wrap break-all text-sm">
+                                        {renderContentWithMentions(
+                                            message.content,
+                                            message.mentions,
+                                            isMine,
+                                        )}
+                                    </p>
+                                )}
+
+                                {/* Copy button for AI messages */}
+                                {isAI && (
+                                    <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover/bubble:opacity-100">
+                                        <CopyButton 
+                                            content={message.content} 
+                                            copyMessage="Copied to clipboard"
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Time inline in bubble when no attachments */}
                                 {!hasAttachments && (
-                                    <div className="mt-1 flex justify-end">
+                                    <div className={cn(
+                                        "mt-1 flex justify-end",
+                                        isAI && "mt-2 border-t border-violet-200/50 pt-2 dark:border-violet-700/50"
+                                    )}>
                                         <MessageStatus
                                             time={message.created_at}
                                             isRead={message.is_read ?? false}
