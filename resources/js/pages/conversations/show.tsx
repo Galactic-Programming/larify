@@ -327,142 +327,140 @@ export default function ConversationShow({
             showContent={true}
         >
             <Head title={conversation.name} />
-            <div className="flex h-full flex-1 flex-col overflow-hidden">
-                {/* Header */}
-                <ConversationHeader
-                    conversationId={conversation.id}
-                    name={conversation.name}
-                    icon={conversation.icon}
-                    color={conversation.color}
-                    participantsCount={conversation.participants.length}
-                    onShowMembers={() => setShowMembers(true)}
-                    onSelectSearchResult={scrollToMessage}
-                />
+            {/* Header */}
+            <ConversationHeader
+                conversationId={conversation.id}
+                name={conversation.name}
+                icon={conversation.icon}
+                color={conversation.color}
+                participantsCount={conversation.participants.length}
+                onShowMembers={() => setShowMembers(true)}
+                onSelectSearchResult={scrollToMessage}
+            />
 
-                {/* Messages */}
-                <div className="min-h-0 flex-1">
-                    <div
-                        ref={messagesContainerRef}
-                        onScroll={handleScroll}
-                        className="h-full overflow-y-auto overscroll-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                    >
-                        <div className="space-y-4 p-4">
-                            {/* Load more indicator */}
-                            {hasMoreMessages && (
-                                <div className="flex justify-center py-2">
-                                    {isLoadingMore ? (
-                                        <Spinner className="h-5 w-5" />
-                                    ) : (
-                                        <button
-                                            onClick={loadMoreMessages}
-                                            className="text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                            Load older messages
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+            {/* Messages */}
+            <div className="min-h-0 flex-1">
+                <div
+                    ref={messagesContainerRef}
+                    onScroll={handleScroll}
+                    className="h-full overflow-y-auto overscroll-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                    <div className="space-y-4 p-4">
+                        {/* Load more indicator */}
+                        {hasMoreMessages && (
+                            <div className="flex justify-center py-2">
+                                {isLoadingMore ? (
+                                    <Spinner className="h-5 w-5" />
+                                ) : (
+                                    <button
+                                        onClick={loadMoreMessages}
+                                        className="text-xs text-muted-foreground hover:text-foreground"
+                                    >
+                                        Load older messages
+                                    </button>
+                                )}
+                            </div>
+                        )}
 
-                            <AnimatePresence mode="popLayout" initial={false}>
-                                {messages.map((message, idx) => {
-                                    const prevMessage = messages[idx - 1];
-                                    const showDateSeparator =
-                                        shouldShowDateSeparator(
-                                            message,
-                                            prevMessage,
-                                        );
-                                    const showAvatar =
-                                        !prevMessage ||
-                                        prevMessage.sender?.id !==
-                                        message.sender?.id ||
-                                        showDateSeparator;
-
-                                    return (
-                                        <div key={message.id}>
-                                            {showDateSeparator && (
-                                                <motion.div
-                                                    initial={{
-                                                        opacity: 0,
-                                                        scale: 0.95,
-                                                    }}
-                                                    animate={{
-                                                        opacity: 1,
-                                                        scale: 1,
-                                                    }}
-                                                    className="my-4 flex items-center gap-4"
-                                                >
-                                                    <div className="h-px flex-1 bg-border" />
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {formatDateSeparator(
-                                                            message.created_at,
-                                                        )}
-                                                    </span>
-                                                    <div className="h-px flex-1 bg-border" />
-                                                </motion.div>
-                                            )}
-                                            <MessageBubble
-                                                message={message}
-                                                showAvatar={showAvatar}
-                                                onDelete={() =>
-                                                    setDeleteMessageId(
-                                                        message.id,
-                                                    )
-                                                }
-                                                canDelete={message.can_delete}
-                                                currentUserId={auth.user.id}
-                                            />
-                                        </div>
+                        <AnimatePresence mode="popLayout" initial={false}>
+                            {messages.map((message, idx) => {
+                                const prevMessage = messages[idx - 1];
+                                const showDateSeparator =
+                                    shouldShowDateSeparator(
+                                        message,
+                                        prevMessage,
                                     );
-                                })}
-                            </AnimatePresence>
+                                const showAvatar =
+                                    !prevMessage ||
+                                    prevMessage.sender?.id !==
+                                    message.sender?.id ||
+                                    showDateSeparator;
 
-                            {/* AI Thinking Bubble - appears in messages area like a chat bubble */}
-                            {isAIThinking && <AIThinkingBubble />}
+                                return (
+                                    <div key={message.id}>
+                                        {showDateSeparator && (
+                                            <motion.div
+                                                initial={{
+                                                    opacity: 0,
+                                                    scale: 0.95,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    scale: 1,
+                                                }}
+                                                className="my-4 flex items-center gap-4"
+                                            >
+                                                <div className="h-px flex-1 bg-border" />
+                                                <span className="text-xs text-muted-foreground">
+                                                    {formatDateSeparator(
+                                                        message.created_at,
+                                                    )}
+                                                </span>
+                                                <div className="h-px flex-1 bg-border" />
+                                            </motion.div>
+                                        )}
+                                        <MessageBubble
+                                            message={message}
+                                            showAvatar={showAvatar}
+                                            onDelete={() =>
+                                                setDeleteMessageId(
+                                                    message.id,
+                                                )
+                                            }
+                                            canDelete={message.can_delete}
+                                            currentUserId={auth.user.id}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </AnimatePresence>
 
-                            <div ref={messagesEndRef} />
-                        </div>
+                        {/* AI Thinking Bubble - appears in messages area like a chat bubble */}
+                        {isAIThinking && <AIThinkingBubble />}
+
+                        <div ref={messagesEndRef} />
                     </div>
                 </div>
+            </div>
 
-                {/* Typing indicator - only for regular users now */}
-                <TypingIndicator names={Array.from(typingUsers.values())} />
+            {/* Typing indicator - only for regular users now */}
+            <TypingIndicator names={Array.from(typingUsers.values())} />
 
-                {/* Input */}
-                <div className="border-t p-4">
-                    <form onSubmit={handleSubmit} className="relative">
-                        <MentionAutocomplete
-                            participants={conversation.participants.filter(
-                                (p) => p.id !== auth.user.id,
-                            )}
-                            inputValue={inputValue}
-                            onSelect={handleMentionSelect}
-                        />
-                        <MessageInput
-                            placeholder="Type a message... Use @ to mention"
-                            value={inputValue}
-                            onChange={(e) => handleInputChange(e.target.value)}
-                            isGenerating={isSending}
-                            allowAttachments={true}
-                            files={
-                                selectedFiles.length > 0 ? selectedFiles : null
+            {/* Input */}
+            <div className="border-t p-4">
+                <form onSubmit={handleSubmit} className="relative">
+                    <MentionAutocomplete
+                        participants={conversation.participants.filter(
+                            (p) => p.id !== auth.user.id,
+                        )}
+                        inputValue={inputValue}
+                        onSelect={handleMentionSelect}
+                    />
+                    <MessageInput
+                        placeholder="Type a message... Use @ to mention"
+                        value={inputValue}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                        isGenerating={isSending}
+                        allowAttachments={true}
+                        files={
+                            selectedFiles.length > 0 ? selectedFiles : null
+                        }
+                        setFiles={(files) => {
+                            if (typeof files === 'function') {
+                                setSelectedFiles((prev) => {
+                                    const result = files(
+                                        prev.length > 0 ? prev : null,
+                                    );
+                                    return result ?? [];
+                                });
+                            } else {
+                                setSelectedFiles(files ?? []);
                             }
-                            setFiles={(files) => {
-                                if (typeof files === 'function') {
-                                    setSelectedFiles((prev) => {
-                                        const result = files(
-                                            prev.length > 0 ? prev : null,
-                                        );
-                                        return result ?? [];
-                                    });
-                                } else {
-                                    setSelectedFiles(files ?? []);
-                                }
-                            }}
-                            submitOnEnter={true}
-                            enableInterrupt={false}
-                        />
-                    </form>
-                </div>
+                        }}
+                        submitOnEnter={true}
+                        enableInterrupt={false}
+                    />
+                </form>
             </div>
 
             {/* Delete Message Confirmation Dialog */}

@@ -102,58 +102,6 @@ class GeminiService
     }
 
     /**
-     * Stream chat with conversation history.
-     *
-     * @param  array<array{role: string, content: string}>  $history
-     * @return \Generator<string>|null
-     */
-    public function streamChatWithHistory(
-        string $message,
-        array $history = [],
-        string $configKey = 'chat_assistant',
-        ?string $systemPrompt = null
-    ): ?\Generator {
-        if (! config('ai.enabled')) {
-            return null;
-        }
-
-        try {
-            $modelConfig = config("ai.models.{$configKey}", config('ai.models.chat_assistant'));
-            $model = $modelConfig['model'] ?? config('ai.default_model');
-
-            $generativeModel = Gemini::generativeModel($model)
-                ->withGenerationConfig(new GenerationConfig(
-                    temperature: $modelConfig['temperature'] ?? 0.7,
-                    maxOutputTokens: $modelConfig['max_output_tokens'] ?? 4096,
-                ));
-
-            if ($systemPrompt) {
-                $generativeModel = $generativeModel->withSystemInstruction(
-                    Content::parse($systemPrompt)
-                );
-            }
-
-            // Convert history to Gemini Content format
-            $geminiHistory = $this->convertHistoryToGeminiFormat($history);
-
-            // Start chat with history and stream
-            $chat = $generativeModel->startChat(history: $geminiHistory);
-            $stream = $chat->streamSendMessage($message);
-
-            foreach ($stream as $response) {
-                yield $response->text();
-            }
-        } catch (\Exception $e) {
-            Log::error('Gemini Stream Chat API Error', [
-                'message' => $e->getMessage(),
-                'history_count' => count($history),
-            ]);
-
-            return null;
-        }
-    }
-
-    /**
      * Generate content with conversation history (multi-turn chat).
      *
      * @param  array<array{role: string, content: string}>  $history
@@ -217,64 +165,6 @@ class GeminiService
 
             return Content::parse(part: $item['content'], role: $role);
         }, $history);
-    }
-
-    /**
-     * Get conversation history from cache.
-     *
-     * @return array<array{role: string, content: string}>
-     */
-    public function getConversationHistory(int $userId, int $projectId): array
-    {
-        $cacheKey = $this->getConversationCacheKey($userId, $projectId);
-
-        return Cache::get($cacheKey, []);
-    }
-
-    /**
-     * Save message to conversation history.
-     */
-    public function saveToConversationHistory(
-        int $userId,
-        int $projectId,
-        string $role,
-        string $content
-    ): void {
-        $cacheKey = $this->getConversationCacheKey($userId, $projectId);
-        $history = Cache::get($cacheKey, []);
-
-        // Add new message
-        $history[] = [
-            'role' => $role,
-            'content' => $content,
-            'timestamp' => now()->toIso8601String(),
-        ];
-
-        // Keep only last N messages (configurable, default 20 turns = 40 messages)
-        $maxMessages = config('ai.conversation_history_limit', 40);
-        if (count($history) > $maxMessages) {
-            $history = array_slice($history, -$maxMessages);
-        }
-
-        // Cache for 24 hours
-        Cache::put($cacheKey, $history, now()->addHours(24));
-    }
-
-    /**
-     * Clear conversation history.
-     */
-    public function clearConversationHistory(int $userId, int $projectId): void
-    {
-        $cacheKey = $this->getConversationCacheKey($userId, $projectId);
-        Cache::forget($cacheKey);
-    }
-
-    /**
-     * Get cache key for conversation history.
-     */
-    protected function getConversationCacheKey(int $userId, int $projectId): string
-    {
-        return "ai_conversation:{$userId}:{$projectId}";
     }
 
     /**
@@ -402,33 +292,6 @@ class GeminiService
         $response = strtolower(trim($response ?? 'medium'));
 
         return in_array($response, $validPriorities) ? $response : 'medium';
-    }
-
-    /**
-     * Chat with AI assistant about a project.
-     *
-     * @param  array<string, mixed>  $projectContext
-     * @param  array<array{role: string, content: string}>  $history
-     */
-    public function chat(string $message, array $projectContext, array $history = []): ?string
-    {
-        $systemPrompt = str_replace(
-            ['{project_name}', '{total_tasks}', '{completed_tasks}', '{pending_tasks}'],
-            [
-                $projectContext['name'] ?? 'Unknown',
-                $projectContext['total_tasks'] ?? 0,
-                $projectContext['completed_tasks'] ?? 0,
-                $projectContext['pending_tasks'] ?? 0,
-            ],
-            config('ai.prompts.chat_assistant')
-        );
-
-        // Use multi-turn chat if history is provided
-        if (! empty($history)) {
-            return $this->generateWithHistory($message, $history, 'chat_assistant', $systemPrompt);
-        }
-
-        return $this->generate($message, 'chat_assistant', $systemPrompt);
     }
 
     /**
