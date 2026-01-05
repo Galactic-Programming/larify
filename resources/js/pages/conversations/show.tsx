@@ -236,6 +236,26 @@ export default function ConversationShow({
         scrollToBottom('instant');
     }, [conversation.id, scrollToBottom, markMessagesAsRead]);
 
+    // Auto mark as read when new messages arrive from others
+    const lastMessageRef = useRef<number | null>(null);
+    useEffect(() => {
+        if (messages.length === 0) return;
+
+        const lastMessage = messages[messages.length - 1];
+
+        // Only trigger if it's a new message from someone else
+        if (
+            lastMessage &&
+            lastMessage.id !== lastMessageRef.current &&
+            !lastMessage.is_mine &&
+            !lastMessage.is_ai
+        ) {
+            lastMessageRef.current = lastMessage.id;
+            // Mark messages as read when we receive a new message from others
+            markMessagesAsRead();
+        }
+    }, [messages, markMessagesAsRead]);
+
     useEffect(() => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
@@ -353,7 +373,7 @@ export default function ConversationShow({
                                     const showAvatar =
                                         !prevMessage ||
                                         prevMessage.sender?.id !==
-                                            message.sender?.id ||
+                                        message.sender?.id ||
                                         showDateSeparator;
 
                                     return (
