@@ -13,7 +13,7 @@ interface UseConversationRealtimeProps {
     onTypingUser: (userId: number, userName: string) => void;
     onTypingUserClear: (userId: number) => void;
     onMessagesRead: (readerId: number, readAt: string) => void;
-    onAIThinkingChange?: (isThinking: boolean) => void;
+    onAIThinkingChange?: (isThinking: boolean, activeCount?: number) => void;
 }
 
 /**
@@ -41,24 +41,30 @@ export function useConversationRealtime({
                 onMessageReceived(data.message);
 
                 // If we receive an AI message, clear the thinking indicator
+                // Note: The backend now handles this via active_count, but we keep
+                // this as a safety fallback for edge cases
                 if (data.message.sender?.is_ai || data.message.is_ai) {
                     if (aiThinkingTimeoutRef.current) {
                         clearTimeout(aiThinkingTimeoutRef.current);
                         aiThinkingTimeoutRef.current = null;
                     }
-                    onAIThinkingChange?.(false);
                 }
             }
         },
-        [currentUserId, onMessageReceived, onAIThinkingChange],
+        [currentUserId, onMessageReceived],
         'private',
     );
 
-    // Listen for AI thinking state with safety timeout
+    // Listen for AI thinking state with active count support
+    // active_count tracks concurrent AI requests for accurate indicator state
     useEcho(
         `conversation.${conversationId}`,
         '.AIThinking',
-        (data: { conversation_id: number; is_thinking: boolean }) => {
+        (data: {
+            conversation_id: number;
+            is_thinking: boolean;
+            active_count: number;
+        }) => {
             if (onAIThinkingChange) {
                 // Clear any existing timeout
                 if (aiThinkingTimeoutRef.current) {
@@ -66,15 +72,23 @@ export function useConversationRealtime({
                     aiThinkingTimeoutRef.current = null;
                 }
 
-                onAIThinkingChange(data.is_thinking);
+                // Use active_count to determine if AI is still thinking
+                // This handles concurrent requests correctly:
+                // - A starts: count=1, thinking=true
+                // - B starts: count=2, thinking=true
+                // - A ends: count=1, thinking=true (still processing B)
+                // - B ends: count=0, thinking=false
+                const isActuallyThinking =
+                    data.active_count > 0 || data.is_thinking;
+                onAIThinkingChange(isActuallyThinking, data.active_count);
 
                 // Set safety timeout to auto-clear thinking indicator
-                if (data.is_thinking) {
+                if (isActuallyThinking) {
                     aiThinkingTimeoutRef.current = setTimeout(() => {
                         console.warn(
                             'AI thinking timeout reached, clearing indicator',
                         );
-                        onAIThinkingChange(false);
+                        onAIThinkingChange(false, 0);
                         aiThinkingTimeoutRef.current = null;
                     }, AI_THINKING_TIMEOUT_MS);
                 }

@@ -136,7 +136,9 @@ export default function ConversationShow({
         [],
     );
 
-    const handleAIThinkingChange = useCallback((isThinking: boolean) => {
+    // Handle AI thinking state changes with active count support
+    // This correctly handles concurrent AI requests from multiple users
+    const handleAIThinkingChange = useCallback((isThinking: boolean, _activeCount?: number) => {
         setIsAIThinking(isThinking);
     }, []);
 

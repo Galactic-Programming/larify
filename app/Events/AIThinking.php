@@ -15,10 +15,15 @@ class AIThinking implements ShouldBroadcastNow
 
     /**
      * Create a new event instance.
+     *
+     * @param  Conversation  $conversation  The conversation where AI is processing
+     * @param  bool  $isThinking  Whether AI is currently thinking
+     * @param  int  $activeCount  Number of concurrent AI requests being processed
      */
     public function __construct(
         public Conversation $conversation,
-        public bool $isThinking = true
+        public bool $isThinking = true,
+        public int $activeCount = 0
     ) {}
 
     /**
@@ -43,6 +48,7 @@ class AIThinking implements ShouldBroadcastNow
         return [
             'conversation_id' => $this->conversation->id,
             'is_thinking' => $this->isThinking,
+            'active_count' => $this->activeCount,
         ];
     }
 

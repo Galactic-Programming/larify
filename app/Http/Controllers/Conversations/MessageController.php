@@ -138,6 +138,7 @@ class MessageController extends Controller
      * Handle @AI mention in message content.
      * Generates AI response if user mentions @AI or @Laraflow AI.
      * Supports conversation history for context-aware responses.
+     * Uses atomic counter to handle concurrent AI requests properly.
      */
     protected function handleAIMention(User $user, Conversation $conversation, string $content): ?Message
     {
@@ -165,8 +166,10 @@ class MessageController extends Controller
             return null;
         }
 
-        // Broadcast AI thinking state to all participants
-        broadcast(new AIThinking($conversation, true));
+        // Increment thinking counter and broadcast with count
+        // This ensures accurate state when multiple users trigger AI simultaneously
+        $activeCount = $this->geminiService->incrementAIThinkingCount($conversation->id);
+        broadcast(new AIThinking($conversation, true, $activeCount));
 
         try {
             // Get project context for AI
@@ -212,8 +215,11 @@ class MessageController extends Controller
 
             return $this->createAIErrorMessage($conversation, $aiUser, $errorType);
         } finally {
-            // Always turn off AI thinking indicator (even on error)
-            broadcast(new AIThinking($conversation, false));
+            // Decrement thinking counter and broadcast updated state
+            // Only turn off indicator when no more active AI requests
+            $remainingCount = $this->geminiService->decrementAIThinkingCount($conversation->id);
+            $stillThinking = $remainingCount > 0;
+            broadcast(new AIThinking($conversation, $stillThinking, $remainingCount));
         }
     }
 

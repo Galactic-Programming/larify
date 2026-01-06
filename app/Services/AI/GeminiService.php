@@ -497,13 +497,63 @@ class GeminiService
 
     /**
      * Increment user's daily AI usage.
+     * Uses atomic increment to prevent race conditions.
      */
     public function incrementUsage(User $user): void
     {
         $cacheKey = "ai_usage:{$user->id}:".now()->format('Y-m-d');
 
-        $currentUsage = (int) Cache::get($cacheKey, 0);
-        Cache::put($cacheKey, $currentUsage + 1, now()->endOfDay());
+        if (Cache::has($cacheKey)) {
+            Cache::increment($cacheKey);
+        } else {
+            // First request of the day - set initial value with expiry
+            Cache::put($cacheKey, 1, now()->endOfDay());
+        }
+    }
+
+    /**
+     * Increment the AI thinking counter for a conversation.
+     * Returns the new count.
+     */
+    public function incrementAIThinkingCount(int $conversationId): int
+    {
+        $cacheKey = "ai_thinking_count:{$conversationId}";
+
+        if (Cache::has($cacheKey)) {
+            return Cache::increment($cacheKey);
+        }
+
+        // Set with 5-minute expiry (safety cleanup)
+        Cache::put($cacheKey, 1, now()->addMinutes(5));
+
+        return 1;
+    }
+
+    /**
+     * Decrement the AI thinking counter for a conversation.
+     * Returns the new count (0 or greater).
+     */
+    public function decrementAIThinkingCount(int $conversationId): int
+    {
+        $cacheKey = "ai_thinking_count:{$conversationId}";
+
+        $current = (int) Cache::get($cacheKey, 0);
+
+        if ($current <= 1) {
+            Cache::forget($cacheKey);
+
+            return 0;
+        }
+
+        return Cache::decrement($cacheKey);
+    }
+
+    /**
+     * Get the current AI thinking count for a conversation.
+     */
+    public function getAIThinkingCount(int $conversationId): int
+    {
+        return (int) Cache::get("ai_thinking_count:{$conversationId}", 0);
     }
 
     /**

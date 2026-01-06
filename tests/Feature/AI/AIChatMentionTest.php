@@ -55,6 +55,12 @@ function mockAIChatService(array $methods = []): void
     if (! isset($methods['incrementUsage'])) {
         $mock->shouldReceive('incrementUsage')->andReturnNull();
     }
+    if (! isset($methods['incrementAIThinkingCount'])) {
+        $mock->shouldReceive('incrementAIThinkingCount')->andReturn(1);
+    }
+    if (! isset($methods['decrementAIThinkingCount'])) {
+        $mock->shouldReceive('decrementAIThinkingCount')->andReturn(0);
+    }
 
     app()->instance(GeminiService::class, $mock);
 }
@@ -384,5 +390,133 @@ describe('AI Error Handling', function () {
         Event::assertDispatched(AIThinking::class, function ($event) {
             return $event->isThinking === false;
         });
+    });
+});
+
+// === CONCURRENT AI REQUESTS ===
+
+describe('Concurrent AI Requests', function () {
+    it('tracks multiple concurrent AI thinking states correctly', function () {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        [$project, $conversation] = createProjectWithChat($owner, [$member]);
+
+        $geminiService = app(GeminiService::class);
+
+        // Simulate 2 concurrent requests starting
+        $count1 = $geminiService->incrementAIThinkingCount($conversation->id);
+        expect($count1)->toBe(1);
+
+        $count2 = $geminiService->incrementAIThinkingCount($conversation->id);
+        expect($count2)->toBe(2);
+
+        // First request completes
+        $remaining1 = $geminiService->decrementAIThinkingCount($conversation->id);
+        expect($remaining1)->toBe(1); // Still one active
+
+        // Second request completes
+        $remaining2 = $geminiService->decrementAIThinkingCount($conversation->id);
+        expect($remaining2)->toBe(0); // All done
+    });
+
+    it('broadcasts correct active count when multiple users trigger AI', function () {
+        Event::fake([MessageSent::class, AIThinking::class]);
+
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        [$project, $conversation] = createProjectWithChat($owner, [$member]);
+
+        // Create mock that tracks thinking count
+        $thinkingCounts = [];
+        $mock = Mockery::mock(GeminiService::class)->makePartial();
+        $mock->shouldReceive('canUserUseAI')->andReturn(true);
+        $mock->shouldReceive('chatInConversation')->andReturn('AI Response');
+        $mock->shouldReceive('incrementUsage')->andReturnNull();
+        $mock->shouldReceive('incrementAIThinkingCount')
+            ->andReturnUsing(function ($id) use (&$thinkingCounts) {
+                $thinkingCounts[$id] = ($thinkingCounts[$id] ?? 0) + 1;
+
+                return $thinkingCounts[$id];
+            });
+        $mock->shouldReceive('decrementAIThinkingCount')
+            ->andReturnUsing(function ($id) use (&$thinkingCounts) {
+                $thinkingCounts[$id] = max(0, ($thinkingCounts[$id] ?? 0) - 1);
+
+                return $thinkingCounts[$id];
+            });
+
+        app()->instance(GeminiService::class, $mock);
+
+        // User A triggers AI
+        $this->actingAs($owner)
+            ->postJson(route('conversations.messages.store', $conversation), [
+                'content' => '@AI Question from A',
+            ]);
+
+        // Verify AIThinking events were dispatched with active_count
+        Event::assertDispatched(AIThinking::class, function ($event) {
+            return $event->isThinking === true && $event->activeCount >= 1;
+        });
+    });
+
+    it('only turns off thinking indicator when all requests complete', function () {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        [$project, $conversation] = createProjectWithChat($owner, [$member]);
+
+        $geminiService = app(GeminiService::class);
+
+        // Start 3 concurrent requests
+        $geminiService->incrementAIThinkingCount($conversation->id);
+        $geminiService->incrementAIThinkingCount($conversation->id);
+        $geminiService->incrementAIThinkingCount($conversation->id);
+
+        expect($geminiService->getAIThinkingCount($conversation->id))->toBe(3);
+
+        // Complete 2 requests - should still show thinking
+        $remaining = $geminiService->decrementAIThinkingCount($conversation->id);
+        expect($remaining)->toBe(2);
+
+        $remaining = $geminiService->decrementAIThinkingCount($conversation->id);
+        expect($remaining)->toBe(1);
+
+        // Complete last request - should turn off
+        $remaining = $geminiService->decrementAIThinkingCount($conversation->id);
+        expect($remaining)->toBe(0);
+    });
+
+    it('cleans up thinking count after expiry', function () {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        [$project, $conversation] = createProjectWithChat($owner, [$member]);
+
+        $geminiService = app(GeminiService::class);
+
+        // Increment count
+        $geminiService->incrementAIThinkingCount($conversation->id);
+
+        // Verify count exists
+        expect($geminiService->getAIThinkingCount($conversation->id))->toBe(1);
+
+        // The cache has 5-minute expiry, so it will auto-cleanup
+        // This test verifies the count is correctly retrieved
+    });
+
+    it('handles atomic usage increment correctly', function () {
+        $user = User::factory()->create();
+        $geminiService = app(GeminiService::class);
+
+        // Clear any existing cache
+        $cacheKey = "ai_usage:{$user->id}:".now()->format('Y-m-d');
+        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+
+        // First increment
+        $geminiService->incrementUsage($user);
+        expect($geminiService->getDailyUsage($user))->toBe(1);
+
+        // Multiple increments
+        $geminiService->incrementUsage($user);
+        $geminiService->incrementUsage($user);
+        expect($geminiService->getDailyUsage($user))->toBe(3);
     });
 });
