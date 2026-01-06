@@ -39,7 +39,7 @@ class MessageController extends Controller
         $limit = min((int) $request->query('limit', 50), 100);
 
         $query = $conversation->messages()
-            ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
+            ->with(['sender:id,name,email,email,avatar', 'attachments', 'mentions.user:id,name,email'])
             ->orderBy('created_at', 'desc');
 
         if ($before) {
@@ -111,7 +111,7 @@ class MessageController extends Controller
         }
 
         // Load relationships for broadcasting
-        $message->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
+        $message->load(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email']);
 
         // Broadcast the message
         broadcast(new MessageSent($message))->toOthers();
@@ -233,7 +233,7 @@ class MessageController extends Controller
             'content' => $content,
         ]);
 
-        $aiMessage->load(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email']);
+        $aiMessage->load(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email']);
         broadcast(new MessageSent($aiMessage));
 
         return $aiMessage;

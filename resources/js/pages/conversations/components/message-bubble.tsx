@@ -158,16 +158,6 @@ export const MessageBubble = memo(function MessageBubble({
     const isMine = message.is_mine;
     const isAI = message.is_ai ?? message.sender?.is_ai ?? false;
     const hasContent = message.content?.trim();
-
-    // Debug: log ALL messages to see what data we're getting
-    console.log('[MessageBubble] Message data:', {
-        id: message.id,
-        is_ai: message.is_ai,
-        sender_is_ai: message.sender?.is_ai,
-        sender_name: message.sender?.name,
-        isAI_computed: isAI,
-        content_preview: message.content?.substring(0, 50),
-    });
     const hasAttachments = message.attachments.length > 0;
 
     // Check if current user is mentioned in this message
