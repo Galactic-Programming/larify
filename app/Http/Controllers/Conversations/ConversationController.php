@@ -122,7 +122,7 @@ class ConversationController extends Controller
             'participants:id,name,email,avatar',
             'participantRecords',
             'messages' => fn ($query) => $query
-                ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
+                ->with(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email'])
                 ->orderBy('created_at', 'asc')
                 ->limit(50),
         ]);

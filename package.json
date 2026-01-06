@@ -70,6 +70,7 @@
         "@radix-ui/react-use-controllable-state": "^1.2.2",
         "@react-spring/web": "^10.0.3",
         "@tabler/icons-react": "^3.35.0",
+        "@tailwindcss/typography": "^0.5.19",
         "@tailwindcss/vite": "^4.1.11",
         "@tanstack/react-table": "^8.21.3",
         "@types/react": "^19.2.0",

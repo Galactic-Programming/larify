@@ -158,6 +158,16 @@ export const MessageBubble = memo(function MessageBubble({
     const isMine = message.is_mine;
     const isAI = message.is_ai ?? message.sender?.is_ai ?? false;
     const hasContent = message.content?.trim();
+
+    // Debug: log ALL messages to see what data we're getting
+    console.log('[MessageBubble] Message data:', {
+        id: message.id,
+        is_ai: message.is_ai,
+        sender_is_ai: message.sender?.is_ai,
+        sender_name: message.sender?.name,
+        isAI_computed: isAI,
+        content_preview: message.content?.substring(0, 50),
+    });
     const hasAttachments = message.attachments.length > 0;
 
     // Check if current user is mentioned in this message
@@ -285,18 +295,18 @@ export const MessageBubble = memo(function MessageBubble({
                                     isMine
                                         ? 'rounded-br-md bg-primary text-primary-foreground'
                                         : isAI
-                                          ? 'rounded-bl-md border border-violet-200 bg-linear-to-br from-violet-50 to-purple-50 text-slate-900 dark:border-violet-800/50 dark:from-violet-950/50 dark:to-purple-950/50 dark:text-slate-100'
-                                          : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
+                                            ? 'rounded-bl-md border border-violet-200 bg-linear-to-br from-violet-50 to-purple-50 text-slate-900 dark:border-violet-800/50 dark:from-violet-950/50 dark:to-purple-950/50 dark:text-slate-100'
+                                            : 'rounded-bl-md bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
                                     // Highlight when current user is mentioned
                                     isMentioned &&
-                                        !isAI && [
-                                            // Change background to amber/yellow tint (complementary to purple theme)
-                                            'bg-amber-50! dark:bg-amber-900/30!',
-                                            // Add left accent border
-                                            'border-l-4 border-l-amber-500 dark:border-l-amber-400',
-                                            // Subtle shadow glow
-                                            'shadow-[0_0_12px_rgba(245,158,11,0.25)] dark:shadow-[0_0_12px_rgba(251,191,36,0.2)]',
-                                        ],
+                                    !isAI && [
+                                        // Change background to amber/yellow tint (complementary to purple theme)
+                                        'bg-amber-50! dark:bg-amber-900/30!',
+                                        // Add left accent border
+                                        'border-l-4 border-l-amber-500 dark:border-l-amber-400',
+                                        // Subtle shadow glow
+                                        'shadow-[0_0_12px_rgba(245,158,11,0.25)] dark:shadow-[0_0_12px_rgba(251,191,36,0.2)]',
+                                    ],
                                     // If only text (no attachments), show time inline
                                     !hasAttachments && 'pb-1',
                                     // Extra padding for AI messages with markdown
@@ -323,8 +333,8 @@ export const MessageBubble = memo(function MessageBubble({
                                 {/* Copy button for AI messages */}
                                 {isAI && (
                                     <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover/bubble:opacity-100">
-                                        <CopyButton 
-                                            content={message.content} 
+                                        <CopyButton
+                                            content={message.content}
                                             copyMessage="Copied to clipboard"
                                         />
                                     </div>

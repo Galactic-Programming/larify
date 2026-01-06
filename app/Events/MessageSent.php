@@ -50,6 +50,8 @@ class MessageSent implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
+        $isAI = $this->message->sender?->isAI() ?? false;
+
         return [
             'conversation_id' => $this->message->conversation_id,
             'conversation_name' => $this->message->conversation->name,
@@ -64,7 +66,9 @@ class MessageSent implements ShouldBroadcastNow
                     'id' => $this->message->sender->id,
                     'name' => $this->message->sender->name,
                     'avatar' => $this->message->sender->avatar,
+                    'is_ai' => $isAI,
                 ],
+                'is_ai' => $isAI,
                 'is_mine' => false, // Broadcast is always for other users
                 'parent' => $this->message->parent ? [
                     'id' => $this->message->parent->id,
