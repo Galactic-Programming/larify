@@ -299,10 +299,15 @@ class GeminiService
      *
      * @param  array<string, mixed>  $projectContext
      * @param  array<array{role: string, content: string}>  $history
+     * @param  array<string, mixed>|null  $crossProjectContext
      */
-    public function chatInConversation(string $message, array $projectContext, array $history = []): ?string
-    {
-        $systemPrompt = $this->buildConversationSystemPrompt($projectContext);
+    public function chatInConversation(
+        string $message,
+        array $projectContext,
+        array $history = [],
+        ?array $crossProjectContext = null
+    ): ?string {
+        $systemPrompt = $this->buildConversationSystemPrompt($projectContext, $crossProjectContext);
 
         // Use multi-turn chat if history is provided
         if (! empty($history)) {
@@ -316,9 +321,12 @@ class GeminiService
      * Build a comprehensive system prompt for conversation AI.
      *
      * @param  array<string, mixed>  $projectContext
+     * @param  array<string, mixed>|null  $crossProjectContext
      */
-    protected function buildConversationSystemPrompt(array $projectContext): string
-    {
+    protected function buildConversationSystemPrompt(
+        array $projectContext,
+        ?array $crossProjectContext = null
+    ): string {
         $prompt = "You are LaraFlow AI, an intelligent project management assistant integrated into team conversations.\n";
         $prompt .= "Today's date: ".now()->format('Y-m-d').' ('.now()->format('l').")\n\n";
 
@@ -424,6 +432,131 @@ class GeminiService
             $prompt .= implode(', ', $labelNames)."\n\n";
         }
 
+        // === HIGH PRIORITY: Recent Activity Log ===
+        if (! empty($projectContext['recent_activities'])) {
+            $prompt .= "## 📜 Recent Activity (Last 7 Days)\n";
+            foreach ($projectContext['recent_activities'] as $activity) {
+                $subject = $activity['subject'] ? " \"{$activity['subject']}\"" : '';
+                $prompt .= "- {$activity['user']} {$activity['action']}{$subject} ({$activity['when']})\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // === HIGH PRIORITY: Task Discussions/Comments ===
+        if (! empty($projectContext['recent_comments'])) {
+            $prompt .= "## 💬 Recent Task Discussions\n";
+            foreach ($projectContext['recent_comments'] as $comment) {
+                $prompt .= "- **{$comment['task']}**: {$comment['user']} said \"{$comment['content']}\" ({$comment['when']})\n";
+            }
+            $prompt .= "\n";
+        }
+
+        if (! empty($projectContext['tasks_with_most_discussion'])) {
+            $prompt .= "## 🔥 Tasks with Most Discussion (Last 30 Days)\n";
+            foreach ($projectContext['tasks_with_most_discussion'] as $task) {
+                $prompt .= "- {$task['title']} - {$task['comment_count']} comments\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // === HIGH PRIORITY: Recent Team Chat ===
+        if (! empty($projectContext['recent_team_chat'])) {
+            $prompt .= "## 💭 Recent Team Chat (Last 3 Days)\n";
+            foreach ($projectContext['recent_team_chat'] as $msg) {
+                $prompt .= "- **{$msg['sender']}**: \"{$msg['content']}\" ({$msg['when']})\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // === MEDIUM PRIORITY: Task Attachments ===
+        if (! empty($projectContext['tasks_with_attachments'])) {
+            $prompt .= "## 📎 Tasks with Attachments\n";
+            foreach ($projectContext['tasks_with_attachments'] as $task) {
+                $fileNames = array_map(fn ($a) => $a['name'], $task['attachments']);
+                $prompt .= "- **{$task['title']}**: ".implode(', ', $fileNames)."\n";
+            }
+            $prompt .= "\n";
+        }
+
+        // === MEDIUM PRIORITY: Productivity Analytics ===
+        if (! empty($projectContext['productivity'])) {
+            $stats = $projectContext['productivity'];
+            $prompt .= "## 📈 Productivity Analytics\n";
+            $prompt .= "**This Week:**\n";
+            $prompt .= "- Tasks Created: {$stats['tasks_created_this_week']}\n";
+            $prompt .= "- Tasks Completed: {$stats['tasks_completed_this_week']}\n";
+
+            if ($stats['avg_cycle_time_hours']) {
+                $prompt .= "- Avg Cycle Time: {$stats['avg_cycle_time_hours']} hours (creation → completion)\n";
+            }
+
+            if ($stats['stuck_tasks_count'] > 0) {
+                $prompt .= "- ⚠️ Stuck Tasks (no progress in 3+ days): {$stats['stuck_tasks_count']}\n";
+            }
+
+            if (! empty($stats['completed_by_member'])) {
+                $prompt .= "\n**Completions by Team Member (Last 7 Days):**\n";
+                foreach ($stats['completed_by_member'] as $member => $count) {
+                    $prompt .= "- {$member}: {$count} tasks\n";
+                }
+            }
+
+            if (! empty($stats['weekly_velocity'])) {
+                $prompt .= "\n**Weekly Velocity (tasks completed):**\n";
+                foreach ($stats['weekly_velocity'] as $week => $count) {
+                    $weekLabel = str_replace('week_-', '', $week);
+                    $weekLabel = $weekLabel === '0' ? 'This week' : "{$weekLabel} week(s) ago";
+                    $prompt .= "- {$weekLabel}: {$count}\n";
+                }
+            }
+            $prompt .= "\n";
+        }
+
+        // === CROSS-PROJECT INSIGHTS (if available) ===
+        if ($crossProjectContext) {
+            $prompt .= "# 🌐 CROSS-PROJECT OVERVIEW\n";
+            $prompt .= "The user has access to multiple projects. Here's a summary:\n\n";
+
+            $prompt .= "## Overall Statistics\n";
+            $prompt .= "- Total Projects: {$crossProjectContext['total_projects']}\n";
+            $prompt .= "- Total Tasks (all projects): {$crossProjectContext['total_tasks']}\n";
+            $prompt .= "- Completed: {$crossProjectContext['total_completed']}\n";
+            $prompt .= "- Pending: {$crossProjectContext['total_pending']}\n";
+            $prompt .= "- Overdue: {$crossProjectContext['total_overdue']}\n";
+            $prompt .= "- Overall Completion Rate: {$crossProjectContext['overall_completion_rate']}%\n\n";
+
+            $prompt .= "## All Projects Summary\n";
+            foreach ($crossProjectContext['projects_summary'] as $proj) {
+                $current = $proj['is_current'] ? ' ⭐ (CURRENT)' : '';
+                $prompt .= "- **{$proj['name']}**{$current}: {$proj['pending']} pending, {$proj['completed']} completed";
+                if ($proj['overdue'] > 0) {
+                    $prompt .= ", ⚠️ {$proj['overdue']} overdue";
+                }
+                $prompt .= " ({$proj['completion_rate']}%)\n";
+            }
+            $prompt .= "\n";
+
+            if (! empty($crossProjectContext['urgent_tasks_all_projects'])) {
+                $prompt .= "## 🚨 Urgent Tasks Across All Projects\n";
+                foreach ($crossProjectContext['urgent_tasks_all_projects'] as $task) {
+                    $priority = $task['priority'] ? "[{$task['priority']}] " : '';
+                    $dueInfo = $task['due_date'] ? " - Due: {$task['due_date']}" : '';
+                    $prompt .= "- {$priority}**{$task['title']}** ({$task['project']}){$dueInfo}\n";
+                }
+                $prompt .= "\n";
+            }
+
+            if (! empty($crossProjectContext['my_tasks_all_projects'])) {
+                $prompt .= "## 📋 User's Tasks Across All Projects\n";
+                foreach ($crossProjectContext['my_tasks_all_projects'] as $task) {
+                    $priority = $task['priority'] ? "[{$task['priority']}] " : '';
+                    $dueInfo = $task['due_date'] ? " - Due: {$task['due_date']}" : '';
+                    $prompt .= "- {$priority}{$task['title']} ({$task['project']}){$dueInfo}\n";
+                }
+                $prompt .= "\n";
+            }
+        }
+
         // AI Instructions
         $prompt .= "## Your Capabilities\n";
         $prompt .= "You have access to ALL project data above. You can:\n";
@@ -432,7 +565,16 @@ class GeminiService
         $prompt .= "3. **Alert about deadlines**: Overdue tasks, upcoming due dates\n";
         $prompt .= "4. **Team workload**: Who's assigned what, workload distribution\n";
         $prompt .= "5. **Productivity insights**: Completion trends, suggestions for improvement\n";
-        $prompt .= "6. **Answer 'what should I work on next?'**: Prioritize based on urgency/priority\n\n";
+        $prompt .= "6. **Answer 'what should I work on next?'**: Prioritize based on urgency/priority\n";
+        $prompt .= "7. **Activity history**: Answer who did what, when things changed\n";
+        $prompt .= "8. **Discussion context**: Summarize task discussions, find mentioned topics\n";
+        $prompt .= "9. **Team chat context**: Reference recent team conversations\n";
+        $prompt .= "10. **Attachment awareness**: Know which tasks have files attached\n";
+
+        if ($crossProjectContext) {
+            $prompt .= "11. **Cross-project insights**: Compare projects, show overall statistics, find urgent tasks across all projects\n";
+        }
+        $prompt .= "\n";
 
         $prompt .= "## Response Guidelines\n";
         $prompt .= "- Use the ACTUAL data provided above - never make up task names or details\n";
@@ -441,6 +583,9 @@ class GeminiService
         $prompt .= "- Be specific with dates, numbers, and names from the context\n";
         $prompt .= "- For Vietnamese questions, respond in Vietnamese\n";
         $prompt .= "- Be friendly, professional, and actionable\n";
+        if ($crossProjectContext) {
+            $prompt .= "- When answering cross-project questions, clearly indicate which project each item belongs to\n";
+        }
 
         return $prompt;
     }

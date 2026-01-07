@@ -10,6 +10,7 @@ use App\Events\UserTyping;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversations\StoreMessageRequest;
 use App\Http\Resources\MessageResource;
+use App\Models\Activity;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -176,11 +177,22 @@ class MessageController extends Controller
             $project = $conversation->project;
             $projectContext = $this->buildProjectContext($project);
 
+            // Check if this is a cross-project query and add cross-project context
+            $crossProjectContext = null;
+            if ($this->isCrossProjectQuery($question)) {
+                $crossProjectContext = $this->buildCrossProjectContext($user, $project);
+            }
+
             // Get conversation history for context-aware responses
             $history = $this->getAIConversationHistory($conversation, $aiUser->id);
 
-            // Call AI service with history
-            $aiResponse = $this->geminiService->chatInConversation($question, $projectContext, $history);
+            // Call AI service with history and optional cross-project context
+            $aiResponse = $this->geminiService->chatInConversation(
+                $question,
+                $projectContext,
+                $history,
+                $crossProjectContext
+            );
 
             // Retry once if failed
             if (! $aiResponse) {
@@ -188,7 +200,12 @@ class MessageController extends Controller
                     'conversation_id' => $conversation->id,
                 ]);
                 usleep(500000); // Wait 500ms before retry
-                $aiResponse = $this->geminiService->chatInConversation($question, $projectContext, $history);
+                $aiResponse = $this->geminiService->chatInConversation(
+                    $question,
+                    $projectContext,
+                    $history,
+                    $crossProjectContext
+                );
             }
 
             if (! $aiResponse) {
@@ -406,6 +423,62 @@ class MessageController extends Controller
             ->limit(10)
             ->get(['id', 'title', 'due_date', 'priority', 'assigned_to']);
 
+        // === HIGH PRIORITY: Activity Log (last 7 days) ===
+        $recentActivities = Activity::forProject($project)
+            ->with(['user:id,name'])
+            ->latest()
+            ->limit(30)
+            ->get();
+
+        // === HIGH PRIORITY: Task Comments (recent discussions) ===
+        $recentComments = $project->tasks()
+            ->with(['allComments' => function ($query) {
+                $query->with(['user:id,name', 'task:id,title'])
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->latest()
+                    ->limit(5);
+            }])
+            ->whereHas('allComments', function ($query) {
+                $query->where('created_at', '>=', now()->subDays(7));
+            })
+            ->get()
+            ->flatMap(fn ($task) => $task->allComments)
+            ->take(20);
+
+        // Tasks with most discussion (for context)
+        $tasksWithMostComments = $project->tasks()
+            ->withCount(['allComments' => function ($query) {
+                $query->where('created_at', '>=', now()->subDays(30));
+            }])
+            ->whereNull('completed_at')
+            ->orderBy('all_comments_count', 'desc')
+            ->limit(5)
+            ->get(['id', 'title'])
+            ->filter(fn ($task) => $task->all_comments_count > 0)
+            ->values();
+
+        // === HIGH PRIORITY: Recent Conversation Messages (team chat) ===
+        $conversation = $project->conversation;
+        $recentTeamMessages = $conversation ? $conversation->messages()
+            ->with(['sender:id,name'])
+            ->whereHas('sender', fn ($q) => $q->where('email', '!=', 'ai@laraflow.app'))
+            ->where('created_at', '>=', now()->subDays(3))
+            ->latest()
+            ->limit(15)
+            ->get()
+            ->reverse()
+            ->values() : collect();
+
+        // === MEDIUM PRIORITY: Task Attachments (metadata only) ===
+        $tasksWithAttachments = $project->tasks()
+            ->with(['attachments:id,task_id,original_name,mime_type,size'])
+            ->whereHas('attachments')
+            ->limit(20)
+            ->get(['id', 'title']);
+
+        // === MEDIUM PRIORITY: Productivity Analytics ===
+        $productivityStats = $this->buildProductivityAnalytics($project);
+
         return [
             'name' => $project->name,
             'description' => $project->description,
@@ -483,7 +556,265 @@ class MessageController extends Controller
                 'name' => $label->name,
                 'color' => $label->color,
             ])->toArray(),
+
+            // === HIGH PRIORITY: Activity Log ===
+            'recent_activities' => $recentActivities->map(fn ($activity) => [
+                'user' => $activity->user?->name ?? 'System',
+                'action' => $activity->type->label(),
+                'subject' => $activity->getSubjectName(),
+                'when' => $activity->created_at->diffForHumans(),
+                'date' => $activity->created_at->format('Y-m-d H:i'),
+            ])->toArray(),
+
+            // === HIGH PRIORITY: Task Comments/Discussions ===
+            'recent_comments' => $recentComments->map(fn ($comment) => [
+                'task' => $comment->task?->title,
+                'user' => $comment->user?->name,
+                'content' => mb_substr($comment->content, 0, 150),
+                'when' => $comment->created_at->diffForHumans(),
+            ])->toArray(),
+
+            'tasks_with_most_discussion' => $tasksWithMostComments->map(fn ($task) => [
+                'title' => $task->title,
+                'comment_count' => $task->all_comments_count,
+            ])->toArray(),
+
+            // === HIGH PRIORITY: Team Chat History ===
+            'recent_team_chat' => $recentTeamMessages->map(fn ($msg) => [
+                'sender' => $msg->sender?->name,
+                'content' => mb_substr($msg->content, 0, 200),
+                'when' => $msg->created_at->diffForHumans(),
+            ])->toArray(),
+
+            // === MEDIUM PRIORITY: Task Attachments ===
+            'tasks_with_attachments' => $tasksWithAttachments->map(fn ($task) => [
+                'title' => $task->title,
+                'attachments' => $task->attachments->map(fn ($a) => [
+                    'name' => $a->original_name,
+                    'type' => $a->mime_type,
+                    'size_kb' => round($a->size / 1024, 1),
+                ])->toArray(),
+            ])->toArray(),
+
+            // === MEDIUM PRIORITY: Productivity Analytics ===
+            'productivity' => $productivityStats,
         ];
+    }
+
+    /**
+     * Build productivity analytics for AI context.
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildProductivityAnalytics(\App\Models\Project $project): array
+    {
+        // Tasks completed per day (last 7 days)
+        $completedByDay = $project->tasks()
+            ->whereNotNull('completed_at')
+            ->where('completed_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(completed_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Average cycle time (creation to completion) for last 30 completed tasks
+        $recentCompletedTasks = $project->tasks()
+            ->whereNotNull('completed_at')
+            ->latest('completed_at')
+            ->limit(30)
+            ->get(['created_at', 'completed_at']);
+
+        $avgCycleTimeHours = $recentCompletedTasks->count() > 0
+            ? round($recentCompletedTasks->avg(fn ($t) => $t->created_at->diffInHours($t->completed_at)), 1)
+            : null;
+
+        // Tasks completed by team member (last 7 days)
+        $completedByMember = $project->tasks()
+            ->with('assignee:id,name')
+            ->whereNotNull('completed_at')
+            ->whereNotNull('assigned_to')
+            ->where('completed_at', '>=', now()->subDays(7))
+            ->get()
+            ->groupBy('assignee.name')
+            ->map(fn ($tasks) => $tasks->count())
+            ->sortDesc()
+            ->toArray();
+
+        // Tasks created vs completed this week
+        $tasksCreatedThisWeek = $project->tasks()
+            ->where('created_at', '>=', now()->startOfWeek())
+            ->count();
+
+        $tasksCompletedThisWeek = $project->tasks()
+            ->whereNotNull('completed_at')
+            ->where('completed_at', '>=', now()->startOfWeek())
+            ->count();
+
+        // Velocity (tasks completed per week, last 4 weeks)
+        $weeklyVelocity = [];
+        for ($i = 0; $i < 4; $i++) {
+            $weekStart = now()->subWeeks($i)->startOfWeek();
+            $weekEnd = now()->subWeeks($i)->endOfWeek();
+            $count = $project->tasks()
+                ->whereNotNull('completed_at')
+                ->whereBetween('completed_at', [$weekStart, $weekEnd])
+                ->count();
+            $weeklyVelocity["week_-{$i}"] = $count;
+        }
+
+        // Bottleneck detection: tasks pending > 7 days without progress
+        $stuckTasks = $project->tasks()
+            ->whereNull('completed_at')
+            ->where('created_at', '<', now()->subDays(7))
+            ->where('updated_at', '<', now()->subDays(3))
+            ->count();
+
+        return [
+            'completed_by_day' => $completedByDay,
+            'avg_cycle_time_hours' => $avgCycleTimeHours,
+            'completed_by_member' => $completedByMember,
+            'tasks_created_this_week' => $tasksCreatedThisWeek,
+            'tasks_completed_this_week' => $tasksCompletedThisWeek,
+            'weekly_velocity' => $weeklyVelocity,
+            'stuck_tasks_count' => $stuckTasks,
+        ];
+    }
+
+    /**
+     * Build cross-project context for AI (overview of all user's projects).
+     * Only available for Pro users with multiple projects.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function buildCrossProjectContext(User $user, \App\Models\Project $currentProject): ?array
+    {
+        // Get all projects the user owns or is a member of
+        $userProjects = \App\Models\Project::where('user_id', $user->id)
+            ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id))
+            ->where('is_archived', false)
+            ->withCount([
+                'tasks',
+                'tasks as completed_tasks_count' => fn ($q) => $q->whereNotNull('completed_at'),
+                'tasks as pending_tasks_count' => fn ($q) => $q->whereNull('completed_at'),
+                'tasks as overdue_tasks_count' => fn ($q) => $q->whereNull('completed_at')
+                    ->whereNotNull('due_date')
+                    ->where('due_date', '<', now()),
+            ])
+            ->get();
+
+        // If user only has 1 project, no need for cross-project context
+        if ($userProjects->count() <= 1) {
+            return null;
+        }
+
+        // Overall statistics across all projects
+        $totalProjects = $userProjects->count();
+        $totalTasks = $userProjects->sum('tasks_count');
+        $totalCompleted = $userProjects->sum('completed_tasks_count');
+        $totalPending = $userProjects->sum('pending_tasks_count');
+        $totalOverdue = $userProjects->sum('overdue_tasks_count');
+
+        // Projects summary
+        $projectsSummary = $userProjects->map(fn ($p) => [
+            'name' => $p->name,
+            'is_current' => $p->id === $currentProject->id,
+            'total_tasks' => $p->tasks_count,
+            'completed' => $p->completed_tasks_count,
+            'pending' => $p->pending_tasks_count,
+            'overdue' => $p->overdue_tasks_count,
+            'completion_rate' => $p->tasks_count > 0
+                ? round(($p->completed_tasks_count / $p->tasks_count) * 100, 1)
+                : 0,
+        ])->toArray();
+
+        // Get urgent tasks across ALL projects (assigned to user or unassigned)
+        $urgentTasksAcrossProjects = \App\Models\Task::whereIn('project_id', $userProjects->pluck('id'))
+            ->with(['project:id,name', 'list:id,name'])
+            ->whereNull('completed_at')
+            ->where(function ($q) use ($user) {
+                $q->where('assigned_to', $user->id)
+                    ->orWhereNull('assigned_to');
+            })
+            ->where(function ($q) {
+                $q->where('priority', 'urgent')
+                    ->orWhere('priority', 'high')
+                    ->orWhere(function ($q2) {
+                        $q2->whereNotNull('due_date')
+                            ->where('due_date', '<=', now()->addDays(3));
+                    });
+            })
+            ->orderByRaw("CASE priority 
+                WHEN 'urgent' THEN 1 
+                WHEN 'high' THEN 2 
+                WHEN 'medium' THEN 3 
+                WHEN 'low' THEN 4 
+                ELSE 5 END")
+            ->orderBy('due_date')
+            ->limit(15)
+            ->get(['id', 'title', 'priority', 'due_date', 'project_id', 'list_id']);
+
+        // Get user's tasks across all projects
+        $myTasksAcrossProjects = \App\Models\Task::whereIn('project_id', $userProjects->pluck('id'))
+            ->with(['project:id,name'])
+            ->where('assigned_to', $user->id)
+            ->whereNull('completed_at')
+            ->orderBy('due_date')
+            ->limit(20)
+            ->get(['id', 'title', 'priority', 'due_date', 'project_id']);
+
+        return [
+            'total_projects' => $totalProjects,
+            'total_tasks' => $totalTasks,
+            'total_completed' => $totalCompleted,
+            'total_pending' => $totalPending,
+            'total_overdue' => $totalOverdue,
+            'overall_completion_rate' => $totalTasks > 0
+                ? round(($totalCompleted / $totalTasks) * 100, 1)
+                : 0,
+            'projects_summary' => $projectsSummary,
+            'urgent_tasks_all_projects' => $urgentTasksAcrossProjects->map(fn ($task) => [
+                'title' => $task->title,
+                'project' => $task->project?->name,
+                'priority' => $task->priority?->value,
+                'due_date' => $task->due_date?->format('Y-m-d'),
+                'days_until_due' => $task->due_date ? now()->diffInDays($task->due_date, false) : null,
+            ])->toArray(),
+            'my_tasks_all_projects' => $myTasksAcrossProjects->map(fn ($task) => [
+                'title' => $task->title,
+                'project' => $task->project?->name,
+                'priority' => $task->priority?->value,
+                'due_date' => $task->due_date?->format('Y-m-d'),
+            ])->toArray(),
+        ];
+    }
+
+    /**
+     * Check if the question is asking about cross-project data.
+     */
+    protected function isCrossProjectQuery(string $question): bool
+    {
+        $crossProjectPatterns = [
+            '/all\s*(my\s*)?(projects?|dự\s*án)/i',
+            '/across\s*(all\s*)?(projects?|dự\s*án)/i',
+            '/every\s*(projects?|dự\s*án)/i',
+            '/tất\s*cả\s*(các\s*)?(projects?|dự\s*án)/i',
+            '/toàn\s*bộ\s*(projects?|dự\s*án)/i',
+            '/mọi\s*(projects?|dự\s*án)/i',
+            '/các\s*(projects?|dự\s*án)\s*(của\s*tôi|của\s*mình)/i',
+            '/trong\s*(tất\s*cả|toàn\s*bộ)\s*(các\s*)?(projects?|dự\s*án)/i',
+            '/tổng\s*(cộng|quan|hợp)/i',
+            '/overview/i',
+            '/summary\s*(of\s*)?(all|my)/i',
+        ];
+
+        foreach ($crossProjectPatterns as $pattern) {
+            if (preg_match($pattern, $question)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
