@@ -561,7 +561,7 @@ class MessageController extends Controller
             'recent_activities' => $recentActivities->map(fn ($activity) => [
                 'user' => $activity->user?->name ?? 'System',
                 'action' => $activity->type->label(),
-                'subject' => $activity->getSubjectName(),
+                'subject' => $activity->properties['subject_name'] ?? $activity->subject?->title ?? $activity->subject?->name ?? null,
                 'when' => $activity->created_at->diffForHumans(),
                 'date' => $activity->created_at->format('Y-m-d H:i'),
             ])->toArray(),
