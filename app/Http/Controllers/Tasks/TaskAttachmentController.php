@@ -63,12 +63,14 @@ class TaskAttachmentController extends Controller
         $user = $request->user();
         $attachments = [];
 
+        $disk = config('filesystems.default');
+
         foreach ($request->file('files') as $file) {
-            $path = $file->store("task-attachments/{$project->id}/{$task->id}", 'public');
+            $path = $file->store("task-attachments/{$project->id}/{$task->id}", $disk);
 
             $attachment = $task->attachments()->create([
                 'uploaded_by' => $user->id,
-                'disk' => 'public',
+                'disk' => $disk,
                 'path' => $path,
                 'original_name' => $file->getClientOriginalName(),
                 'mime_type' => $file->getMimeType(),

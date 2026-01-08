@@ -11,6 +11,10 @@ return [
     | by the framework. The "local" disk, as well as a variety of cloud
     | based disks are available to your application for file storage.
     |
+    | For user uploads (avatars, attachments), this disk will also be used.
+    | - Local development: 'public' (uses storage/app/public with symlink)
+    | - Production (Laravel Cloud): 's3' (uses Object Storage)
+    |
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
@@ -56,6 +60,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],

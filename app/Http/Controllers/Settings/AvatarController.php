@@ -25,10 +25,11 @@ class AvatarController extends Controller
 
         $dir = 'avatars/' . $user->id;
         $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs($dir, $filename, 'public');
+        $disk = config('filesystems.default');
+        $path = $file->storeAs($dir, $filename, $disk);
 
         $user->forceFill([
-            'avatar' => Storage::url($path),
+            'avatar' => Storage::disk($disk)->url($path),
         ])->save();
 
         return to_route('profile.edit')->with('status', 'Avatar updated.');
@@ -54,13 +55,22 @@ class AvatarController extends Controller
             return;
         }
 
-        // Only delete files that are on the public disk (URL contains "/storage/...")
-        $prefix = '/storage/';
-        if (str_contains($avatarUrl, $prefix)) {
-            $relative = Str::after($avatarUrl, $prefix); // avatars/...
+        $disk = config('filesystems.default');
 
-            if ($relative !== '' && Storage::disk('public')->exists($relative)) {
-                Storage::disk('public')->delete($relative);
+        // For local/public disk, check for /storage/ prefix
+        if ($disk === 'public') {
+            $prefix = '/storage/';
+            if (str_contains($avatarUrl, $prefix)) {
+                $relative = Str::after($avatarUrl, $prefix);
+                if ($relative !== '' && Storage::disk($disk)->exists($relative)) {
+                    Storage::disk($disk)->delete($relative);
+                }
+            }
+        } else {
+            // For S3/cloud storage, extract path from full URL
+            $urlPath = parse_url($avatarUrl, PHP_URL_PATH);
+            if ($urlPath && Storage::disk($disk)->exists(ltrim($urlPath, '/'))) {
+                Storage::disk($disk)->delete(ltrim($urlPath, '/'));
             }
         }
     }

@@ -74,11 +74,13 @@ class MessageController extends Controller
 
         // Handle file attachments
         if ($request->hasFile('attachments')) {
+            $disk = config('filesystems.default');
+
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('message-attachments', 'public');
+                $path = $file->store('message-attachments', $disk);
 
                 $message->attachments()->create([
-                    'disk' => 'public',
+                    'disk' => $disk,
                     'path' => $path,
                     'original_name' => $file->getClientOriginalName(),
                     'mime_type' => $file->getMimeType(),
