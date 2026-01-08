@@ -1,0 +1,140 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Main Application Flow" id="main-flow">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Larify - Main Application Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- User -->
+        <mxCell id="user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="50" height="90" as="geometry" />
+        </mxCell>
+        
+        <!-- View (React) -->
+        <mxCell id="view" value="View&#xa;(React 19 + TypeScript)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="200" y="140" width="150" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Inertia.js -->
+        <mxCell id="inertia" value="Inertia.js v2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="200" y="280" width="150" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Route -->
+        <mxCell id="route" value="Route&#xa;(Laravel 12)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="140" width="130" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Controller -->
+        <mxCell id="controller" value="Controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="280" width="130" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Model -->
+        <mxCell id="model" value="Model&#xa;(Eloquent ORM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="200" width="140" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- MySQL -->
+        <mxCell id="mysql" value="MySQL" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="185" width="100" height="90" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <!-- User to View -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="user" target="view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1-label" value="DOM Update" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- View to Route -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="view" target="route">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2-label" value="HTTP Request" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e2">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- View to Inertia -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="view" target="inertia">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3-label" value="Component&#xa;Rendering" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e3">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Route to Controller -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="route" target="controller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4-label" value="Routing Dispatch" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e4">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Inertia to Controller -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="inertia" target="controller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5-label" value="Inertia Response" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e5">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Controller to Model -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="controller" target="model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6-label" value="Business Logic" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e6">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Model to MySQL -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="model" target="mysql">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7-label" value="ORM Query" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e7">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="400" width="400" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-title" value="Legend:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="405" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="430" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1-text" value="Frontend (React)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="235" y="427" width="90" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="455" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2-text" value="Inertia.js Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="235" y="452" width="90" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="430" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3-text" value="Backend (Laravel)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="385" y="427" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="455" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4-text" value="Database" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="385" y="452" width="100" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

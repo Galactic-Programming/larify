@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="External Services Integration" id="external-services">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Larify - External Services Integration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="20" width="340" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Laravel App (Center) -->
+        <mxCell id="laravel" value="Laravel Application&#xa;(Backend)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=3;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="420" y="180" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- OAuth Providers -->
+        <mxCell id="oauth-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="80" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="oauth-title" value="OAuth Providers&#xa;(Laravel Socialite)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="130" y="85" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="google" value="🔵 Google" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="120" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="github" value="⚫ GitHub" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="145" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gitlab" value="🟠 GitLab" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="170" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Stripe -->
+        <mxCell id="stripe" value="Stripe API&#xa;(Laravel Cashier)&#xa;&#xa;💳 Payments&#xa;📋 Subscriptions&#xa;🧾 Invoices" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontStyle=0;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="260" width="180" height="110" as="geometry" />
+        </mxCell>
+        
+        <!-- Gemini -->
+        <mxCell id="gemini" value="Google Gemini API&#xa;(GeminiService)&#xa;&#xa;🤖 Task Parsing&#xa;📝 Description Gen&#xa;🏷️ Label Suggestions&#xa;⚡ Priority Suggest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontStyle=0;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="80" width="180" height="130" as="geometry" />
+        </mxCell>
+        
+        <!-- File Storage -->
+        <mxCell id="storage" value="File Storage&#xa;&#xa;📎 Task Attachments&#xa;💬 Message Files&#xa;🖼️ User Avatars" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="260" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <!-- OAuth to Laravel -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="oauth-box" target="laravel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1-label" value="OAuth 2.0" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Stripe to Laravel -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="stripe" target="laravel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2-label" value="HTTPS / Webhook" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e2">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Laravel to Gemini -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="laravel" target="gemini">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3-label" value="AI Request" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e3">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Laravel to Storage -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="laravel" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4-label" value="File I/O" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e4">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="380" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-title" value="Legend:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="385" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="410" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1-text" value="External API" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="415" y="407" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="410" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2-text" value="Storage" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="525" y="407" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="430" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3-text" value="Laravel App" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="415" y="427" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
