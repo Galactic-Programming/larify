@@ -192,6 +192,21 @@ class SocialController extends Controller
 
         $this->maybeUpdateUserAvatar($user, $providerUser->getAvatar());
 
+        // Check if user already has a social account for this provider (e.g., linked previously)
+        $existingSocialAccount = $user->socialAccounts()
+            ->where('provider', $provider)
+            ->first();
+
+        if ($existingSocialAccount !== null) {
+            // Update existing social account instead of creating duplicate
+            $existingSocialAccount->provider_id = $providerId;
+            $this->fillTokens($existingSocialAccount, $providerUser);
+            $existingSocialAccount->avatar = $providerUser->getAvatar();
+            $existingSocialAccount->save();
+
+            return $this->loginAndRedirect($user);
+        }
+
         // Create the social account link
         $socialAccount = new SocialAccount([
             'provider' => $provider,
