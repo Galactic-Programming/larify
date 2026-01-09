@@ -38,8 +38,8 @@ class PlanSeeder extends Seeder
             ],
             // Pro Monthly - Team collaboration + Premium features
             [
-                'stripe_id' => env('STRIPE_PRICE_PRO_MONTHLY', 'price_pro_monthly'),
-                'stripe_product' => env('STRIPE_PRODUCT_PRO', 'prod_pro'),
+                'stripe_id' => config('cashier.plans.pro.monthly', 'price_pro_monthly'),
+                'stripe_product' => config('cashier.plans.pro.product', 'prod_pro'),
                 'name' => 'Pro',
                 'description' => 'For teams and professionals',
                 'price' => 999, // $9.99 in cents
@@ -61,8 +61,8 @@ class PlanSeeder extends Seeder
             ],
             // Pro Yearly - Same features, better price
             [
-                'stripe_id' => env('STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
-                'stripe_product' => env('STRIPE_PRODUCT_PRO', 'prod_pro'),
+                'stripe_id' => config('cashier.plans.pro.yearly', 'price_pro_yearly'),
+                'stripe_product' => config('cashier.plans.pro.product', 'prod_pro'),
                 'name' => 'Pro',
                 'description' => 'For teams and professionals',
                 'price' => 9990, // $99.90 in cents (save ~17%)

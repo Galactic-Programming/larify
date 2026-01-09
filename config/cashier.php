@@ -124,4 +124,22 @@ return [
 
     'logger' => env('CASHIER_LOGGER'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe Plans
+    |--------------------------------------------------------------------------
+    |
+    | Configure your Stripe Product and Price IDs here. These should match
+    | the products/prices created in your Stripe Dashboard.
+    |
+    */
+
+    'plans' => [
+        'pro' => [
+            'product' => env('STRIPE_PRODUCT_PRO', 'prod_pro'),
+            'monthly' => env('STRIPE_PRICE_PRO_MONTHLY', 'price_pro_monthly'),
+            'yearly' => env('STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
+        ],
+    ],
+
 ];
