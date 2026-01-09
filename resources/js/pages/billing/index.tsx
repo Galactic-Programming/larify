@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { motion } from 'motion/react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +24,7 @@ import {
     Loader2Icon,
     SparklesIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Plan {
     id: number;
@@ -65,8 +65,17 @@ export default function BillingIndex({
     onGracePeriod,
     isSubscribed,
 }: BillingIndexProps) {
+    const { errors } = usePage().props as { errors: Record<string, string> };
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+    // Handle validation errors from redirect (GET requests)
+    useEffect(() => {
+        if (errors?.plan_id) {
+            setCheckoutError(errors.plan_id);
+            setLoadingAction(null);
+        }
+    }, [errors]);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {

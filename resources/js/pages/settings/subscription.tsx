@@ -23,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     CalendarIcon,
     CheckIcon,
@@ -31,7 +31,7 @@ import {
     Loader2Icon,
     SparklesIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Plan {
     id: number;
@@ -75,8 +75,17 @@ export default function Subscription({
     onGracePeriod,
     isSubscribed,
 }: SubscriptionPageProps) {
+    const { errors } = usePage().props as { errors: Record<string, string> };
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+    // Handle validation errors from redirect (GET requests)
+    useEffect(() => {
+        if (errors?.plan_id) {
+            setCheckoutError(errors.plan_id);
+            setLoadingAction(null);
+        }
+    }, [errors]);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {

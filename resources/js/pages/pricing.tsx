@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/card';
 import { cardVariants, staggerContainer } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { CheckIcon, Loader2Icon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Plan {
     id: number;
@@ -41,8 +41,17 @@ export default function Pricing({
     isAuthenticated,
     currentSubscription,
 }: PricingProps) {
+    const { errors } = usePage().props as { errors: Record<string, string> };
     const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+    // Handle validation errors from redirect (GET requests)
+    useEffect(() => {
+        if (errors?.plan_id) {
+            setCheckoutError(errors.plan_id);
+            setLoadingPlanId(null);
+        }
+    }, [errors]);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {
