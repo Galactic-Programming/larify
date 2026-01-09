@@ -85,8 +85,12 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($plans as $plan) {
+            // Use name + interval as unique key to allow stripe_id updates via env vars
             Plan::updateOrCreate(
-                ['stripe_id' => $plan['stripe_id']],
+                [
+                    'name' => $plan['name'],
+                    'interval' => $plan['interval'],
+                ],
                 $plan
             );
         }
