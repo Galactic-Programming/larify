@@ -97,22 +97,9 @@ export default function BillingIndex({
     const handleUpgrade = (planId: string) => {
         setLoadingAction(`upgrade-${planId}`);
         setCheckoutError(null);
-
-        // Use Inertia router to handle validation errors, then redirect to Stripe
-        router.get(
-            `/billing/checkout/${planId}`,
-            {},
-            {
-                onError: (errors) => {
-                    setCheckoutError(errors.plan_id || 'Unable to process checkout. Please try again.');
-                    setLoadingAction(null);
-                },
-                onFinish: () => {
-                    // If no error occurred, the page will redirect to Stripe
-                    // If there's an error, onError will be called first
-                },
-            },
-        );
+        // Full page redirect for Stripe Checkout (AJAX won't work due to CORS)
+        // Validation errors will redirect back and show via usePage().props.errors
+        window.location.href = `/billing/checkout/${planId}`;
     };
 
     const handleSwap = (planId: string) => {

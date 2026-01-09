@@ -107,17 +107,9 @@ export default function Subscription({
     const handleUpgrade = (planId: string) => {
         setLoadingAction(`upgrade-${planId}`);
         setCheckoutError(null);
-
-        router.get(
-            `/billing/checkout/${planId}`,
-            {},
-            {
-                onError: (errors) => {
-                    setCheckoutError(errors.plan_id || 'Unable to process checkout. Please try again.');
-                    setLoadingAction(null);
-                },
-            },
-        );
+        // Full page redirect for Stripe Checkout (AJAX won't work due to CORS)
+        // Validation errors will redirect back and show via usePage().props.errors
+        window.location.href = `/billing/checkout/${planId}`;
     };
 
     const handleSwap = (planId: string) => {
