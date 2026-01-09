@@ -18,7 +18,13 @@ test('guest cannot access checkout', function () {
 
 test('checkout fails for non-existent plan', function () {
     $this->actingAs($this->user)
-        ->get(route('billing.checkout', 'non_existent_plan'))
+        ->get(route('billing.checkout', 'price_nonexistent123456789'))
+        ->assertSessionHasErrors('plan_id');
+});
+
+test('checkout fails for invalid plan id format', function () {
+    $this->actingAs($this->user)
+        ->get(route('billing.checkout', 'price_pro_monthly'))
         ->assertSessionHasErrors('plan_id');
 });
 

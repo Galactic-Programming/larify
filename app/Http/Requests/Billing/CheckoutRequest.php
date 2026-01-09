@@ -38,6 +38,13 @@ class CheckoutRequest extends FormRequest
                 'required',
                 'string',
                 function ($attribute, $value, $fail) {
+                    // Validate that the plan ID looks like a real Stripe Price ID
+                    if (! str_starts_with($value, 'price_') || strlen($value) < 20) {
+                        $fail('Invalid plan identifier format.');
+
+                        return;
+                    }
+
                     $plan = Plan::findByStripeId($value);
 
                     if (! $plan) {
