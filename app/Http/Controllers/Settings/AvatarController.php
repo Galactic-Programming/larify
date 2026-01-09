@@ -55,6 +55,15 @@ class AvatarController extends Controller
             return;
         }
 
+        // Skip external URLs (dicebear, Google, GitHub, etc.)
+        if (str_starts_with($avatarUrl, 'http://') || str_starts_with($avatarUrl, 'https://')) {
+            // Only process if it's from our own domain/storage
+            $appUrl = config('app.url');
+            if (!str_starts_with($avatarUrl, $appUrl)) {
+                return;
+            }
+        }
+
         $disk = config('filesystems.default');
 
         // For local/public disk, check for /storage/ prefix
@@ -69,8 +78,17 @@ class AvatarController extends Controller
         } else {
             // For S3/cloud storage, extract path from full URL
             $urlPath = parse_url($avatarUrl, PHP_URL_PATH);
-            if ($urlPath && Storage::disk($disk)->exists(ltrim($urlPath, '/'))) {
-                Storage::disk($disk)->delete(ltrim($urlPath, '/'));
+            if ($urlPath) {
+                $path = ltrim($urlPath, '/');
+                // Check if file actually exists before trying to delete
+                try {
+                    if (Storage::disk($disk)->exists($path)) {
+                        Storage::disk($disk)->delete($path);
+                    }
+                } catch (\Exception $e) {
+                    // Silently ignore errors for external/invalid URLs
+                    report($e);
+                }
             }
         }
     }
