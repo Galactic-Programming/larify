@@ -66,6 +66,7 @@ export default function BillingIndex({
     isSubscribed,
 }: BillingIndexProps) {
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {
@@ -86,8 +87,23 @@ export default function BillingIndex({
 
     const handleUpgrade = (planId: string) => {
         setLoadingAction(`upgrade-${planId}`);
-        // Use window.location for Stripe Checkout redirect (external URL requires full page redirect)
-        window.location.href = `/billing/checkout/${planId}`;
+        setCheckoutError(null);
+
+        // Use Inertia router to handle validation errors, then redirect to Stripe
+        router.get(
+            `/billing/checkout/${planId}`,
+            {},
+            {
+                onError: (errors) => {
+                    setCheckoutError(errors.plan_id || 'Unable to process checkout. Please try again.');
+                    setLoadingAction(null);
+                },
+                onFinish: () => {
+                    // If no error occurred, the page will redirect to Stripe
+                    // If there's an error, onError will be called first
+                },
+            },
+        );
     };
 
     const handleSwap = (planId: string) => {
@@ -150,6 +166,12 @@ export default function BillingIndex({
                     statusBadge={getStatusBadge()}
                     planName={currentPlan?.name}
                 />
+
+                {checkoutError && (
+                    <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                        <p className="text-sm text-destructive">{checkoutError}</p>
+                    </div>
+                )}
 
                 <motion.div
                     variants={staggerContainer}

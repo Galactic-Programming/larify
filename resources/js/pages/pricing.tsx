@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { cardVariants, staggerContainer } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { CheckIcon, Loader2Icon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -42,6 +42,7 @@ export default function Pricing({
     currentSubscription,
 }: PricingProps) {
     const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {
@@ -55,7 +56,18 @@ export default function Pricing({
     const handleCheckout = (planId: string) => {
         if (planId === 'price_free') return;
         setLoadingPlanId(planId);
-        window.location.href = `/billing/checkout/${planId}`;
+        setCheckoutError(null);
+
+        router.get(
+            `/billing/checkout/${planId}`,
+            {},
+            {
+                onError: (errors) => {
+                    setCheckoutError(errors.plan_id || 'Unable to process checkout. Please try again.');
+                    setLoadingPlanId(null);
+                },
+            },
+        );
     };
 
     const freePlan = plans.find((p) => p.price === 0);
@@ -125,6 +137,11 @@ export default function Pricing({
                                 Choose the plan that's right for you. Start free
                                 and upgrade when you need team collaboration.
                             </p>
+                            {checkoutError && (
+                                <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                                    <p className="text-sm text-destructive">{checkoutError}</p>
+                                </div>
+                            )}
                         </motion.div>
 
                         {/* Pricing Cards - All plans displayed */}

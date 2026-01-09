@@ -76,6 +76,7 @@ export default function Subscription({
     isSubscribed,
 }: SubscriptionPageProps) {
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {
@@ -96,8 +97,18 @@ export default function Subscription({
 
     const handleUpgrade = (planId: string) => {
         setLoadingAction(`upgrade-${planId}`);
-        // Use window.location for Stripe Checkout redirect (external URL requires full page redirect)
-        window.location.href = `/billing/checkout/${planId}`;
+        setCheckoutError(null);
+
+        router.get(
+            `/billing/checkout/${planId}`,
+            {},
+            {
+                onError: (errors) => {
+                    setCheckoutError(errors.plan_id || 'Unable to process checkout. Please try again.');
+                    setLoadingAction(null);
+                },
+            },
+        );
     };
 
     const handleSwap = (planId: string) => {
@@ -159,6 +170,12 @@ export default function Subscription({
                         title="Subscription"
                         description="Manage your subscription plan and billing"
                     />
+
+                    {checkoutError && (
+                        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                            <p className="text-sm text-destructive">{checkoutError}</p>
+                        </div>
+                    )}
 
                     {/* Current Plan Card */}
                     <Card>
@@ -373,8 +390,8 @@ export default function Subscription({
                                                         >
                                                             {loadingAction ===
                                                                 `swap-${plan.stripe_id}` && (
-                                                                <Loader2Icon className="mr-2 size-4 animate-spin" />
-                                                            )}
+                                                                    <Loader2Icon className="mr-2 size-4 animate-spin" />
+                                                                )}
                                                             Switch
                                                         </Button>
                                                     ) : (
@@ -391,8 +408,8 @@ export default function Subscription({
                                                         >
                                                             {loadingAction ===
                                                                 `upgrade-${plan.stripe_id}` && (
-                                                                <Loader2Icon className="mr-2 size-4 animate-spin" />
-                                                            )}
+                                                                    <Loader2Icon className="mr-2 size-4 animate-spin" />
+                                                                )}
                                                             Upgrade
                                                         </Button>
                                                     )}
