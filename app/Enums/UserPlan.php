@@ -106,7 +106,7 @@ enum UserPlan: string
     public function maxLabelsPerProject(): ?int
     {
         return match ($this) {
-            self::Free => 3,
+            self::Free => 10,
             self::Pro => null, // Unlimited
         };
     }

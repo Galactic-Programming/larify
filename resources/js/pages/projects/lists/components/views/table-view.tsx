@@ -1,3 +1,4 @@
+import { complete } from '@/actions/App/Http/Controllers/Tasks/TaskController';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,8 +33,9 @@ import {
 } from '@/components/ui/tooltip';
 import { useTaskRealtime } from '@/hooks/use-task-realtime';
 import { SharedData } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
+    Check,
     ChevronLeft,
     ChevronRight,
     Circle,
@@ -41,6 +43,7 @@ import {
     MoreHorizontal,
     Pencil,
     Plus,
+    RotateCcw,
     Search,
     Trash2,
     User,
@@ -53,6 +56,7 @@ import { getPriorityColor, getTaskStatusIcon } from '../../lib/utils';
 import { CreateTaskDialog } from '../../tasks/components/create-task-dialog';
 import { DeleteTaskDialog } from '../../tasks/components/delete-task-dialog';
 import { EditTaskDialog } from '../../tasks/components/edit-task-dialog';
+import { ReopenTaskDialog } from '../../tasks/components/reopen-task-dialog';
 import { TaskDetailSheet } from '../../tasks/components/task-detail-sheet';
 import { CreateListDialog } from '../create-list-dialog';
 
@@ -103,10 +107,43 @@ function TaskRowActions({
     const { auth } = usePage<SharedData>().props;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [reopenOpen, setReopenOpen] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Check if user can update deadline
     const canUpdateDeadline =
         permissions.role === 'owner' || task.created_by === auth.user.id;
+
+    const isCompleted = !!task.completed_at;
+
+    // Check if task was overdue when completed (for reopen check)
+    const wasOverdueWhenCompleted = (() => {
+        if (!isCompleted) return false;
+        if (!task.due_date || !task.due_time) return false;
+        const dateOnly = task.due_date.split('T')[0];
+        const deadline = new Date(`${dateOnly}T${task.due_time}`);
+        return new Date() > deadline;
+    })();
+
+    const handleToggleComplete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        // If trying to reopen an overdue task, show reopen dialog instead
+        if (isCompleted && wasOverdueWhenCompleted) {
+            setReopenOpen(true);
+            return;
+        }
+
+        setIsProcessing(true);
+        router.patch(
+            complete({ project, task }).url,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setIsProcessing(false),
+            },
+        );
+    };
 
     // Hide actions menu for viewers
     if (!permissions.canEdit) return null;
@@ -128,6 +165,22 @@ function TaskRowActions({
                     <DropdownMenuItem onClick={() => setEditOpen(true)}>
                         <Pencil className="mr-2 size-4" />
                         Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={handleToggleComplete}
+                        disabled={isProcessing}
+                    >
+                        {isCompleted ? (
+                            <>
+                                <RotateCcw className="mr-2 size-4" />
+                                Mark as Incomplete
+                            </>
+                        ) : (
+                            <>
+                                <Check className="mr-2 size-4" />
+                                Mark as Complete
+                            </>
+                        )}
                     </DropdownMenuItem>
                     {permissions.canDelete && (
                         <>
@@ -159,6 +212,12 @@ function TaskRowActions({
                     onOpenChange={setDeleteOpen}
                 />
             )}
+            <ReopenTaskDialog
+                project={project}
+                task={task}
+                open={reopenOpen}
+                onOpenChange={setReopenOpen}
+            />
         </div>
     );
 }
@@ -764,7 +823,7 @@ export function TableView({ project, permissions }: TableViewProps) {
                                     >
                                         <Badge
                                             variant="outline"
-                                            className="max-w-[16ch] gap-1 pr-1 text-xs sm:max-w-[20ch] sm:gap-1.5 sm:text-sm"
+                                            className="max-w-[16ch] gap-1 text-xs sm:max-w-[20ch] sm:gap-1.5 sm:text-sm"
                                             title={list.name}
                                         >
                                             <div
@@ -780,36 +839,6 @@ export function TableView({ project, permissions }: TableViewProps) {
                                             <span className="shrink-0 text-muted-foreground">
                                                 ({list.tasks.length})
                                             </span>
-                                            {permissions.canEdit &&
-                                                !list.is_done_list && (
-                                                    <CreateTaskDialog
-                                                        project={project}
-                                                        list={list}
-                                                        canAssignTask={
-                                                            permissions.canAssignTask
-                                                        }
-                                                        permissions={permissions}
-                                                        trigger={
-                                                            <Tooltip>
-                                                                <TooltipTrigger
-                                                                    asChild
-                                                                >
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon-sm"
-                                                                        className="ml-0.5 size-5 rounded-full hover:bg-primary/10"
-                                                                    >
-                                                                        <Plus className="size-3" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    Add task to{' '}
-                                                                    {list.name}
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        }
-                                                    />
-                                                )}
                                         </Badge>
                                     </div>
                                 ))}

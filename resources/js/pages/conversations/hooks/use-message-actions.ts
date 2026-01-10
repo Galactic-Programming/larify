@@ -184,7 +184,7 @@ export function useMessageActions({
 
         // Store original messages and optimistically remove
         onMessagesChange((prev) => {
-            originalMessages = prev;
+            originalMessages = [...prev];
             return prev.filter((m) => m.id !== messageId);
         });
 
@@ -198,6 +198,7 @@ export function useMessageActions({
                 {
                     method: 'DELETE',
                     headers: {
+                        Accept: 'application/json',
                         'X-CSRF-TOKEN':
                             document.querySelector<HTMLMetaElement>(
                                 'meta[name="csrf-token"]',
@@ -208,12 +209,12 @@ export function useMessageActions({
 
             if (!response.ok) {
                 // Revert on error
-                onMessagesChange(originalMessages);
+                onMessagesChange(() => originalMessages);
                 console.error('Failed to delete message');
             }
         } catch (error) {
             // Revert on error
-            onMessagesChange(originalMessages);
+            onMessagesChange(() => originalMessages);
             console.error('Failed to delete message:', error);
         } finally {
             setIsDeleting(false);
