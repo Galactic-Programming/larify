@@ -66,6 +66,7 @@ export default function ConversationShow({
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const lastTypingRef = useRef<number>(0);
     const hasMarkedAsReadRef = useRef(false);
+    const isScrollingToSpecificMessage = useRef(false);
 
     // Message actions hook
     const {
@@ -270,6 +271,7 @@ export default function ConversationShow({
     }, [messages, markMessagesAsRead]);
 
     useEffect(() => {
+        if (isScrollingToSpecificMessage.current) return;
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
@@ -307,29 +309,101 @@ export default function ConversationShow({
         [inputValue, setInputValue],
     );
 
+    // State for tracking scroll-to-message loading
+    const [isLoadingToMessage, setIsLoadingToMessage] = useState(false);
+
     // Scroll to a specific message (for search results)
-    const scrollToMessage = useCallback((message: Message) => {
-        const messageElement = document.querySelector(
-            `[data-message-id="${message.id}"]`,
-        );
-        if (messageElement) {
-            messageElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-            });
-            // Highlight the message briefly
-            messageElement.classList.add(
-                'bg-yellow-100',
-                'dark:bg-yellow-900/30',
+    const scrollToMessage = useCallback(
+        async (message: Message) => {
+            isScrollingToSpecificMessage.current = true;
+            // First check if message is already loaded
+            const existingElement = document.querySelector(
+                `[data-message-id="${message.id}"]`,
             );
-            setTimeout(() => {
-                messageElement.classList.remove(
+
+            if (existingElement) {
+                // Message is already in view, scroll to it
+                existingElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+                // Highlight the message briefly
+                existingElement.classList.add(
                     'bg-yellow-100',
                     'dark:bg-yellow-900/30',
                 );
-            }, 2000);
-        }
-    }, []);
+                setTimeout(() => {
+                    existingElement.classList.remove(
+                        'bg-yellow-100',
+                        'dark:bg-yellow-900/30',
+                    );
+                }, 2000);
+                isScrollingToSpecificMessage.current = false;
+                return;
+            }
+
+            // Message not loaded, need to fetch messages around it
+            setIsLoadingToMessage(true);
+
+            try {
+                const response = await fetch(
+                    `/api/conversations/${conversation.id}/messages?around=${message.id}&limit=50`,
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN':
+                                document.querySelector<HTMLMetaElement>(
+                                    'meta[name="csrf-token"]',
+                                )?.content ?? '',
+                        },
+                    },
+                );
+
+                if (!response.ok) throw new Error('Failed to load messages');
+
+                const data = await response.json();
+                const loadedMessages: Message[] = data.messages;
+
+                if (loadedMessages.length > 0) {
+                    // Replace messages with the loaded ones centered around target
+                    setMessages(loadedMessages);
+                    setHasMoreMessages(data.has_more ?? true);
+
+                    // Wait for DOM to update then scroll to message
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            const messageElement = document.querySelector(
+                                `[data-message-id="${message.id}"]`,
+                            );
+                            if (messageElement) {
+                                messageElement.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center',
+                                });
+                                // Highlight the message briefly
+                                messageElement.classList.add(
+                                    'bg-yellow-100',
+                                    'dark:bg-yellow-900/30',
+                                );
+                                setTimeout(() => {
+                                    messageElement.classList.remove(
+                                        'bg-yellow-100',
+                                        'dark:bg-yellow-900/30',
+                                    );
+                                }, 2000);
+                            }
+                        }, 100);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load messages around target:', error);
+            } finally {
+                setIsLoadingToMessage(false);
+                isScrollingToSpecificMessage.current = false;
+            }
+        },
+        [conversation.id],
+    );
 
     return (
         <ChatLayout
@@ -352,7 +426,18 @@ export default function ConversationShow({
             />
 
             {/* Messages */}
-            <div className="min-h-0 flex-1">
+            <div className="relative min-h-0 flex-1">
+                {/* Loading overlay for search navigation */}
+                {isLoadingToMessage && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-2">
+                            <Spinner className="h-6 w-6" />
+                            <span className="text-sm text-muted-foreground">
+                                Loading messages...
+                            </span>
+                        </div>
+                    </div>
+                )}
                 <div
                     ref={messagesContainerRef}
                     onScroll={handleScroll}

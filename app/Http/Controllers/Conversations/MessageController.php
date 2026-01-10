@@ -37,10 +37,61 @@ class MessageController extends Controller
         Gate::authorize('view', $conversation);
 
         $before = $request->query('before'); // Message ID to load before
+        $around = $request->query('around'); // Message ID to load around (for search)
         $limit = min((int) $request->query('limit', 50), 100);
 
+        // If loading messages around a specific message (for search results)
+        if ($around) {
+            $targetMessage = Message::where('conversation_id', $conversation->id)->find($around);
+            if (!$targetMessage) {
+                return response()->json([
+                    'messages' => [],
+                    'has_more' => false,
+                ]);
+            }
+
+            // Get half limit before and after the target message
+            $halfLimit = (int) floor($limit / 2);
+
+            // Get messages before the target (including target)
+            $messagesBefore = $conversation->messages()
+                ->with(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email'])
+                ->where('created_at', '<=', $targetMessage->created_at)
+                ->orderBy('created_at', 'desc')
+                ->limit($halfLimit + 1)
+                ->get()
+                ->reverse()
+                ->values();
+
+            // Get messages after the target
+            $messagesAfter = $conversation->messages()
+                ->with(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email'])
+                ->where('created_at', '>', $targetMessage->created_at)
+                ->orderBy('created_at', 'asc')
+                ->limit($halfLimit)
+                ->get();
+
+            // Merge both sets
+            $messages = $messagesBefore->concat($messagesAfter);
+
+            // Check if there are more messages in either direction
+            $hasMoreBefore = $conversation->messages()
+                ->where('created_at', '<', $messagesBefore->first()?->created_at)
+                ->exists();
+            $hasMoreAfter = $conversation->messages()
+                ->where('created_at', '>', $messagesAfter->last()?->created_at ?? $targetMessage->created_at)
+                ->exists();
+
+            return response()->json([
+                'messages' => MessageResource::collection($messages),
+                'has_more' => $hasMoreBefore || $hasMoreAfter,
+                'has_more_before' => $hasMoreBefore,
+                'has_more_after' => $hasMoreAfter,
+            ]);
+        }
+
         $query = $conversation->messages()
-            ->with(['sender:id,name,email,email,avatar', 'attachments', 'mentions.user:id,name,email'])
+            ->with(['sender:id,name,email,avatar', 'attachments', 'mentions.user:id,name,email'])
             ->orderBy('created_at', 'desc');
 
         if ($before) {
@@ -158,7 +209,7 @@ class MessageController extends Controller
                 $conversation,
                 $aiUser,
                 "⚠️ AI features require a Pro subscription. Please upgrade your plan to chat with me!\n\n".
-                '[Upgrade to Pro](/settings/billing)'
+                '[Upgrade to Pro](/billing)'
             );
         }
 

@@ -174,7 +174,7 @@ export function TaskAttachmentsPanel({
                                     className="mt-3 bg-amber-500 hover:bg-amber-600"
                                     asChild
                                 >
-                                    <a href="/settings/billing">Upgrade to Pro</a>
+                                    <a href="/billing">Upgrade to Pro</a>
                                 </Button>
                             </div>
                         </div>
