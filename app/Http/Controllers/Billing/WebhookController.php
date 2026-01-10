@@ -183,11 +183,10 @@ class WebhookController extends CashierWebhookController
 
     /**
      * Handle invoice payment succeeded.
+     * Note: This is a custom handler, not inherited from Cashier.
      */
     protected function handleInvoicePaymentSucceeded(array $payload): void
     {
-        parent::handleInvoicePaymentSucceeded($payload);
-
         $invoice = $payload['data']['object'];
 
         Log::info('Invoice payment succeeded.', [
@@ -199,11 +198,10 @@ class WebhookController extends CashierWebhookController
 
     /**
      * Handle invoice payment failed.
+     * Note: This is a custom handler, not inherited from Cashier.
      */
     protected function handleInvoicePaymentFailed(array $payload): void
     {
-        parent::handleInvoicePaymentFailed($payload);
-
         $invoice = $payload['data']['object'];
 
         Log::warning('Invoice payment failed.', [
