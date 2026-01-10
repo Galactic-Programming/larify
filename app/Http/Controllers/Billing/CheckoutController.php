@@ -32,6 +32,34 @@ class CheckoutController extends Controller
      */
     public function success(Request $request)
     {
+        $user = $request->user();
+        $sessionId = $request->query('session_id');
+
+        // Verify the checkout session and update user plan if subscription is active
+        if ($sessionId && $user) {
+            try {
+                $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+                $session = $stripe->checkout->sessions->retrieve($sessionId);
+
+                // If this was a subscription checkout and it succeeded
+                if ($session->mode === 'subscription' && $session->payment_status === 'paid') {
+                    // Refresh user to get latest subscription data from Cashier
+                    $user->refresh();
+
+                    // If user has an active subscription, upgrade to Pro
+                    if ($user->subscribed('default')) {
+                        $user->update(['plan' => \App\Enums\UserPlan::Pro]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Log but don't fail - webhook will handle it eventually
+                \Illuminate\Support\Facades\Log::warning('Failed to verify checkout session', [
+                    'session_id' => $sessionId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return inertia('billing/success', [
             'message' => 'Your subscription has been activated successfully!',
         ]);
