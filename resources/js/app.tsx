@@ -8,42 +8,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
-// Configure Echo with custom authorization handler to include credentials
+// Configure Echo for Laravel Reverb broadcasting
+// The @laravel/echo-react package uses pusher-js under the hood
+// We need to configure auth headers for private channel authorization
 configureEcho({
     broadcaster: 'reverb',
-    channelAuthorization: {
-        endpoint: '/broadcasting/auth',
-        transport: 'ajax',
-        customHandler: async (channel, options) => {
-            const csrfToken =
+    authEndpoint: '/broadcasting/auth',
+    auth: {
+        headers: {
+            'X-CSRF-TOKEN':
                 document.querySelector<HTMLMetaElement>(
                     'meta[name="csrf-token"]',
-                )?.content ?? '';
-
-            try {
-                const response = await fetch('/broadcasting/auth', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRF-TOKEN': csrfToken,
-                        Accept: 'application/json',
-                    },
-                    body: new URLSearchParams({
-                        socket_id: channel.socketId,
-                        channel_name: channel.channelName,
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Auth failed with status ${response.status}`);
-                }
-
-                const data = await response.json();
-                options.callback(null, data);
-            } catch (error) {
-                options.callback(error as Error, null);
-            }
+                )?.content ?? '',
         },
     },
 });

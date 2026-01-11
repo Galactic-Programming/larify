@@ -678,7 +678,7 @@ export const GanttColumn: FC<GanttColumnProps> = ({
 
     // Update refY when mouseRef changes
     // biome-ignore lint/correctness/useExhaustiveDependencies: mouseRef is stable from useMouse hook
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     useEffect(() => {
         if (mouseRef.current) {
             setRefY(mouseRef.current.getBoundingClientRect().y);
@@ -751,7 +751,7 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
 
     // Update refX when mouseRef changes
     // biome-ignore lint/correctness/useExhaustiveDependencies: mouseRef is stable from useMouse hook
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     useEffect(() => {
         if (mouseRef.current) {
             setRefX(mouseRef.current.getBoundingClientRect().x);
@@ -814,7 +814,7 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
     return (
         <div
             className={cn(
-                'group absolute top-1/2 z-[3] h-full w-6 -translate-y-1/2 !cursor-col-resize rounded-md outline-none',
+                'group absolute top-1/2 z-3 h-full w-6 -translate-y-1/2 cursor-col-resize! rounded-md outline-none',
                 direction === 'left' ? '-left-2.5' : '-right-2.5',
             )}
             ref={setNodeRef}
@@ -1203,7 +1203,7 @@ export const GanttMarker: FC<
                         )}
                     >
                         {label}
-                        <span className="max-h-[0] overflow-hidden opacity-80 transition-all group-hover:max-h-[2rem]">
+                        <span className="max-h-0 overflow-hidden opacity-80 transition-all group-hover:max-h-8">
                             {formatDate(date, 'MMM dd, yyyy')}
                         </span>
                     </div>
@@ -1542,7 +1542,7 @@ export const GanttToday: FC<GanttTodayProps> = ({ className }) => {
                 )}
             >
                 {label}
-                <span className="max-h-[0] overflow-hidden opacity-80 transition-all group-hover:max-h-[2rem]">
+                <span className="max-h-0 overflow-hidden opacity-80 transition-all group-hover:max-h-8">
                     {formatDate(date, 'MMM dd, yyyy')}
                 </span>
             </div>
