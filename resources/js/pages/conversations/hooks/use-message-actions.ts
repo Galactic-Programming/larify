@@ -93,6 +93,13 @@ export function useMessageActions({
                     formData.append('attachments[]', file);
                 });
 
+                const xsrfToken = getXsrfToken();
+                console.log('[MessageActions] Sending message:', {
+                    conversationId,
+                    contentLength: content.length,
+                    hasXsrfToken: !!xsrfToken,
+                });
+
                 const response = await fetch(
                     `/conversations/${conversationId}/messages`,
                     {
@@ -100,14 +107,21 @@ export function useMessageActions({
                         credentials: 'same-origin',
                         headers: {
                             Accept: 'application/json',
-                            'X-XSRF-TOKEN': getXsrfToken(),
+                            'X-XSRF-TOKEN': xsrfToken,
                         },
                         body: formData,
                     },
                 );
 
+                console.log('[MessageActions] Response:', {
+                    status: response.status,
+                    ok: response.ok,
+                    statusText: response.statusText,
+                });
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('[MessageActions] Success data:', data);
                     onMessagesChange((prev) => {
                         let newMessages = prev;
 
@@ -141,13 +155,18 @@ export function useMessageActions({
                     });
                 } else {
                     // Revert optimistic update on error
+                    const errorText = await response.text();
+                    console.error('[MessageActions] Failed:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        body: errorText,
+                    });
                     if (optimisticMessage) {
                         onMessagesChange((prev) =>
                             prev.filter((m) => m.id !== tempId),
                         );
                         setInputValue(content);
                     }
-                    console.error('Failed to send message');
                 }
             } catch (error) {
                 // Revert optimistic update on error
