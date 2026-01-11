@@ -1,4 +1,5 @@
 import type { Message } from '@/types/chat';
+import { getXsrfToken } from '@/utils/csrf';
 import { useEcho } from '@laravel/echo-react';
 import { useCallback, useEffect, useRef } from 'react';
 
@@ -173,10 +174,7 @@ export function useConversationRealtime({
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>(
-                        'meta[name="csrf-token"]',
-                    )?.content ?? '',
+                'X-XSRF-TOKEN': getXsrfToken(),
             },
         });
     }, [conversationId]);
@@ -187,10 +185,7 @@ export function useConversationRealtime({
             method: 'POST',
             credentials: 'same-origin',
             headers: {
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>(
-                        'meta[name="csrf-token"]',
-                    )?.content ?? '',
+                'X-XSRF-TOKEN': getXsrfToken(),
             },
         });
     }, [conversationId]);

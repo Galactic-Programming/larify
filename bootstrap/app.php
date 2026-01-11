@@ -7,7 +7,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -44,5 +46,25 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Handle 419 CSRF token mismatch errors gracefully for Inertia
+        // When session expires, redirect back with a message instead of showing error page
+        $exceptions->respond(function (Response $response, \Throwable $exception, Request $request) {
+            // Handle CSRF token mismatch (419)
+            if ($response->getStatusCode() === 419) {
+                // For JSON/fetch requests, return 419 with message
+                // Frontend should handle this by refreshing the page to get new token
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Your session has expired. Please refresh the page.',
+                    ], 419);
+                }
+
+                // For regular requests, redirect back
+                return back()->with([
+                    'message' => 'Your session has expired. Please try again.',
+                ]);
+            }
+
+            return $response;
+        });
     })->create();

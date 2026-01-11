@@ -1,3 +1,4 @@
+import { getXsrfToken } from '@/utils/csrf';
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -52,10 +53,7 @@ function useAIRequest<T, TArgs extends unknown[]>(
                     headers: {
                         'Content-Type': 'application/json',
                         Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute('content') || '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify(buildPayload(...args)),
@@ -246,10 +244,7 @@ export function useAIChatHistory(projectId: number) {
                     method: 'DELETE',
                     credentials: 'same-origin',
                     headers: {
-                        'X-CSRF-TOKEN':
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute('content') || '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                     },
                 },
             );
@@ -303,10 +298,7 @@ export function useAIStreamChat(projectId: number, options: UseAIOptions = {}) {
                         headers: {
                             'Content-Type': 'application/json',
                             Accept: 'text/event-stream',
-                            'X-CSRF-TOKEN':
-                                document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    ?.getAttribute('content') || '',
+                            'X-XSRF-TOKEN': getXsrfToken(),
                         },
                         credentials: 'same-origin',
                         body: JSON.stringify({

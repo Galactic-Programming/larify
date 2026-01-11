@@ -1,4 +1,5 @@
 import type { Message } from '@/types/chat';
+import { getXsrfToken } from '@/utils/csrf';
 import { useCallback, useState } from 'react';
 
 interface User {
@@ -92,11 +93,6 @@ export function useMessageActions({
                     formData.append('attachments[]', file);
                 });
 
-                const csrfToken =
-                    document.querySelector<HTMLMetaElement>(
-                        'meta[name="csrf-token"]',
-                    )?.content ?? '';
-
                 const response = await fetch(
                     `/conversations/${conversationId}/messages`,
                     {
@@ -104,7 +100,7 @@ export function useMessageActions({
                         credentials: 'same-origin',
                         headers: {
                             Accept: 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
+                            'X-XSRF-TOKEN': getXsrfToken(),
                         },
                         body: formData,
                     },
@@ -201,10 +197,7 @@ export function useMessageActions({
                     credentials: 'same-origin',
                     headers: {
                         Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                     },
                 },
             );

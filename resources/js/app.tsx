@@ -1,6 +1,7 @@
 import '../css/app.css';
 
 import { Toaster } from '@/components/ui/sonner';
+import { getXsrfToken } from '@/utils/csrf';
 import { createInertiaApp } from '@inertiajs/react';
 import { configureEcho } from '@laravel/echo-react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -8,27 +9,19 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
-// Helper function to get CSRF token dynamically
-const getCsrfToken = (): string => {
-    return (
-        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-            ?.content ?? ''
-    );
-};
-
 // Configure Echo for Laravel Reverb broadcasting
-// Using authorizer function to get fresh CSRF token on each auth request
+// Using authorizer function to get fresh XSRF token on each auth request
 configureEcho({
     broadcaster: 'reverb',
     authorizer: (channel) => ({
-        authorize: (socketId: string, callback: (error: Error | null, data: unknown) => void) => {
+        authorize: (socketId: string, callback: (error: Error | null, authData: { auth: string; channel_data?: string } | null) => void) => {
             fetch('/broadcasting/auth', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     Accept: 'application/json',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-XSRF-TOKEN': getXsrfToken(),
                 },
                 body: new URLSearchParams({
                     socket_id: socketId,

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import { cn } from '@/lib/utils';
+import { getXsrfToken } from '@/utils/csrf';
 import { CloudUpload, File, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -137,18 +138,8 @@ export function FileUpload({ projectId, taskId, onSuccess, onError }: FileUpload
 
             xhr.open('POST', `/projects/${projectId}/tasks/${taskId}/attachments`);
 
-            // Get CSRF token from meta tag or cookie
-            const csrfToken =
-                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
-
-            if (csrfToken) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-                xhr.setRequestHeader('X-XSRF-TOKEN', decodeURIComponent(csrfToken));
-            }
+            // Get XSRF token from cookie (auto-set by Laravel)
+            xhr.setRequestHeader('X-XSRF-TOKEN', getXsrfToken());
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(formData);
         } catch {

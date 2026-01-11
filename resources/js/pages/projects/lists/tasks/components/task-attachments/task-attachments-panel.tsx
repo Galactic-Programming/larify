@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePlanFeatures } from '@/hooks/use-plan-limits';
 import { SharedData } from '@/types';
+import { getXsrfToken } from '@/utils/csrf';
 import { usePage } from '@inertiajs/react';
 import { Crown, Paperclip } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -97,9 +98,7 @@ export function TaskAttachmentsPanel({
                 {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                                ?.content || '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                         Accept: 'application/json',
                     },
                 },

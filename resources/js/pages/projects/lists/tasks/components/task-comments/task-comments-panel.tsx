@@ -1,4 +1,5 @@
 import { SharedData } from '@/types';
+import { getXsrfToken } from '@/utils/csrf';
 import { usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -139,9 +140,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
             method,
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                        ?.content || '',
+                'X-XSRF-TOKEN': getXsrfToken(),
                 Accept: 'application/json',
             },
             body: JSON.stringify({ content }),
@@ -177,9 +176,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
             {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN':
-                        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                            ?.content || '',
+                    'X-XSRF-TOKEN': getXsrfToken(),
                     Accept: 'application/json',
                 },
             },
@@ -203,9 +200,7 @@ export function TaskCommentsPanel({ projectId, taskId }: TaskCommentsPanelProps)
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                                ?.content || '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                         Accept: 'application/json',
                     },
                     body: JSON.stringify({ emoji }),

@@ -3,6 +3,7 @@ import { Spinner } from '@/components/ui/spinner';
 import ChatLayout from '@/layouts/chat/chat-layout';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import type { Conversation, ConversationDetail, Message } from '@/types/chat';
+import { getXsrfToken } from '@/utils/csrf';
 import { Head, usePage } from '@inertiajs/react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
@@ -194,10 +195,7 @@ export default function ConversationShow({
                     credentials: 'same-origin',
                     headers: {
                         Accept: 'application/json',
-                        'X-CSRF-TOKEN':
-                            document.querySelector<HTMLMetaElement>(
-                                'meta[name="csrf-token"]',
-                            )?.content ?? '',
+                        'X-XSRF-TOKEN': getXsrfToken(),
                     },
                 },
             );
