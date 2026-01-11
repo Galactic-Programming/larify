@@ -62,6 +62,12 @@ export default function ConversationShow({
         conversation.messages.length >= 50,
     );
 
+    // Sync messages when conversation changes (e.g., page refresh, navigation)
+    useEffect(() => {
+        setMessages(conversation.messages);
+        setHasMoreMessages(conversation.messages.length >= 50);
+    }, [conversation.id, conversation.messages]);
+
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
