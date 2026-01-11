@@ -316,11 +316,13 @@ export default function ConversationShow({
     // Scroll to a specific message (for search results)
     const scrollToMessage = useCallback(
         async (message: Message) => {
+            console.log('scrollToMessage called with:', message);
             isScrollingToSpecificMessage.current = true;
             // First check if message is already loaded
             const existingElement = document.querySelector(
                 `[data-message-id="${message.id}"]`,
             );
+            console.log('existingElement:', existingElement);
 
             if (existingElement) {
                 // Message is already in view, scroll to it
