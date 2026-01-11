@@ -8,20 +8,47 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
+// Helper function to get CSRF token dynamically
+const getCsrfToken = (): string => {
+    return (
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? ''
+    );
+};
+
 // Configure Echo for Laravel Reverb broadcasting
-// The @laravel/echo-react package uses pusher-js under the hood
-// We need to configure auth headers for private channel authorization
+// Using authorizer function to get fresh CSRF token on each auth request
 configureEcho({
     broadcaster: 'reverb',
-    authEndpoint: '/broadcasting/auth',
-    auth: {
-        headers: {
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>(
-                    'meta[name="csrf-token"]',
-                )?.content ?? '',
+    authorizer: (channel) => ({
+        authorize: (socketId: string, callback: (error: Error | null, data: unknown) => void) => {
+            fetch('/broadcasting/auth', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                },
+                body: new URLSearchParams({
+                    socket_id: socketId,
+                    channel_name: channel.name,
+                }).toString(),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Auth failed: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    callback(null, data);
+                })
+                .catch((error) => {
+                    callback(error, null);
+                });
         },
-    },
+    }),
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
