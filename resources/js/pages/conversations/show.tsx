@@ -313,34 +313,54 @@ export default function ConversationShow({
     // State for tracking scroll-to-message loading
     const [isLoadingToMessage, setIsLoadingToMessage] = useState(false);
 
+    // Helper function to highlight a message element
+    const highlightMessage = useCallback((element: Element) => {
+        // Add highlight classes with ring effect (more visible than background)
+        element.classList.add(
+            'ring-2',
+            'ring-yellow-400',
+            'ring-offset-2',
+            'rounded-2xl',
+            'transition-all',
+        );
+        // Also add a subtle scale animation
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.transform = 'scale(1.02)';
+        htmlElement.style.transition = 'transform 0.3s ease';
+
+        // Remove highlight after 2 seconds
+        setTimeout(() => {
+            element.classList.remove(
+                'ring-2',
+                'ring-yellow-400',
+                'ring-offset-2',
+                'rounded-2xl',
+                'transition-all',
+            );
+            htmlElement.style.transform = '';
+        }, 2000);
+    }, []);
+
     // Scroll to a specific message (for search results)
     const scrollToMessage = useCallback(
         async (message: Message) => {
-            console.log('scrollToMessage called with:', message);
             isScrollingToSpecificMessage.current = true;
+
             // First check if message is already loaded
             const existingElement = document.querySelector(
                 `[data-message-id="${message.id}"]`,
             );
-            console.log('existingElement:', existingElement);
 
             if (existingElement) {
-                // Message is already in view, scroll to it
+                // Message is already loaded, scroll to it
                 existingElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center',
                 });
-                // Highlight the message briefly
-                existingElement.classList.add(
-                    'bg-yellow-100',
-                    'dark:bg-yellow-900/30',
-                );
+                // Highlight after a short delay to let scroll complete
                 setTimeout(() => {
-                    existingElement.classList.remove(
-                        'bg-yellow-100',
-                        'dark:bg-yellow-900/30',
-                    );
-                }, 2000);
+                    highlightMessage(existingElement);
+                }, 300);
                 isScrollingToSpecificMessage.current = false;
                 return;
             }
@@ -384,17 +404,10 @@ export default function ConversationShow({
                                     behavior: 'smooth',
                                     block: 'center',
                                 });
-                                // Highlight the message briefly
-                                messageElement.classList.add(
-                                    'bg-yellow-100',
-                                    'dark:bg-yellow-900/30',
-                                );
+                                // Highlight after scroll completes
                                 setTimeout(() => {
-                                    messageElement.classList.remove(
-                                        'bg-yellow-100',
-                                        'dark:bg-yellow-900/30',
-                                    );
-                                }, 2000);
+                                    highlightMessage(messageElement);
+                                }, 300);
                             }
                         }, 100);
                     });
@@ -406,7 +419,7 @@ export default function ConversationShow({
                 isScrollingToSpecificMessage.current = false;
             }
         },
-        [conversation.id],
+        [conversation.id, highlightMessage],
     );
 
     return (
