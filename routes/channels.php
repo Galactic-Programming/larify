@@ -89,3 +89,10 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
 Broadcast::channel('user.{userId}.conversations', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
+
+/**
+ * User dashboard channel - for receiving real-time dashboard updates
+ */
+Broadcast::channel('user.{userId}.dashboard', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
