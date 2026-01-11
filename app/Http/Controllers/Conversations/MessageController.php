@@ -123,6 +123,13 @@ class MessageController extends Controller
             'content' => $content,
         ]);
 
+        Log::info('Message created', [
+            'message_id' => $message->id,
+            'conversation_id' => $conversation->id,
+            'sender_id' => $request->user()->id,
+            'content_length' => strlen($content),
+        ]);
+
         // Handle file attachments
         if ($request->hasFile('attachments')) {
             $disk = config('filesystems.default');
