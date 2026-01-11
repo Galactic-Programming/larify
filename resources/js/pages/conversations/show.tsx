@@ -192,6 +192,7 @@ export default function ConversationShow({
             const response = await fetch(
                 `/api/conversations/${conversation.id}/messages?before=${oldestMessage.id}&limit=50`,
                 {
+                    credentials: 'same-origin',
                     headers: {
                         Accept: 'application/json',
                         'X-CSRF-TOKEN':
@@ -349,6 +350,7 @@ export default function ConversationShow({
                 const response = await fetch(
                     `/api/conversations/${conversation.id}/messages?around=${message.id}&limit=50`,
                     {
+                        credentials: 'same-origin',
                         headers: {
                             Accept: 'application/json',
                             'X-CSRF-TOKEN':

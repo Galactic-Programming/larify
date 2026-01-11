@@ -170,6 +170,7 @@ export function useConversationRealtime({
     const sendTypingIndicator = useCallback(() => {
         fetch(`/conversations/${conversationId}/typing`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN':
@@ -184,6 +185,7 @@ export function useConversationRealtime({
     const markMessagesAsRead = useCallback(() => {
         fetch(`/conversations/${conversationId}/messages/read`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'X-CSRF-TOKEN':
                     document.querySelector<HTMLMetaElement>(

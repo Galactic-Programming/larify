@@ -101,6 +101,7 @@ export function useMessageActions({
                     `/conversations/${conversationId}/messages`,
                     {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: {
                             Accept: 'application/json',
                             'X-CSRF-TOKEN': csrfToken,
@@ -197,6 +198,7 @@ export function useMessageActions({
                 `/conversations/${conversationId}/messages/${messageId}`,
                 {
                     method: 'DELETE',
+                    credentials: 'same-origin',
                     headers: {
                         Accept: 'application/json',
                         'X-CSRF-TOKEN':

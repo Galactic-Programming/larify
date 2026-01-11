@@ -45,6 +45,7 @@ export function MessageSearch({
                 const response = await fetch(
                     `/api/conversations/${conversationId}/messages/search?q=${encodeURIComponent(searchQuery)}`,
                     {
+                        credentials: 'same-origin',
                         headers: {
                             Accept: 'application/json',
                             'X-CSRF-TOKEN':
