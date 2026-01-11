@@ -9,26 +9,14 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
-// Helper to ensure we have a valid XSRF token before making requests
-// If token is missing, make a simple request to get fresh cookies
-const ensureXsrfToken = async (): Promise<string> => {
-    let token = getXsrfToken();
-    if (!token) {
-        // Make a request to refresh cookies (sanctum/csrf-cookie or any GET request)
-        await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
-        token = getXsrfToken();
-    }
-    return token;
-};
-
 // Helper to perform broadcasting auth with retry on 403/419
-// This handles cases where XSRF token is stale after login/navigation
+// XSRF token is already set by Laravel on every response via cookie
 const authorizeBroadcasting = async (
     socketId: string,
     channelName: string,
-    retries = 2,
+    retries = 1,
 ): Promise<{ auth: string; channel_data?: string }> => {
-    const token = await ensureXsrfToken();
+    const token = getXsrfToken();
 
     const response = await fetch('/broadcasting/auth', {
         method: 'POST',
@@ -45,13 +33,14 @@ const authorizeBroadcasting = async (
     });
 
     if (!response.ok) {
-        // On 403/419, retry after refreshing XSRF token
+        // On 403/419, retry once after a short delay
+        // This handles race conditions where token may not be fully synced
         if ((response.status === 403 || response.status === 419) && retries > 0) {
-            // Force refresh XSRF token
-            await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             return authorizeBroadcasting(socketId, channelName, retries - 1);
         }
+        // Log for debugging but don't throw - channel subscription will fail gracefully
+        console.warn(`Broadcasting auth failed for ${channelName}: ${response.status}`);
         throw new Error(`Auth failed: ${response.status}`);
     }
 
