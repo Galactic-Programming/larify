@@ -26,8 +26,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Messages
     Route::get('api/conversations/{conversation}/messages', [MessageController::class, 'index'])
         ->name('api.conversations.messages.index');
-    Route::get('api/conversations/{conversation}/messages/search', [MessageController::class, 'search'])
-        ->name('api.conversations.messages.search');
     Route::get('api/conversations/{conversation}/participants', [MessageController::class, 'participants'])
         ->name('api.conversations.participants');
     Route::post('conversations/{conversation}/messages', [MessageController::class, 'store'])

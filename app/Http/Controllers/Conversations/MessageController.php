@@ -43,7 +43,7 @@ class MessageController extends Controller
         // If loading messages around a specific message (for search results)
         if ($around) {
             $targetMessage = Message::where('conversation_id', $conversation->id)->find($around);
-            if (!$targetMessage) {
+            if (! $targetMessage) {
                 return response()->json([
                     'messages' => [],
                     'has_more' => false,
@@ -947,37 +947,6 @@ class MessageController extends Controller
         ))->toOthers();
 
         return response()->json(['success' => true]);
-    }
-
-    /**
-     * Search messages within a conversation.
-     */
-    public function search(Request $request, Conversation $conversation): JsonResponse
-    {
-        Gate::authorize('view', $conversation);
-
-        $request->validate([
-            'q' => ['required', 'string', 'min:2', 'max:100'],
-        ]);
-
-        $query = $request->input('q');
-        $limit = min((int) $request->query('limit', 20), 50);
-
-        $messages = $conversation->messages()
-            ->with(['sender:id,name,avatar', 'attachments', 'mentions.user:id,name,email'])
-            ->where('content', 'like', "%{$query}%")
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get()
-            ->reverse()
-            ->values();
-
-        return response()->json([
-            'messages' => MessageResource::collection($messages),
-            'total' => $conversation->messages()
-                ->where('content', 'like', "%{$query}%")
-                ->count(),
-        ]);
     }
 
     /**

@@ -5,5 +5,4 @@ export { ImageGallery } from './image-gallery';
 export { MembersSheet } from './members-sheet';
 export { MentionAutocomplete } from './mention-autocomplete';
 export { MessageBubble } from './message-bubble';
-export { MessageSearch } from './message-search';
 export { AIThinkingBubble, TypingIndicator } from './typing-indicator';

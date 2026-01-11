@@ -5,11 +5,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { Message } from '@/types/chat';
 import { Link } from '@inertiajs/react';
 import * as LucideIcons from 'lucide-react';
 import { ArrowLeft, Users } from 'lucide-react';
-import { MessageSearch } from './message-search';
 
 // Dynamic icon component for project icons
 function ProjectIcon({
@@ -23,29 +21,25 @@ function ProjectIcon({
 }) {
     const Icon =
         (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[
-            iconName
+        iconName
         ] ?? LucideIcons.FolderKanban;
     return <Icon className={className} style={style} />;
 }
 
 interface ConversationHeaderProps {
-    conversationId: number;
     name: string;
     icon?: string | null;
     color?: string | null;
     participantsCount: number;
     onShowMembers: () => void;
-    onSelectSearchResult?: (message: Message) => void;
 }
 
 export function ConversationHeader({
-    conversationId,
     name,
     icon,
     color,
     participantsCount,
     onShowMembers,
-    onSelectSearchResult,
 }: ConversationHeaderProps) {
     return (
         <div className="border-b p-4">
@@ -86,17 +80,6 @@ export function ConversationHeader({
 
                 <div className="flex items-center gap-2">
                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span>
-                                    <MessageSearch
-                                        conversationId={conversationId}
-                                        onSelectMessage={onSelectSearchResult}
-                                    />
-                                </span>
-                            </TooltipTrigger>
-                            <TooltipContent>Search messages</TooltipContent>
-                        </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
