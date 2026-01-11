@@ -9,37 +9,66 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
+// Helper to ensure we have a valid XSRF token before making requests
+// If token is missing, make a simple request to get fresh cookies
+const ensureXsrfToken = async (): Promise<string> => {
+    let token = getXsrfToken();
+    if (!token) {
+        // Make a request to refresh cookies (sanctum/csrf-cookie or any GET request)
+        await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
+        token = getXsrfToken();
+    }
+    return token;
+};
+
+// Helper to perform broadcasting auth with retry on 403/419
+// This handles cases where XSRF token is stale after login/navigation
+const authorizeBroadcasting = async (
+    socketId: string,
+    channelName: string,
+    retries = 2,
+): Promise<{ auth: string; channel_data?: string }> => {
+    const token = await ensureXsrfToken();
+
+    const response = await fetch('/broadcasting/auth', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json',
+            'X-XSRF-TOKEN': token,
+        },
+        body: new URLSearchParams({
+            socket_id: socketId,
+            channel_name: channelName,
+        }).toString(),
+    });
+
+    if (!response.ok) {
+        // On 403/419, retry after refreshing XSRF token
+        if ((response.status === 403 || response.status === 419) && retries > 0) {
+            // Force refresh XSRF token
+            await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            return authorizeBroadcasting(socketId, channelName, retries - 1);
+        }
+        throw new Error(`Auth failed: ${response.status}`);
+    }
+
+    return response.json();
+};
+
 // Configure Echo for Laravel Reverb broadcasting
-// Using authorizer function to get fresh XSRF token on each auth request
 configureEcho({
     broadcaster: 'reverb',
     authorizer: (channel) => ({
-        authorize: (socketId: string, callback: (error: Error | null, authData: { auth: string; channel_data?: string } | null) => void) => {
-            fetch('/broadcasting/auth', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    Accept: 'application/json',
-                    'X-XSRF-TOKEN': getXsrfToken(),
-                },
-                body: new URLSearchParams({
-                    socket_id: socketId,
-                    channel_name: channel.name,
-                }).toString(),
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`Auth failed: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    callback(null, data);
-                })
-                .catch((error) => {
-                    callback(error, null);
-                });
+        authorize: (
+            socketId: string,
+            callback: (error: Error | null, authData: { auth: string; channel_data?: string } | null) => void,
+        ) => {
+            authorizeBroadcasting(socketId, channel.name)
+                .then((data) => callback(null, data))
+                .catch((error) => callback(error, null));
         },
     }),
 });
