@@ -1,137 +1,368 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Main Application Flow" id="main-flow">
-    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="600" math="0" shadow="0">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         
         <!-- Title -->
-        <mxCell id="title" value="Larify - Main Application Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="350" y="20" width="300" height="30" as="geometry" />
+        <mxCell id="title" value="Larify - Main Application Request Flow (Architectural Design)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="500" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Subtitle -->
+        <mxCell id="subtitle" value="Laravel 12 + Inertia.js v2 + React 19 + TypeScript" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="480" y="50" width="340" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Step Numbers Background -->
+        <mxCell id="step-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="100" width="1320" height="550" as="geometry" />
+        </mxCell>
+        
+        <!-- ========== FRONTEND LAYER ========== -->
+        <mxCell id="frontend-layer" value="FRONTEND LAYER" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="50" y="110" width="340" height="25" as="geometry" />
         </mxCell>
         
         <!-- User -->
-        <mxCell id="user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="80" y="200" width="50" height="90" as="geometry" />
+        <mxCell id="user" value="👤 User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="180" width="40" height="70" as="geometry" />
         </mxCell>
         
-        <!-- View (React) -->
-        <mxCell id="view" value="View&#xa;(React 19 + TypeScript)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="200" y="140" width="150" height="60" as="geometry" />
+        <!-- Step 1: React Pages -->
+        <mxCell id="react-pages" value="React Pages&#xa;(resources/js/Pages)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="150" y="150" width="130" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="step1" value="①" style="text;html=1;strokeColor=none;fillColor=#6c8ebf;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="150" y="150" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="react-detail" value="• dashboard.tsx&#xa;• projects/*.tsx&#xa;• tasks/*.tsx" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="150" y="205" width="130" height="45" as="geometry" />
         </mxCell>
         
-        <!-- Inertia.js -->
-        <mxCell id="inertia" value="Inertia.js v2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="200" y="280" width="150" height="50" as="geometry" />
+        <!-- Step 2: Inertia Router -->
+        <mxCell id="inertia-router" value="Inertia.js v2&#xa;(Client Router)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="150" y="270" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step2" value="②" style="text;html=1;strokeColor=none;fillColor=#9673a6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="150" y="270" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="inertia-detail" value="• router.visit()&#xa;• &lt;Link&gt; / &lt;Form&gt;&#xa;• useForm()" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="150" y="320" width="130" height="40" as="geometry" />
         </mxCell>
         
-        <!-- Route -->
-        <mxCell id="route" value="Route&#xa;(Laravel 12)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="450" y="140" width="130" height="60" as="geometry" />
+        <!-- Wayfinder -->
+        <mxCell id="wayfinder" value="Wayfinder&#xa;(Type-safe Routes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="150" y="380" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="wayfinder-detail" value="@/actions/*&#xa;@/routes/*" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="150" y="420" width="130" height="25" as="geometry" />
         </mxCell>
         
-        <!-- Controller -->
-        <mxCell id="controller" value="Controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="450" y="280" width="130" height="50" as="geometry" />
+        <!-- ========== BACKEND LAYER ========== -->
+        <mxCell id="backend-layer" value="BACKEND LAYER (Laravel 12)" style="text;html=1;strokeColor=none;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="410" y="110" width="530" height="25" as="geometry" />
         </mxCell>
         
-        <!-- Model -->
-        <mxCell id="model" value="Model&#xa;(Eloquent ORM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="680" y="200" width="140" height="60" as="geometry" />
+        <!-- Step 3: Routes -->
+        <mxCell id="routes" value="Routes&#xa;(routes/*.php)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="330" y="165" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step3" value="③" style="text;html=1;strokeColor=none;fillColor=#666666;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="165" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="routes-detail" value="web.php, projects.php&#xa;tasks.php, ai.php..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="330" y="215" width="120" height="30" as="geometry" />
         </mxCell>
         
-        <!-- MySQL -->
-        <mxCell id="mysql" value="MySQL" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="920" y="185" width="100" height="90" as="geometry" />
+        <!-- Step 4: Middleware -->
+        <mxCell id="middleware" value="Middleware&#xa;(Auth, CSRF, Inertia)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="165" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step4" value="④" style="text;html=1;strokeColor=none;fillColor=#d6b656;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="470" y="165" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="middleware-detail" value="HandleInertiaRequests&#xa;HandleAppearance&#xa;EnsureUserCanUseAI" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="470" y="215" width="130" height="40" as="geometry" />
         </mxCell>
         
-        <!-- Arrows -->
-        <!-- User to View -->
-        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="user" target="view">
+        <!-- Step 5: FormRequest -->
+        <mxCell id="formrequest" value="FormRequest&#xa;(Validation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="165" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step5" value="⑤" style="text;html=1;strokeColor=none;fillColor=#82b366;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="620" y="165" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="formrequest-detail" value="StoreTaskRequest&#xa;UpdateProjectRequest&#xa;StoreMessageRequest" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="620" y="215" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 6: Controller -->
+        <mxCell id="controller" value="Controller&#xa;(Business Logic)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="165" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step6" value="⑥" style="text;html=1;strokeColor=none;fillColor=#666666;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="760" y="165" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="controller-detail" value="TaskController&#xa;ProjectController&#xa;ConversationController" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="760" y="215" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 7: Policy -->
+        <mxCell id="policy" value="Policy&#xa;(Authorization)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="285" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step7" value="⑦" style="text;html=1;strokeColor=none;fillColor=#d6b656;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="470" y="285" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="policy-detail" value="ProjectPolicy&#xa;TaskPolicy&#xa;ConversationPolicy" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="470" y="335" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 8: Model -->
+        <mxCell id="model" value="Eloquent Model&#xa;(ORM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="285" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step8" value="⑧" style="text;html=1;strokeColor=none;fillColor=#666666;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="620" y="285" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="model-detail" value="Project, Task, TaskList&#xa;User, Conversation&#xa;Message, Label..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="620" y="335" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- ========== DATA LAYER ========== -->
+        <mxCell id="data-layer" value="DATA LAYER" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="960" y="110" width="180" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 9: MySQL -->
+        <mxCell id="mysql" value="MySQL&#xa;Database" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="160" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="step9" value="⑨" style="text;html=1;strokeColor=none;fillColor=#b85450;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="160" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="mysql-detail" value="projects, tasks&#xa;task_lists, users&#xa;conversations..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="240" width="100" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- ========== RESPONSE FLOW ========== -->
+        <mxCell id="response-layer" value="RESPONSE FLOW" style="text;html=1;strokeColor=none;fillColor=#d4edda;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="410" y="400" width="530" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 10: Inertia Response -->
+        <mxCell id="inertia-response" value="Inertia::render()&#xa;(JSON/HTML Response)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="440" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step10" value="⑩" style="text;html=1;strokeColor=none;fillColor=#9673a6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="760" y="440" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="inertia-resp-detail" value="Props, Shared Data&#xa;Page Component" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="760" y="490" width="140" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 11: Handle Inertia Request Middleware -->
+        <mxCell id="handle-inertia" value="HandleInertiaRequests&#xa;(Shared Props)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="570" y="440" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step11" value="⑪" style="text;html=1;strokeColor=none;fillColor=#d6b656;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="570" y="440" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="handle-inertia-detail" value="auth.user, flash&#xa;ziggy routes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="570" y="490" width="150" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 12: React Re-render -->
+        <mxCell id="react-rerender" value="React Component&#xa;Re-render (DOM Update)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="440" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step12" value="⑫" style="text;html=1;strokeColor=none;fillColor=#6c8ebf;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="380" y="440" width="22" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="react-rerender-detail" value="usePage(), props&#xa;Virtual DOM diff" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="380" y="490" width="150" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- ========== ARROWS - REQUEST FLOW ========== -->
+        <!-- User to React -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="user" target="react-pages">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e1-label" value="DOM Update" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e1">
+        <mxCell id="e1-label" value="Click/Input" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#6c8ebf;" vertex="1" connectable="0" parent="e1">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- View to Route -->
-        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="view" target="route">
+        <!-- React to Inertia -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="react-pages" target="inertia-router">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e2-label" value="HTTP Request" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e2">
+        <mxCell id="e2-label" value="Visit/Submit" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#9673a6;" vertex="1" connectable="0" parent="e2">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- View to Inertia -->
-        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="view" target="inertia">
+        <!-- Inertia to Routes -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="inertia-router" target="routes">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e3-label" value="Component&#xa;Rendering" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e3">
+        <mxCell id="e3-label" value="XHR Request" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e3">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- Route to Controller -->
-        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="route" target="controller">
+        <!-- Routes to Middleware -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;" edge="1" parent="1" source="routes" target="middleware">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e4-label" value="Routing Dispatch" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e4">
+        <mxCell id="e4-label" value="Pipeline" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#d6b656;" vertex="1" connectable="0" parent="e4">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- Inertia to Controller -->
-        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="inertia" target="controller">
+        <!-- Middleware to FormRequest -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="middleware" target="formrequest">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e5-label" value="Inertia Response" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e5">
+        <mxCell id="e5-label" value="Validate" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#82b366;" vertex="1" connectable="0" parent="e5">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- Controller to Model -->
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="controller" target="model">
+        <!-- FormRequest to Controller -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="formrequest" target="controller">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e6-label" value="Business Logic" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e6">
+        <mxCell id="e6-label" value="Dispatch" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e6">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Controller to Policy -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="controller" target="policy">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="825" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7-label" value="Authorize" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#d6b656;" vertex="1" connectable="0" parent="e7">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- Policy to Model -->
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="policy" target="model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8-label" value="Query" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e8">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
         <!-- Model to MySQL -->
-        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="model" target="mysql">
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="model" target="mysql">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e7-label" value="ORM Query" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="e7">
+        <mxCell id="e9-label" value="SQL Query" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#b85450;" vertex="1" connectable="0" parent="e9">
           <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
         
-        <!-- Legend -->
-        <mxCell id="legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="400" width="400" height="80" as="geometry" />
+        <!-- ========== ARROWS - RESPONSE FLOW ========== -->
+        <!-- MySQL to Model (return) -->
+        <mxCell id="r1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;dashed=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="mysql" target="inertia-response">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="970" y="225" />
+              <mxPoint x="970" y="380" />
+              <mxPoint x="830" y="380" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="leg-title" value="Legend:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="210" y="405" width="60" height="20" as="geometry" />
+        <mxCell id="r1-label" value="Data Return" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#82b366;" vertex="1" connectable="0" parent="r1">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
         </mxCell>
+        
+        <!-- Inertia Response to HandleInertia -->
+        <mxCell id="r2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;dashed=1;" edge="1" parent="1" source="inertia-response" target="handle-inertia">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r2-label" value="Add Shared" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#d6b656;" vertex="1" connectable="0" parent="r2">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- HandleInertia to React Rerender -->
+        <mxCell id="r3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;dashed=1;" edge="1" parent="1" source="handle-inertia" target="react-rerender">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r3-label" value="JSON Props" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#6c8ebf;" vertex="1" connectable="0" parent="r3">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- React Rerender to User -->
+        <mxCell id="r4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="react-rerender" target="user">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r4-label" value="UI Update" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#6c8ebf;" vertex="1" connectable="0" parent="r4">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        
+        <!-- ========== LEGEND ========== -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="300" width="180" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="305" width="80" height="20" as="geometry" />
+        </mxCell>
+        
         <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="210" y="430" width="20" height="15" as="geometry" />
+          <mxGeometry x="970" y="330" width="18" height="14" as="geometry" />
         </mxCell>
-        <mxCell id="leg1-text" value="Frontend (React)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="235" y="427" width="90" height="20" as="geometry" />
+        <mxCell id="leg1-text" value="Frontend (React)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="327" width="90" height="18" as="geometry" />
         </mxCell>
+        
         <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="210" y="455" width="20" height="15" as="geometry" />
+          <mxGeometry x="970" y="350" width="18" height="14" as="geometry" />
         </mxCell>
-        <mxCell id="leg2-text" value="Inertia.js Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="235" y="452" width="90" height="20" as="geometry" />
+        <mxCell id="leg2-text" value="Inertia.js Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="347" width="90" height="18" as="geometry" />
         </mxCell>
+        
         <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="360" y="430" width="20" height="15" as="geometry" />
+          <mxGeometry x="970" y="370" width="18" height="14" as="geometry" />
         </mxCell>
-        <mxCell id="leg3-text" value="Backend (Laravel)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="385" y="427" width="100" height="20" as="geometry" />
+        <mxCell id="leg3-text" value="Backend (Laravel)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="367" width="100" height="18" as="geometry" />
         </mxCell>
-        <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="360" y="455" width="20" height="15" as="geometry" />
+        
+        <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="390" width="18" height="14" as="geometry" />
         </mxCell>
-        <mxCell id="leg4-text" value="Database" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="385" y="452" width="100" height="20" as="geometry" />
+        <mxCell id="leg4-text" value="Middleware/Policy" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="387" width="100" height="18" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="leg5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="410" width="18" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5-text" value="Validation" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="407" width="100" height="18" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="leg6" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="430" width="18" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6-text" value="Database" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="993" y="427" width="100" height="18" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="leg7-line" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="970" y="457" as="sourcePoint" />
+            <mxPoint x="1005" y="457" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg7-text" value="Request Flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="449" width="80" height="18" as="geometry" />
         </mxCell>
         
       </root>
