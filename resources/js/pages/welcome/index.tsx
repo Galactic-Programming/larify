@@ -17,9 +17,10 @@ import {
 
 interface WelcomeProps {
     canRegister?: boolean;
+    activeUsersCount?: number;
 }
 
-export default function Welcome({ canRegister = true }: WelcomeProps) {
+export default function Welcome({ canRegister = true, activeUsersCount = 0 }: WelcomeProps) {
     return (
         <>
             <Head title="Welcome to Laraflow" />
@@ -29,7 +30,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                     <HeroSection canRegister={canRegister} />
                     <FeaturesSection />
                     <LazySection>
-                        <SocialProofSection />
+                        <SocialProofSection activeUsersCount={activeUsersCount} />
                     </LazySection>
                     <LazySection>
                         <PricingSection />

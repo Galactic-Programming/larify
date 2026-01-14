@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
     Carousel,
@@ -23,15 +24,20 @@ export function TestimonialsSection() {
             >
                 {/* Left Content */}
                 <div className="space-y-3 sm:w-1/2 sm:space-y-4 lg:w-1/3">
-                    <p className="text-sm font-medium text-primary uppercase">
-                        Real customers
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-primary uppercase">
+                            Future Feature
+                        </p>
+                        <Badge variant="secondary" className="text-xs">
+                            Coming Soon
+                        </Badge>
+                    </div>
                     <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">
                         What Our Users Say
                     </h2>
                     <p className="text-base text-muted-foreground sm:text-lg">
-                        Discover how Laraflow has helped thousands achieve their
-                        productivity goals.
+                        User reviews feature is coming soon. Share your
+                        experience with Laraflow and help others discover it.
                     </p>
                     <div className="flex items-center gap-3 pt-2 sm:gap-4">
                         <CarouselPrevious

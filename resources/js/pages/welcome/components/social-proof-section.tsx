@@ -4,6 +4,10 @@ import { CircleCheckIcon } from 'lucide-react';
 
 import { socialProofFeatures } from '../data/constants';
 
+interface SocialProofSectionProps {
+    activeUsersCount?: number;
+}
+
 function AnimatedCounter({
     target,
     suffix = '',
@@ -54,7 +58,7 @@ function AnimatedCounter({
     );
 }
 
-export function SocialProofSection() {
+export function SocialProofSection({ activeUsersCount = 0 }: SocialProofSectionProps) {
     return (
         <section className="py-12 sm:py-16 lg:py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -100,7 +104,7 @@ export function SocialProofSection() {
                             />
                             <div className="absolute inset-0 bg-black/60" />
                             <div className="relative z-10 text-center text-white">
-                                <AnimatedCounter target={1000} suffix="+" />
+                                <AnimatedCounter target={activeUsersCount} suffix="+" />
                                 <div className="text-sm opacity-90 sm:text-base lg:text-lg">
                                     Active Users
                                 </div>

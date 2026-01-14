@@ -102,7 +102,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
         rating: 5,
         content:
-            'Laraflow has completely transformed how I manage my daily tasks. The focus mode is a game-changer for deep work sessions.',
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     },
     {
         name: 'Michael Rodriguez',
@@ -111,7 +111,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
         rating: 5,
         content:
-            'Finally, a productivity app that understands developers. The keyboard shortcuts and quick actions save me hours every week.',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     },
     {
         name: 'Emily Watson',
@@ -120,7 +120,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
         rating: 4.5,
         content:
-            'As a freelancer, tracking time across multiple projects was always a pain. Laraflow makes it effortless and even enjoyable.',
+            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     },
     {
         name: 'David Kim',
@@ -129,7 +129,7 @@ export const testimonials: Testimonial[] = [
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
         rating: 5,
         content:
-            'The smart scheduling feature has helped our entire team become more productive. Highly recommend for any team leader.',
+            'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
 ];
 
